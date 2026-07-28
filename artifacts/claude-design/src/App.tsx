@@ -240,36 +240,28 @@ class App extends React.Component<{}, AppState> {
   onMaterialInput = (e: any) => this.setState({ materialDraft: e.target.value });
   backToApp = () => this.setState({ screen: 'app' });
 
-  bufToBase64 = (buf: ArrayBuffer): string => {
-    const bytes = new Uint8Array(buf);
-    let binary = '';
-    const chunk = 65536;
-    for (let i = 0; i < bytes.length; i += chunk) {
-      binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
-    }
-    return btoa(binary);
-  };
+  // Async, off-main-thread base64 via FileReader — never blocks the UI
+  fileToBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      resolve(dataUrl.split(',')[1]);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 
   onPdfChosen = async (e: any) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     this.setState({ pdfLoading: true, pdfStatusText: 'Reading PDF…' });
     try {
-      const buf = await file.arrayBuffer();
-      let text = await this.localPdfText(buf);
-      if (!text || text.length < 40) {
-        const b64 = this.bufToBase64(buf);
-        text = await this.claudePdfText(file, b64);
-      }
-      if (!text || text.length < 40) {
-        this.setState({ pdfLoading: false, pdfStatusText: 'Could not read that PDF. Try pasting the text instead.' });
-        return;
-      }
-      // Auto-advance straight to concept extraction — no need to click again
-      this.update({ pdfLoading: false, pdfStatusText: 'PDF loaded ✓', material: text, materialDraft: text, screen: 'processing', extracting: true, extractError: false, materialCameFromApp: this.state.fromApp || this.state.materialCameFromApp });
+      const b64 = await this.fileToBase64(file);
+      // Go straight to the processing screen and run a single combined call
+      this.update({ pdfLoading: false, pdfStatusText: 'PDF loaded ✓', screen: 'processing', extracting: true, extractError: false, materialCameFromApp: this.state.fromApp || this.state.materialCameFromApp });
       this.startExtractCountdown();
-      this.extractConcepts(text);
-    } catch (err) {
+      this.extractConceptsFromFile({ type: 'pdf', b64, mediaType: file.type || 'application/pdf' });
+    } catch {
       this.setState({ pdfLoading: false, pdfStatusText: 'Could not read that PDF. Try pasting the text instead.' });
     }
   };
@@ -279,17 +271,10 @@ class App extends React.Component<{}, AppState> {
     if (!file) return;
     this.setState({ photoLoading: true, photoStatusText: 'Reading photo…' });
     try {
-      const buf = await file.arrayBuffer();
-      const b64 = this.bufToBase64(buf);
-      const text = await this.claudePhotoText(file, b64);
-      if (!text || text.length < 10) {
-        this.setState({ photoLoading: false, photoStatusText: 'Could not read text from that photo.' });
-        return;
-      }
-      // Auto-advance straight to concept extraction
-      this.update({ photoLoading: false, photoStatusText: 'Photo loaded ✓', material: text, materialDraft: text, screen: 'processing', extracting: true, extractError: false, materialCameFromApp: this.state.fromApp || this.state.materialCameFromApp });
+      const b64 = await this.fileToBase64(file);
+      this.update({ photoLoading: false, photoStatusText: 'Photo loaded ✓', screen: 'processing', extracting: true, extractError: false, materialCameFromApp: this.state.fromApp || this.state.materialCameFromApp });
       this.startExtractCountdown();
-      this.extractConcepts(text);
+      this.extractConceptsFromFile({ type: 'image', b64, mediaType: file.type || 'image/jpeg' });
     } catch {
       this.setState({ photoLoading: false, photoStatusText: 'Could not read that photo.' });
     }
@@ -376,51 +361,51 @@ class App extends React.Component<{}, AppState> {
     if (isMath) setTimeout(() => this.setState({ mathNoticeOpen: true }), 300);
   }
 
-  // ---- PDF/photo parsing ----
-  async claudePdfText(file: any, b64: string): Promise<string | null> {
-    if (!(window as any).claude?.complete) return null;
-    try {
-      const out = await (window as any).claude.complete({ messages: [{ role: 'user', content: [{ type: 'document', source: { type: 'base64', media_type: file.type || 'application/pdf', data: b64 } }, { type: 'text', text: 'Extract all the text from this document verbatim. Return ONLY the text, no commentary.' }] }], system: 'You extract text from documents. Return ONLY the raw text.', max_tokens: 4000 });
-      return typeof out === 'string' ? out : null;
-    } catch { return null; }
-  }
-
-  async claudePhotoText(file: any, b64: string): Promise<string | null> {
-    if (!(window as any).claude?.complete) return null;
-    try {
-      const out = await (window as any).claude.complete({ messages: [{ role: 'user', content: [{ type: 'image', source: { type: 'base64', media_type: file.type || 'image/jpeg', data: b64 } }, { type: 'text', text: 'Read all text in this image verbatim. Return ONLY the text.' }] }], system: 'You read text from images. Return ONLY the raw text.', max_tokens: 4000 });
-      return typeof out === 'string' ? out : null;
-    } catch { return null; }
-  }
-
-  pdfUnescape(s: string) { return s.replace(/\\([nrtbf()\\]|[0-7]{1,3})/g, (m: string, g: string) => { if (g === 'n' || g === 'r') return '\n'; if (g === 't') return ' '; if (g === 'b' || g === 'f') return ''; if (g === '(' || g === ')' || g === '\\') return g; return String.fromCharCode(parseInt(g, 8)); }); }
-
-  async inflateChunk(bytes: Uint8Array): Promise<string | null> {
-    if (typeof (window as any).DecompressionStream === 'undefined') return null;
-    for (const fmt of ['deflate', 'deflate-raw', 'gzip']) {
-      try { const stream = new Blob([bytes]).stream().pipeThrough(new (window as any).DecompressionStream(fmt)); return new TextDecoder('latin1').decode(await new Response(stream).arrayBuffer()); } catch {}
+  // ---- PDF/photo direct extraction (single Claude call, no blocking) ----
+  async extractConceptsFromFile({ type, b64, mediaType }: { type: 'pdf' | 'image'; b64: string; mediaType: string }) {
+    if (!(window as any).claude?.complete) {
+      this.update({ extracting: false, extractError: true });
+      return;
     }
-    return null;
-  }
 
-  async localPdfText(arrayBuf: ArrayBuffer): Promise<string> {
-    if (typeof (window as any).DecompressionStream === 'undefined') return '';
-    const bytes = new Uint8Array(arrayBuf); const latin = new TextDecoder('latin1').decode(bytes);
-    let text = ''; let i = 0;
-    while (true) {
-      const s = latin.indexOf('stream', i); if (s < 0) break;
-      let from = s + 6; if (latin[from] === '\r') from++; if (latin[from] === '\n') from++;
-      const e = latin.indexOf('endstream', from); if (e < 0) break;
-      i = e + 9;
-      const raw = bytes.subarray(from, e);
-      const content = await this.inflateChunk(raw) || latin.slice(from, e);
-      const textRe = /\(((?:[^()\\]|\\.)*)\)\s*T[jJ]|\[((?:[^\[\]]*|\[[^\]]*\])*)\]\s*T[jJ]/g;
-      let m: any;
-      while ((m = textRe.exec(content))) {
-        const chunk = m[1] || ''; text += this.pdfUnescape(chunk) + ' ';
-      }
+    const contentPart = type === 'pdf'
+      ? { type: 'document', source: { type: 'base64', media_type: mediaType, data: b64 } }
+      : { type: 'image', source: { type: 'base64', media_type: mediaType, data: b64 } };
+
+    const prompt = `Read every piece of text in this ${type === 'pdf' ? 'PDF document' : 'image'} and turn it into study flashcards.
+
+Identify every vocabulary word, key concept, important person, significant date, and core idea. Create one flashcard per item. Return 8–20 cards. Also judge whether the content is MATHEMATICAL.
+
+Return ONLY valid JSON — no markdown, no extra text:
+{"topic": "short topic name 4-6 words", "is_math": true or false, "cards": [{"question": "...", "answer": "...", "methodTag": "one of: active_recall, blurting, practice_testing, feynman, concrete_examples, pomodoro, self_explanation, elaborative_interrogation"}]}`;
+
+    const system = 'You are a study assistant. Read the attached file and produce study flashcards as JSON. Return ONLY valid JSON, no markdown, no extra text. Never use em dashes.';
+
+    let parsed: any = null;
+    for (let attempt = 0; attempt < 2 && !(parsed && mod.isValidCards(parsed?.cards)); attempt++) {
+      try {
+        const raw = await (window as any).claude.complete({
+          messages: [{ role: 'user', content: [contentPart, { type: 'text', text: attempt === 0 ? prompt : prompt + '\n\nReturn ONLY the raw JSON object, starting with {' }] }],
+          system: system + this.ageDirective(),
+          max_tokens: 8000,
+        });
+        const p = this.parseJson(typeof raw === 'string' ? raw : null);
+        if (p && mod.isValidCards(p.cards)) { parsed = p; break; }
+        if (p) parsed = p;
+      } catch { break; }
     }
-    return text.replace(/\s+/g, ' ').trim();
+
+    const cardsValid = parsed && mod.isValidCards(parsed.cards);
+    if (!cardsValid) {
+      this.update({ extracting: false, extractError: true });
+      return;
+    }
+
+    const cards = mod.buildFlashcards(parsed.cards);
+    const isMath = !!(parsed.is_math || parsed.isMath) || this.state.subjectId === 'math_science';
+    this.saveToLibrary({ cards, topic: parsed.topic, is_math: isMath });
+    this.update({ concepts: cards, topic: parsed.topic, isMath, screen: 'app', tab: 'today', session: {}, fromApp: false, extracting: false, extractError: false });
+    if (isMath) setTimeout(() => this.setState({ mathNoticeOpen: true }), 300);
   }
 
   // ---- Restart / name edit ----
