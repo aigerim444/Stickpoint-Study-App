@@ -1,0 +1,452 @@
+Stickpoint — 8 Study Methods, Evidence, and App
+Implementation
+THE 8 STUDY METHODS
+1. Active Recall
+Psychological evidence Active recall is one of the most extensively researched study
+methods in cognitive psychology. Roediger and Karpicke's landmark 2006 study published
+in Psychological Science found that students who tested themselves on material retained
+50% more one week later than students who simply reread their notes. This is called the
+testing effect — the act of retrieving information from memory actually strengthens the
+memory itself. The harder your brain works to pull something out, the stronger that neural
+pathway becomes. Rereading by comparison creates a false sense of familiarity without
+building real retrieval strength.
+How it helps students study better and more efficiently Instead of spending an hour
+rereading the same page, a student spends 20 minutes being tested on it and retains
+significantly more. It also immediately shows them what they don't know, so they stop
+wasting time on what they already have and focus on the actual gaps. For students
+preparing for AP exams or SATs where recall under pressure is everything, this is the most
+directly applicable method.
+Who it suits based on the quiz Students who say they understand material while studying
+but go blank on the test. Students who currently reread notes or make flashcards. Students
+studying math, science, or history where factual retrieval is required. Students who say
+they learn best by testing themselves.
+Step-by-step directions for real life
+1. Read through your notes once, normally.
+2. Close or flip over your notes so you cannot see them.
+3. On a blank piece of paper or in a blank document, write out everything you can
+remember from what you just read.
+4. Open your notes and compare. Circle or highlight everything you missed or got
+wrong.
+5. Focus your next study pass only on what you missed.
+6. Close your notes again and test yourself a second time.
+7. Repeat until you can retrieve everything without looking.
+
+-- 1 of 13 --
+
+Step-by-step how it works in the app
+1. Student pastes their notes into the app.
+2. The app reads the notes and generates 8 to 10 question and answer flashcards from
+the most important concepts.
+3. Student sees the question side of the card only.
+4. Student thinks of or types their answer before tapping to reveal.
+5. Card flips to show the correct answer.
+6. Student rates themselves: easy, medium, or hard.
+7. Cards rated hard come back again later in the same session.
+8. At the end of the session a score shows how many they got right and which cards to
+focus on next time.
+2. Blurting
+Psychological evidence Blurting is a direct application of the generation effect, first
+documented by Slamecka and Graf in 1978. Research consistently shows that information
+you generate yourself is remembered significantly better than information you simply read.
+When you force yourself to write out everything you know without looking, your brain
+must work harder to construct the memory, and that effort is what makes it stick. It also acts
+as a retrieval practice exercise, which shares the same evidence base as active recall.
+How it helps students study better and more efficiently Blurting is fast. A student can
+blurt everything they know about a topic in under two minutes. It immediately reveals
+exactly where the gaps are without needing a teacher or a quiz. It is also a zero-setup
+method since all you need is a blank page, which makes it one of the most accessible
+methods for any student in any situation.
+Who it suits based on the quiz Students who say they do not know what to focus on or
+where to start. Students who feel overwhelmed by how much there is to study. Students
+studying vocabulary-heavy subjects like languages or science. Students who say they
+understand material in class but it disappears by test day. Students who prefer writing over
+speaking.
+Step-by-step directions for real life
+1. Read through your notes or a section of your textbook.
+2. Close everything completely.
+3. On a blank piece of paper, write down every single thing you can remember about the
+topic. Do not stop, do not look, do not edit. Just write.
+4. When you run out of things to write, open your notes.
+
+-- 2 of 13 --
+
+5. Underline or circle everything in your notes that you did not write down.
+6. Read only the things you missed.
+7. Close your notes again and blurt a second time, trying to add what you missed.
+8. Repeat until your blurt matches your notes.
+Step-by-step how it works in the app
+1. Student pastes their notes into the app.
+2. App shows the topic or subject title only, not the notes.
+3. A blank text box appears with the prompt: write down everything you know about
+this topic without looking.
+4. Student types freely for as long as they want.
+5. When they press done, the app compares their blurt to the original notes using AI.
+6. App highlights the key concepts they covered in green and the ones they missed in
+red.
+7. Student can review what they missed and blurt again.
+8. Each round their score improves showing them visible progress.
+3. Practice Testing
+Psychological evidence Practice testing has the strongest evidence base of any study
+method. Dunlosky et al.'s 2013 landmark review in Psychological Science in the Public
+Interest rated practice testing as high utility, the highest rating given, and rated rereading
+as low utility, the lowest. Taking practice tests under realistic conditions, meaning timed
+and without notes, is the closest simulation to what a real exam demands. Research also
+shows that students who practice test consistently significantly outperform students who
+study more but test themselves less, even when total study time is equal.
+How it helps students study better and more efficiently Practice testing shows students
+exactly what a real test will feel like, which reduces test anxiety because the actual test no
+longer feels unfamiliar. It also forces retrieval under pressure, which is the exact skill being
+tested. Students who only study passively are essentially training for a different game than
+the one they are being graded on.
+Who it suits based on the quiz Students who say they do not know if their studying is
+working. Students who experience test anxiety. Students who need a score or measurable
+progress to stay motivated. Students studying any subject since practice testing works
+universally across all content types. Students preparing for standardized tests like the SAT
+or AP exams.
+Step-by-step directions for real life
+
+-- 3 of 13 --
+
+1. Find or create practice questions for your topic. Use past tests, textbook review
+questions, or generate your own.
+2. Set a timer for a realistic amount of time, the same as the real test if possible.
+3. Put your notes away completely and attempt every question without looking anything
+up.
+4. When the timer ends, stop even if you are not finished.
+5. Grade your own work against your notes or an answer key.
+6. For every question you got wrong, write out the correct answer in your own words.
+7. Do another round of practice testing on only the questions you got wrong.
+Step-by-step how it works in the app
+1. Student pastes their notes into the app.
+2. At the end of each study session, the app generates a five question mini quiz from the
+material covered.
+3. Quiz is timed, one to two minutes per question.
+4. Student answers each question without being able to see their notes.
+5. When submitted, the app grades the quiz and gives a score out of five.
+6. Correct answers are shown in green. Wrong answers show the correct answer
+alongside the student's answer.
+7. Score is saved so the student can track improvement across sessions.
+8. Any question answered wrong is flagged to come back in the next session.
+4. Feynman Technique
+Psychological evidence The Feynman Technique is rooted in elaborative encoding, which
+is one of the most well-established principles in cognitive psychology. Research by Craik
+and Lockhart in 1972 showed that information processed at a deep semantic level, meaning
+you engage with meaning rather than surface features, is retained far longer than
+information processed shallowly. Explaining something in your own simple words forces
+deep processing. The generation effect also applies here since you are constructing the
+explanation yourself. Additionally research on peer teaching consistently shows that the
+act of teaching something consolidates the teacher's own understanding.
+How it helps students study better and more efficiently The Feynman Technique
+immediately exposes the difference between recognizing something and actually
+understanding it. A student can read the definition of natural selection five times and feel
+like they know it. The moment they try to explain it simply without looking, they discover
+
+-- 4 of 13 --
+
+exactly where the understanding breaks down. This saves time by targeting real gaps
+rather than giving students a false sense of preparation.
+Who it suits based on the quiz Students who say they understand material in class but
+cannot explain it in their own words. Students studying humanities, biology, economics, or
+any conceptual subject. Students who say they learn best when things make sense rather
+than when they are memorized. Students who struggle with essay questions or free-
+response sections on tests.
+Step-by-step directions for real life
+1. Choose one concept from your notes, just one.
+2. Put your notes away.
+3. On a blank page write or say out loud: explain this concept as if you are teaching it to a
+10-year-old who has never heard of it.
+4. Write or speak freely until you run out of things to say.
+5. Look back at your notes and find where your explanation was vague, wrong, or
+incomplete.
+6. Go back and study only those gaps.
+7. Try the explanation again from scratch.
+8. You understand the concept when you can explain it simply without any gaps or
+vague language.
+Step-by-step how it works in the app
+1. Student pastes their notes into the app.
+2. The app identifies the key concepts in the notes and picks one to start with.
+3. A prompt appears: explain this concept in your own words as if you are teaching it to
+someone who has never heard of it.
+4. Student types their explanation freely in a text box.
+5. The AI reads the explanation and compares it to the original notes.
+6. App responds with specific feedback: what the student got right, what was missing,
+and what was unclear.
+7. Student can try again with the feedback in mind.
+8. Once the explanation is solid the app moves to the next concept.
+5. Concrete Examples
+Psychological evidence The concreteness effect is a well-documented phenomenon in
+cognitive psychology. Research by Paivio's dual coding theory, developed in the 1970s and
+
+-- 5 of 13 --
+
+extensively validated since, shows that information paired with a concrete image or real-
+world example is encoded in two ways simultaneously: verbally and visually. This double
+encoding significantly improves recall. Abstract information with no concrete anchor is
+much harder for the brain to retain because it has no hook to attach to. Research also shows
+that understanding a principle through an example transfers better to new problems than
+memorizing the principle alone.
+How it helps students study better and more efficiently Rather than trying to memorize
+an abstract definition, a student who understands a concrete example of that concept can
+reconstruct the definition themselves, and also recognize the concept when it appears in a
+different form on a test. This is especially powerful in math and science where formulas and
+theories need to be applied, not just recalled.
+Who it suits based on the quiz Students who say abstract concepts confuse them. Students
+studying math, science, economics, or philosophy where abstract principles are common.
+Students who say they connect to real life examples better than textbook definitions.
+Students who feel frustrated because they can read something multiple times and still not
+understand it.
+Step-by-step directions for real life
+1. After reading a concept or definition, stop and ask yourself: what is a real-world
+example of this?
+2. The example should be something you have actually seen, heard, or experienced, not
+another textbook example.
+3. Write the concept, then below it write your example.
+4. Ask yourself: how does my example show the concept? Be specific.
+5. If you cannot find an example, you do not understand the concept yet. Go back and
+reread.
+6. Test yourself: read only the example and try to state the concept from it without
+looking.
+Step-by-step how it works in the app
+1. Student pastes their notes into the app.
+2. After each concept card the app generates a real-world example or analogy that
+illustrates the concept.
+3. The example is shown after the student has attempted to recall the concept
+themselves.
+4. Student reads the example and the app asks: how does this example show the
+concept?
+5. Student types a brief answer.
+
+-- 6 of 13 --
+
+6. App confirms whether their connection is correct or clarifies where it missed.
+7. For math and science the app generates a sample problem as the concrete example
+and walks through why it applies.
+6. Pomodoro Timer
+Psychological evidence The Pomodoro Technique is grounded in research on cognitive
+fatigue and attention. Attention research by Ariga and Lleras published in 2011 in Cognition
+found that brief mental breaks significantly improve sustained attention over longer
+periods. The brain is not designed for sustained deep focus for hours at a time. Research on
+the vigilance decrement shows that focused attention begins to degrade after 20 to 40
+minutes without a break. Structured rest periods reset this and allow the next work session
+to begin at full cognitive capacity rather than diminished capacity.
+How it helps students study better and more efficiently A student who studies for two
+hours while gradually losing focus retains far less than a student who does four focused 25-
+minute sessions with breaks. The Pomodoro method also removes the psychological
+resistance to starting because the endpoint is always visible. It is easier to commit to 25
+minutes than to commit to studying until you are done.
+Who it suits based on the quiz Students who say they get distracted and lose focus quickly.
+Students who say they check their phone while studying. Students who do not have a real
+study pattern. Students who feel overwhelmed by how much material there is. Students
+who struggle to start studying at all.
+Step-by-step directions for real life
+1. Put your phone on do not disturb and place it face down or in another room.
+2. Open only the tab or material you need. Nothing else.
+3. Set a timer for 25 minutes.
+4. Study with complete focus until the timer goes off. If a distraction pops into your head,
+write it down and ignore it until the break.
+5. When the timer goes off, stop immediately even if you are mid-sentence.
+6. Take a real five minute break. Stand up, walk around, drink water. Do not scroll your
+phone.
+7. After the break, start a new 25-minute round.
+8. After four rounds take a longer 20-minute break.
+Step-by-step how it works in the app
+1. When the student starts a study session the Pomodoro timer activates automatically
+in the background.
+
+-- 7 of 13 --
+
+2. A small progress bar at the top of the screen shows how much time is left in the
+current session.
+3. The student scrolls through their study cards normally while the timer runs.
+4. At 25 minutes the app pauses automatically and shows a break screen with a fun fact
+or subject-related meme.
+5. A five minute countdown runs on the break screen.
+6. When the break ends the app resumes the session automatically.
+7. After four full sessions the app shows a longer break screen and a session summary.
+7. Confidence Rating
+Psychological evidence Confidence rating is a metacognitive study tool. Metacognition,
+which is thinking about your own thinking, is one of the most well-researched areas in
+educational psychology. Flavell's foundational work in 1979 established that students who
+accurately monitor their own understanding learn significantly more effectively than
+students who do not. Research by Dunning and Kruger also shows that students who lack
+metacognitive skills tend to dramatically overestimate how well they know material, which
+leads them to stop studying too early. Confidence rating forces students to accurately
+assess their own knowledge after each piece of material, which leads to better allocation of
+study time.
+How it helps students study better and more efficiently Confidence rating stops students
+from spending equal time on things they already know and things they do not. It
+immediately redirects attention to material that needs more work and gives the student
+real-time data about where they are weakest. It also reduces the Dunning-Kruger effect by
+making overconfidence visible in the data.
+Who it suits based on the quiz Students who do not know what to focus on or feel
+overwhelmed by the amount of material. Students who run out of time studying and guess
+incorrectly about what to prioritize. Students who feel confident before a test and still do
+poorly. Students who want to feel in control of their own study session.
+Step-by-step directions for real life
+1. After testing yourself on any piece of material, immediately rate your confidence on a
+simple scale: easy meaning you knew it instantly, medium meaning you got it but
+were not sure, or hard meaning you did not know it or got it wrong.
+2. Keep a list of all your hard and medium ratings.
+3. Your next study session should begin with everything rated hard, then medium.
+4. Everything rated easy gets reviewed briefly at the very end.
+5. Re-rate after each review and adjust accordingly.
+
+-- 8 of 13 --
+
+Step-by-step how it works in the app
+1. After each card in the study session three buttons appear: Easy, Medium, Hard.
+2. Student taps one honestly.
+3. Cards rated Hard come back again before the current session ends.
+4. Cards rated Medium come back once at the end of the session.
+5. Cards rated Easy are set aside.
+6. At the end of the session the app shows a breakdown: how many easy, medium, and
+hard cards the student had.
+7. The next time the student opens the app the session starts with their previous hard
+cards before introducing new ones.
+8. Elaborative Interrogation
+Psychological evidence Elaborative interrogation was studied extensively by Pressley,
+Symons, McDaniel, Snyder, and Turnure in 1988, and follow-up research has consistently
+validated it. The method works by activating prior knowledge and forcing the brain to
+connect new information to what it already knows. Research shows that asking why-
+questions during studying significantly improves retention compared to reading the same
+material without questioning. The mechanism is that answering why forces the brain to
+process information at a deeper semantic level and integrate it into existing knowledge
+structures rather than storing it in isolation.
+How it helps students study better and more efficiently Students who ask why something
+is true understand the logic behind a fact, not just the fact itself. This means they can
+reconstruct the answer on a test even if they cannot remember it exactly, because they
+understand how it follows from something they do know. It also makes studying more
+engaging because it turns passive reading into active sense-making.
+Who it suits based on the quiz Students who say they want to understand why something
+is true rather than just memorize it. Students studying history, biology, economics, or any
+subject with cause and effect relationships. Students who say they forget things that do not
+make sense to them. Students who enjoy thinking deeply about ideas. Students who are
+curious and find rote memorization boring.
+Step-by-step directions for real life
+1. Read a fact or concept from your notes.
+2. Immediately ask yourself: why is this true? Do not move on until you have an answer.
+3. If you do not know why, look it up. Then ask why again.
+4. Also ask: how does this connect to what I already know about this topic?
+
+-- 9 of 13 --
+
+5. Write your why-answer below the fact in your notes.
+6. Later when you review, try to reconstruct the fact from the why. If you remember the
+reason, you can usually reconstruct the fact even without memorizing it directly.
+Step-by-step how it works in the app
+1. Student pastes their notes into the app.
+2. After a concept or fact card, the app generates a why-question: why do you think this
+is true, or how does this connect to what came before?
+3. Student types their answer in a text box.
+4. The AI evaluates the answer and responds with whether the reasoning is correct, what
+was missing, and any additional connections the student may have missed.
+5. Student can read the full explanation if they are stuck.
+6. The question and the student's answer are saved so they can review their reasoning
+later.
+SUBJECT TO METHOD MAPPING
+Math and Science Primary: Active Recall, Practice Testing, Concrete Examples Secondary:
+Elaborative Interrogation, Confidence Rating Reason: These subjects require accurate
+retrieval of formulas and procedures, application to new problems, and deep understanding
+of why methods work.
+History and Humanities Primary: Feynman Technique, Elaborative Interrogation, Blurting
+Secondary: Active Recall, Confidence Rating Reason: These subjects reward understanding
+connections and causes, being able to explain concepts in your own words, and recalling
+large amounts of narrative information.
+Language Primary: Active Recall, Blurting, Confidence Rating Secondary: Practice Testing
+Reason: Language learning is heavily vocabulary-based which requires fast, accurate
+retrieval of words and their meanings, with confidence rating helping students know which
+words need more repetition.
+English and Writing Primary: Feynman Technique, Elaborative Interrogation, Concrete
+Examples Secondary: Blurting Reason: English rewards deep understanding of texts and
+ideas, the ability to articulate arguments clearly, and connecting abstract themes to
+concrete evidence.
+Multiple Subjects Primary: Pomodoro Timer, Confidence Rating, Active Recall Secondary:
+Blurting Reason: Students with multiple subjects need structure and time management
+above everything else, with confidence rating helping them prioritize across subjects.
+
+-- 10 of 13 --
+
+REVISED QUIZ QUESTIONS
+These questions are designed to map student answers directly to the 8 methods above.
+Q1 — What subject are you focusing on right now?
+Math or Science
+History or Humanities
+A language like Spanish or French
+English or Writing
+Multiple subjects at once
+This is asked first because subject immediately narrows which methods the app should
+weight most heavily in the recommendation.
+Q2 — What does studying usually look like for you right now?
+I reread my notes or textbook until I feel ready
+I write out everything I remember on a blank page
+I make flashcards or questions and test myself
+I ask AI or watch videos to explain things to me
+I do practice problems or past test questions
+Rereading → needs active recall, blurting, or practice testing. Writing from scratch →
+already blurting, build on it. Flashcards → active recall with confidence rating. AI or videos
+→ Feynman and concrete examples. Practice problems → practice testing and elaborative
+interrogation.
+Q3 — What is your biggest problem when you study?
+I understand it while I study but forget it on the actual test
+I always run out of time and end up cramming
+I get distracted and lose focus after a few minutes
+I don't know what to focus on or where to even start
+I can read something five times and still not really get it
+
+-- 11 of 13 --
+
+Forget on test → active recall, practice testing. Cramming → Pomodoro to use time well.
+Distracted → Pomodoro. Don't know where to start → confidence rating, blurting. Don't
+understand → Feynman, elaborative interrogation, concrete examples.
+Q4 — When you actually remember something weeks later, what usually helped?
+I explained it out loud to myself or someone else
+I tested myself on it over and over
+I connected it to a real-life example that made it click
+I kept asking myself why it works that way
+I wrote out everything I knew from memory without looking
+Explained out loud → Feynman. Tested repeatedly → active recall, practice testing. Real-life
+example → concrete examples. Kept asking why → elaborative interrogation. Wrote from
+memory → blurting.
+Q5 — Which of these sounds most like how you feel when you study?
+I lose focus and drift off after about ten minutes
+I feel okay but I'm never sure if the studying is actually working
+I get frustrated when I don't understand something and give up
+I feel overwhelmed by how much there is and don't know what to prioritize
+I feel confident while studying but nervous when the test actually comes
+Lose focus → Pomodoro. Not sure if it's working → practice testing, confidence rating. Get
+frustrated → concrete examples, Feynman. Overwhelmed → confidence rating, blurting.
+Confident while studying, nervous on test → active recall, practice testing.
+Q6 — How far in advance do you usually start studying for a big test?
+Night before or even the day of
+Two to three days before
+About a week or more before
+I don't really have a consistent pattern
+Night before → Pomodoro to make the most of limited time, blurting for speed. Two to three
+days → active recall, practice testing. A week out → full session with all methods. No pattern
+→ confidence rating and Pomodoro to build structure.
+
+-- 12 of 13 --
+
+Q7 — What would make studying feel like it's actually working for you?
+Seeing a score go up or a measurable improvement
+Finally understanding something that confused me
+Remembering things without having to look them up
+Staying focused for the whole session without getting distracted
+Knowing exactly what I need to work on and what I can stop worrying about
+Score going up → practice testing, confidence rating. Finally understanding → Feynman,
+concrete examples, elaborative interrogation. Remembering without looking → active recall,
+blurting. Staying focused → Pomodoro. Knowing what to work on → confidence rating,
+blurting.
+HOW THE SCORING WORKS
+Each answer adds points to one or more of the 8 methods. At the end of all 7 questions the
+app ranks all 8 methods by total score and recommends the top two or three. It never
+recommends just one because most students benefit from a combination. The subject from
+Q1 also applies a multiplier that boosts subject-appropriate methods. For example a student
+studying history who cannot explain things in their own words and gets frustrated would
+receive Feynman as their primary method, elaborative interrogation as their secondary, and
+blurting as a quick daily habit. The app then explains why each was recommended using
+specific language that reflects what the student actually answered, not generic
+descriptions.
+
+-- 13 of 13 --
+
