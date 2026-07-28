@@ -3421,7 +3421,8 @@ class Component extends DCLogic {
   closeMathNotice = () => this.setState({ mathNoticeOpen: false });
   acceptMathMethods = () => {
     const ranked = this.mod.MATH_METHODS.slice();
-    this.update({ topMethods: ranked.slice(0, 3), activeMethod: null, mathNoticeOpen: false, session: {} });
+    const newTop = ranked.slice(0, 3);
+    this.update({ topMethods: newTop, activeMethod: newTop[0], mathNoticeOpen: false, session: {} });
   };
 
   // ---------- Add material tab (replace material) ----------
