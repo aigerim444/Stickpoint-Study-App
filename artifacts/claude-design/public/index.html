@@ -426,9 +426,18 @@
       </div>
 
       <!-- method chip row -->
-      <div style="display:flex;gap:7px;padding:10px 14px;overflow-x:auto;border-bottom:2px solid #F1E4CC;background:#FFFCF6;flex-shrink:0;">
+      <div style="display:flex;gap:6px;padding:10px 14px;overflow-x:auto;border-bottom:2px solid #F1E4CC;background:#FFFCF6;flex-shrink:0;align-items:center;">
         <sc-for list="{{ methodChips }}" as="chip" hint-placeholder-count="8">
-          <button onclick="{{ chip.pick }}" style="flex-shrink:0;font-family:'Nunito';font-weight:800;font-size:11px;padding:7px 11px;border:2px solid #201E2E;background:{{ chip.bg }};color:{{ chip.color }};cursor:pointer;white-space:nowrap;">{{ chip.label }}<sc-if value="{{ chip.badge }}" hint-placeholder-val="{{ false }}"> ✓</sc-if></button>
+          <sc-if value="{{ chip.isDivider }}" hint-placeholder-val="{{ false }}">
+            <div style="flex-shrink:0;display:flex;align-items:center;gap:4px;padding:0 4px;">
+              <div style="width:1px;height:22px;background:#c9c2b8;"></div>
+              <div style="font-size:9px;font-weight:900;color:#8a8194;white-space:nowrap;letter-spacing:0.5px;">MORE</div>
+              <div style="width:1px;height:22px;background:#c9c2b8;"></div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ !chip.isDivider }}" hint-placeholder-val="{{ true }}">
+            <button onclick="{{ chip.pick }}" style="flex-shrink:0;font-family:'Nunito';font-weight:800;font-size:11px;padding:7px 11px;border:{{ chip.border }};background:{{ chip.bg }};color:{{ chip.color }};cursor:pointer;white-space:nowrap;box-shadow:{{ chip.shadow }};">{{ chip.label }}<sc-if value="{{ chip.badge }}" hint-placeholder-val="{{ false }}"> ✓</sc-if></button>
+          </sc-if>
         </sc-for>
       </div>
 
@@ -3542,16 +3551,30 @@ class Component extends DCLogic {
       if (m.id === s.activeMethod) return true; // the mode you're in always has a chip back to it
       return s.isMath ? mod.MATH_METHODS.includes(m.id) : m.id !== 'problem_sets';
     });
-    const methodChips = chipMethods.map((m) => {
+    const topIds = (s.topMethods || []).slice(0, 3);
+    const topChips   = topIds.map(id => chipMethods.find(m => m.id === id)).filter(Boolean);
+    const restChips  = chipMethods.filter(m => !topIds.includes(m.id));
+    const rankPfx    = ['#1 ', '#2 ', '#3 '];
+    const makeChip = (m, rank) => {
       const active = s.activeMethod === m.id;
-      const rank = s.topMethods.indexOf(m.id);
+      const isTop  = rank >= 0;
       return {
-        label: m.label, pick: () => this.chooseMethod(m.id),
-        bg: active ? '#201E2E' : '#fff',
-        color: active ? '#fff' : '#201E2E',
+        label: (isTop ? rankPfx[rank] : '') + m.label,
+        pick:  () => this.chooseMethod(m.id),
+        bg:    active ? '#201E2E' : isTop ? '#FF6B4A' : '#fff',
+        color: active || isTop ? '#fff' : '#201E2E',
+        border: active ? '2px solid #201E2E' : isTop ? '2px solid #201E2E' : '2px solid #c9c2b8',
+        shadow: isTop && !active ? '2px 2px 0 #201E2E' : 'none',
         badge: !!s.methodsTried[m.id] && !active,
+        isTop, isDivider: false,
       };
-    });
+    };
+    const divider = { isDivider: true, label: '', pick: () => {}, bg: '', color: '', border: '', shadow: 'none', badge: false, isTop: false };
+    const methodChips = [
+      ...topChips.map((m, i) => makeChip(m, i)),
+      ...(topChips.length && restChips.length ? [divider] : []),
+      ...restChips.map(m => makeChip(m, -1)),
+    ];
 
     const activeInfo = mod.METHODS.find(m => m.id === s.activeMethod);
 
