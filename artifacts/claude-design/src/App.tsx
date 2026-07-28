@@ -48,7 +48,7 @@ class App extends React.Component<{}, AppState> {
     ageEditDraft: '', restartOpen: false, editingName: false, nameEditDraft: '',
     topMethods: [], scores: {}, xp: 0, streak: 0, badges: [],
     methodsTried: {}, materialMode: 'paste', materialDraft: '', material: '',
-    pdfStatusText: 'No PDF chosen yet', concepts: [], topic: '', tab: 'today',
+    pdfStatusText: 'No PDF chosen yet', pdfLoading: false, photoLoading: false, concepts: [], topic: '', tab: 'today',
     session: {}, studiedDates: [], testDate: null, calendarMode: 'studied', toast: null,
     calMonthOffset: 0, activeMethod: null, pendingMethod: null,
     extracting: false, extractError: false, extractStartedAt: 0, extractNow: 0,
@@ -240,32 +240,59 @@ class App extends React.Component<{}, AppState> {
   onMaterialInput = (e: any) => this.setState({ materialDraft: e.target.value });
   backToApp = () => this.setState({ screen: 'app' });
 
+  bufToBase64 = (buf: ArrayBuffer): string => {
+    const bytes = new Uint8Array(buf);
+    let binary = '';
+    const chunk = 65536;
+    for (let i = 0; i < bytes.length; i += chunk) {
+      binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+    }
+    return btoa(binary);
+  };
+
   onPdfChosen = async (e: any) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
-    this.setState({ pdfStatusText: 'Reading PDF…' });
+    this.setState({ pdfLoading: true, pdfStatusText: 'Reading PDF…' });
     try {
       const buf = await file.arrayBuffer();
       let text = await this.localPdfText(buf);
       if (!text || text.length < 40) {
-        const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
+        const b64 = this.bufToBase64(buf);
         text = await this.claudePdfText(file, b64);
       }
-      if (!text || text.length < 40) { this.setState({ pdfStatusText: 'Could not read that PDF. Try pasting the text instead.' }); return; }
-      this.setState({ pdfStatusText: 'PDF loaded (' + Math.round(text.length / 4) + ' words)', materialDraft: text });
-    } catch (err) { this.setState({ pdfStatusText: 'Could not read that PDF. Try pasting the text instead.' }); }
+      if (!text || text.length < 40) {
+        this.setState({ pdfLoading: false, pdfStatusText: 'Could not read that PDF. Try pasting the text instead.' });
+        return;
+      }
+      // Auto-advance straight to concept extraction — no need to click again
+      this.update({ pdfLoading: false, pdfStatusText: 'PDF loaded ✓', material: text, materialDraft: text, screen: 'processing', extracting: true, extractError: false, materialCameFromApp: this.state.fromApp || this.state.materialCameFromApp });
+      this.startExtractCountdown();
+      this.extractConcepts(text);
+    } catch (err) {
+      this.setState({ pdfLoading: false, pdfStatusText: 'Could not read that PDF. Try pasting the text instead.' });
+    }
   };
 
   onPhotoChosen = async (e: any) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
-    this.setState({ photoStatusText: 'Reading photo…' });
+    this.setState({ photoLoading: true, photoStatusText: 'Reading photo…' });
     try {
-      const buf = await file.arrayBuffer(); const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
+      const buf = await file.arrayBuffer();
+      const b64 = this.bufToBase64(buf);
       const text = await this.claudePhotoText(file, b64);
-      if (!text || text.length < 10) { this.setState({ photoStatusText: 'Could not read text from that photo.' }); return; }
-      this.setState({ photoStatusText: 'Photo loaded (' + Math.round(text.length / 4) + ' words)', materialDraft: text });
-    } catch { this.setState({ photoStatusText: 'Could not read that photo.' }); }
+      if (!text || text.length < 10) {
+        this.setState({ photoLoading: false, photoStatusText: 'Could not read text from that photo.' });
+        return;
+      }
+      // Auto-advance straight to concept extraction
+      this.update({ photoLoading: false, photoStatusText: 'Photo loaded ✓', material: text, materialDraft: text, screen: 'processing', extracting: true, extractError: false, materialCameFromApp: this.state.fromApp || this.state.materialCameFromApp });
+      this.startExtractCountdown();
+      this.extractConcepts(text);
+    } catch {
+      this.setState({ photoLoading: false, photoStatusText: 'Could not read that photo.' });
+    }
   };
 
   submitMaterial = () => {
@@ -1342,7 +1369,7 @@ class App extends React.Component<{}, AppState> {
       photoTabBg: s.materialMode === 'photo' ? '#201E2E' : '#fff', photoTabColor: s.materialMode === 'photo' ? '#fff' : '#201E2E',
       materialDraft: s.materialDraft, onMaterialInput: this.onMaterialInput,
       photoStatusText: s.photoStatusText, onPhotoChosen: this.onPhotoChosen,
-      pdfStatusText: s.pdfStatusText, onPdfChosen: this.onPdfChosen,
+      pdfStatusText: s.pdfStatusText, onPdfChosen: this.onPdfChosen, pdfLoading: !!s.pdfLoading, photoLoading: !!s.photoLoading,
       showKeyBox, keyStatusText: '', keyDraft, setKeyDraft: () => {}, saveKey: () => {}, cantSaveKey: true, keyBtnBg: '#c9c2b8', keyBtnCursor: 'default', hasKey, clearKey: () => { (window as any).claude.key.set(''); },
       materialCameFromApp: !!s.materialCameFromApp || !!s.fromApp, backToApp: this.backToApp,
       submitMaterial: this.submitMaterial,
