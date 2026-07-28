@@ -676,8 +676,20 @@ function Chunking({ v }: any) {
 
 // ─── Today Tab ───────────────────────────────────────────────────────────────
 function TodayTab({ v }: any) {
+  const topMethod = v.methodBadges && v.methodBadges.find((m: any) => m.isTopPick);
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+      {/* Top pick call-to-action */}
+      {topMethod && (
+        <div style={css('background:#FF6B4A;border:3px solid #201E2E;box-shadow:5px 5px 0 #201E2E;padding:16px;display:flex;flex-direction:column;gap:10px;')}>
+          <div style={css("font-family:'Press Start 2P';font-size:9px;color:#fff;letter-spacing:1px;")}>⭐ YOUR TOP PICK</div>
+          <div style={{ fontSize: 18, fontWeight: 900, color: '#fff' }}>{topMethod.label}</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.85)', lineHeight: 1.5 }}>Chop matched this method to your learning style. Start here.</div>
+          <button onClick={topMethod.pick} style={css("font-family:'Nunito';font-weight:900;font-size:13px;color:#FF6B4A;background:#fff;border:3px solid #201E2E;box-shadow:3px 3px 0 #201E2E;padding:11px;cursor:pointer;")}>START {topMethod.label.toUpperCase()} →</button>
+        </div>
+      )}
+
       <div style={css('background:#fff;border:3px solid #201E2E;box-shadow:5px 5px 0 #FF6B4A;padding:16px;')}>
         <div style={css("font-family:'Press Start 2P';font-size:10px;color:#201E2E;margin-bottom:10px;")}>TODAY'S STUDY PLAN</div>
         {v.planSteps.length > 0 ? v.planSteps.map((st: any, i: number) => (
@@ -855,7 +867,9 @@ export function AppScreen({ v }: any) {
       {/* Method chip row */}
       <div style={css('display:flex;gap:6px;padding:10px 12px;overflow-x:auto;flex-shrink:0;border-bottom:2px solid #201E2E;background:#FFF9EF;')}>
         {v.methodChips.map((chip: any, i: number) => (
-          <button key={i} onClick={chip.pick} style={{ flexShrink: 0, fontFamily: 'Nunito', fontWeight: 900, fontSize: 11, color: chip.color, background: chip.bg, border: '2px solid #201E2E', padding: '5px 10px', cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: chip.badge ? '2px 2px 0 #201E2E' : 'none' }}>{chip.badge ? '✓ ' : ''}{chip.label}</button>
+          <button key={i} onClick={chip.pick} style={{ flexShrink: 0, fontFamily: 'Nunito', fontWeight: 900, fontSize: 11, color: chip.color, background: chip.isTopPick ? '#FF6B4A' : chip.bg, border: chip.isTopPick ? '2px solid #201E2E' : '2px solid #201E2E', padding: '5px 10px', cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: (chip.badge || chip.isTopPick) ? '2px 2px 0 #201E2E' : 'none' }}>
+            {chip.isTopPick ? '⭐ ' : chip.badge ? '✓ ' : ''}{chip.label}
+          </button>
         ))}
       </div>
 

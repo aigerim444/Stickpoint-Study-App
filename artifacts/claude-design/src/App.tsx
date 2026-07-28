@@ -339,7 +339,7 @@ class App extends React.Component<{}, AppState> {
     const rawMaterial = String(materialText || (this.state.material || '')).trim();
     if (rawMaterial.length < 40) { this.update({ extracting: false, extractError: true }); return; }
     const material = rawMaterial.replace(/\r/g, '\n').replace(/[ \t]{2,}/g, ' ').split('\n').filter((l: string) => !/^\s*(page\s*)?\d{1,3}\s*$/i.test(l)).join('\n').replace(/\n{3,}/g, '\n\n').trim();
-    const prompt = `Here is a student's study material:\n\n"""${material.slice(0, 6000)}"""\n\nRead these notes carefully and identify every individual vocabulary word, key concept, important person, significant date, and core idea. Create one flashcard for EACH one you find. Return between 8 and 20 cards. Also judge whether this material is MATHEMATICAL.\nReturn JSON only:\n{"topic": "short topic name, 4-6 words", "is_math": true or false, "cards": [{"question": "...", "answer": "...", "methodTag": "one of: active_recall, blurting, practice_testing, feynman, concrete_examples, pomodoro, self_explanation, elaborative_interrogation"}]}`;
+    const prompt = `Here is a student's study material:\n\n"""${material.slice(0, 6000)}"""\n\nRead these notes carefully and identify every individual vocabulary word, key concept, important person, significant date, and core idea. Create one flashcard for EACH one you find. Return between 8 and 20 cards.\n\nSet "is_math" to true ONLY if the material is primarily mathematics or physics calculations (algebra, calculus, statistics, geometry, equations). Psychology, biology, history, literature, chemistry concepts, social sciences, and any other subject = false.\n\nReturn JSON only:\n{"topic": "short topic name, 4-6 words", "is_math": true or false, "cards": [{"question": "...", "answer": "...", "methodTag": "one of: active_recall, blurting, practice_testing, feynman, concrete_examples, pomodoro, self_explanation, elaborative_interrogation"}]}`;
     const system = 'You are a study assistant that turns student notes into individual study cards. Respond with ONLY valid JSON, no markdown fences, no extra text. Never use em dashes.';
     let parsed: any = null;
     for (let attempt = 0; attempt < 2 && !(parsed && mod.isValidCards(parsed.cards)); attempt++) {
@@ -372,12 +372,14 @@ class App extends React.Component<{}, AppState> {
       ? { type: 'document', source: { type: 'base64', media_type: mediaType, data: b64 } }
       : { type: 'image', source: { type: 'base64', media_type: mediaType, data: b64 } };
 
-    const prompt = `Read every piece of text in this ${type === 'pdf' ? 'PDF document' : 'image'} and turn it into study flashcards.
+    const prompt = `Read every piece of text in this ${type === 'pdf' ? 'PDF document' : 'image'} carefully.
 
-Identify every vocabulary word, key concept, important person, significant date, and core idea. Create one flashcard per item. Return 8–20 cards. Also judge whether the content is MATHEMATICAL.
+Step 1 — extract ALL text from the document verbatim into "raw_text".
+Step 2 — from that text, identify every vocabulary word, key concept, important person, significant date, and core idea. Create one flashcard per item. Return 8–20 cards.
+Step 3 — set "is_math" to true ONLY if the content is primarily mathematics or physics calculations (algebra, calculus, statistics, geometry, equations). Psychology, biology, history, literature, chemistry concepts, and social sciences = false.
 
 Return ONLY valid JSON — no markdown, no extra text:
-{"topic": "short topic name 4-6 words", "is_math": true or false, "cards": [{"question": "...", "answer": "...", "methodTag": "one of: active_recall, blurting, practice_testing, feynman, concrete_examples, pomodoro, self_explanation, elaborative_interrogation"}]}`;
+{"topic": "short topic name 4-6 words", "is_math": true or false, "raw_text": "full extracted text from the document", "cards": [{"question": "...", "answer": "...", "methodTag": "one of: active_recall, blurting, practice_testing, feynman, concrete_examples, pomodoro, self_explanation, elaborative_interrogation"}]}`;
 
     const system = 'You are a study assistant. Read the attached file and produce study flashcards as JSON. Return ONLY valid JSON, no markdown, no extra text. Never use em dashes.';
 
@@ -403,8 +405,10 @@ Return ONLY valid JSON — no markdown, no extra text:
 
     const cards = mod.buildFlashcards(parsed.cards);
     const isMath = !!(parsed.is_math || parsed.isMath) || this.state.subjectId === 'math_science';
+    // Save the raw extracted text so all study methods can reference the actual material
+    const rawText = typeof parsed.raw_text === 'string' && parsed.raw_text.trim().length > 40 ? parsed.raw_text.trim() : '';
     this.saveToLibrary({ cards, topic: parsed.topic, is_math: isMath });
-    this.update({ concepts: cards, topic: parsed.topic, isMath, screen: 'app', tab: 'today', session: {}, fromApp: false, extracting: false, extractError: false });
+    this.update({ concepts: cards, topic: parsed.topic, isMath, material: rawText, materialDraft: rawText, screen: 'app', tab: 'today', session: {}, fromApp: false, extracting: false, extractError: false });
     if (isMath) setTimeout(() => this.setState({ mathNoticeOpen: true }), 300);
   }
 
@@ -995,6 +999,7 @@ Return ONLY valid JSON — no markdown, no extra text:
       bg: s.activeMethod === m.id ? '#201E2E' : '#fff',
       color: s.activeMethod === m.id ? '#fff' : '#201E2E',
       badge: !!s.methodsTried[m.id],
+      isTopPick: s.topMethods[0] === m.id,
     }));
 
     // Today tab
@@ -1007,9 +1012,10 @@ Return ONLY valid JSON — no markdown, no extra text:
     const methodBadges = allMethods.map((m: any) => ({
       id: m.id, label: m.label,
       tried: !!s.methodsTried[m.id],
+      isTopPick: s.topMethods[0] === m.id,
       pick: () => this.pickMethod(m.id),
-      bg: s.methodsTried[m.id] ? '#201E2E' : '#fff',
-      color: s.methodsTried[m.id] ? '#fff' : '#201E2E',
+      bg: s.topMethods[0] === m.id ? '#FF6B4A' : s.methodsTried[m.id] ? '#201E2E' : '#fff',
+      color: s.topMethods[0] === m.id || s.methodsTried[m.id] ? '#fff' : '#201E2E',
     }));
 
     const badgeList = [
