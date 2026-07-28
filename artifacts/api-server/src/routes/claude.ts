@@ -28,9 +28,14 @@ router.post("/claude", async (req, res): Promise<void> => {
   }
 
   try {
+    // Route to haiku for grading/evaluation (cheap, fast); sonnet only for complex generation.
+    const modelId =
+      req.body.model === "sonnet"
+        ? "claude-sonnet-4-5"
+        : "claude-3-5-haiku-20241022";
     const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-5",
-      max_tokens: typeof max_tokens === "number" ? max_tokens : 8000,
+      model: modelId,
+      max_tokens: typeof max_tokens === "number" ? max_tokens : 1200,
       system: typeof system === "string" ? system : undefined,
       messages,
     });

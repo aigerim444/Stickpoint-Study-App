@@ -2237,13 +2237,15 @@ class Component extends DCLogic {
     return !!this.props.forceOfflineGrading || this.aiUnavailable();
   }
 
-  async callAI(prompt, system) {
+  // model: 'haiku' (default, cheap) or 'sonnet' (complex generation only).
+  // maxTokens: default 1200 for grading; pass higher for generation calls.
+  async callAI(prompt, system, model = 'haiku', maxTokens = 1200) {
     try {
       if (this.props.forceOfflineGrading) return null;
       // Only mark AI as down if the integration itself is missing — not on transient errors.
       // A timeout or API error on one call must not permanently poison all subsequent calls.
       if (!window.claude || !window.claude.complete) { this.aiDown = true; return null; }
-      const call = window.claude.complete({ messages: [{ role: 'user', content: prompt }], system: (system || '') + this.ageDirective(), max_tokens: 8000 });
+      const call = window.claude.complete({ messages: [{ role: 'user', content: prompt }], system: (system || '') + this.ageDirective(), max_tokens: maxTokens, model });
       const timeout = new Promise((resolve) => setTimeout(() => resolve(null), 90000));
       return await Promise.race([call, timeout]);
     } catch (e) { return null; }
@@ -2303,7 +2305,7 @@ class Component extends DCLogic {
     let parsed = null;
     for (let attempt = 0; attempt < 2 && !(parsed && this.mod.isValidCards(parsed.cards)); attempt++) {
       const ask = attempt === 0 ? prompt : prompt + '\n\nIMPORTANT: your previous reply could not be read. Return ONLY the raw JSON object, starting with { and ending with }, and keep it short enough to finish completely.';
-      const raw = await this.callAI(ask, system);
+      const raw = await this.callAI(ask, system, 'haiku', 3500);
       const p = this.parseJson(raw);
       if (p && this.mod.isValidCards(p.cards)) { parsed = p; break; }
       // Partial or malformed reply: rescue whatever complete cards it contains.
@@ -2387,6 +2389,7 @@ class Component extends DCLogic {
           { type: 'text', text: 'Transcribe ALL the study notes visible in this image into plain text. Keep the original wording, headings and bullet structure. Return only the transcribed text, nothing else.' },
         ] }],
         max_tokens: 4000,
+        model: 'sonnet',
       });
       const clean = (text || '').trim();
       if (clean.length < 40) throw new Error('too little text');
@@ -2555,7 +2558,7 @@ class Component extends DCLogic {
     this.setSession('self_explanation', { phase: 'chunking' });
     const prompt = 'Here are a student\'s study notes:\n\n"""' + (this.state.material || '').slice(0, 6000) + '"""\n\n' +
       'Read these notes and break them into individual sentences or short chunks of one to two sentences each. Each chunk should contain one complete idea, fact, or concept. Do not summarize or rewrite anything, keep the original wording from the notes. Return ONLY a JSON array where each object has a "chunk" field containing the original text and a "key_idea" field containing a two to three word label for what that chunk is about.';
-    const raw = await this.callAI(prompt, 'You split study notes into one-idea chunks, preserving original wording. Respond with ONLY a valid JSON array, no markdown fences, no extra text. Never use em dashes in any text you return.');
+    const raw = await this.callAI(prompt, 'You split study notes into one-idea chunks, preserving original wording. Respond with ONLY a valid JSON array, no markdown fences, no extra text. Never use em dashes in any text you return.', 'haiku', 3500);
     let chunks = null;
     if (raw) {
       try {
@@ -2685,7 +2688,7 @@ class Component extends DCLogic {
     this.setSession('blurting', { phase: 'topics' });
     const prompt = 'Here are a student\'s study notes:\n\n"""' + (this.state.material || '').slice(0, 6000) + '"""\n\n' +
       'Read these notes and identify the 5 to 10 most important topics, concepts, or vocabulary words. Return ONLY a JSON array where each object has a "topic" field containing just the name or title of the concept, no definitions, no explanations, just the topic names. Example: [{"topic": "Photosynthesis"}, {"topic": "The light reaction"}]';
-    const raw = await this.callAI(prompt, 'You extract topic names from study notes. Respond with ONLY a valid JSON array, no markdown fences, no extra text. Never use em dashes in any text you return.');
+    const raw = await this.callAI(prompt, 'You extract topic names from study notes. Respond with ONLY a valid JSON array, no markdown fences, no extra text. Never use em dashes in any text you return.', 'haiku', 600);
     let topics = null;
     if (raw) {
       try {
@@ -2705,10 +2708,10 @@ class Component extends DCLogic {
     if (!sess || sess.phase !== 'write' || (sess.text || '').trim().length <= 10) return;
     const topic = sess.topics[sess.idx].topic;
     this.setSession('blurting', { phase: 'grading', gradeError: false });
-    const prompt = 'A student is doing a blurting exercise on the topic: "' + topic + '".\n\nHere are their original study notes:\n"""' + (this.state.material || '').slice(0, 6000) + '"""\n\n' +
+    const prompt = 'A student is doing a blurting exercise on the topic: "' + topic + '".\n\nHere are their original study notes:\n"""' + (this.state.material || '').slice(0, 3000) + '"""\n\n' +
       'Here is everything the student wrote from memory about this topic, without looking at their notes:\n"""' + sess.text + '"""\n\n' +
       'Find the section of the notes relevant to this topic and identify its key terms and concepts. Determine which of those key concepts appear in the student\'s response and which do not. Return ONLY JSON: {"notesSection": "the relevant portion of the original notes for this topic, quoted as closely as possible", "covered": ["key terms or concepts from the notes that the student mentioned"], "missed": ["key terms or concepts from the notes that the student did not mention"]}';
-    const raw = await this.callAI(prompt, 'You compare a student\'s free recall against their study notes. Respond with ONLY valid JSON, no markdown fences, no extra text. Never use em dashes in any text you return.');
+    const raw = await this.callAI(prompt, 'You compare a student\'s free recall against their study notes. Respond with ONLY valid JSON, no markdown fences, no extra text. Never use em dashes in any text you return.', 'haiku', 2000);
     let result = null;
     if (raw) {
       try {
@@ -2793,7 +2796,7 @@ class Component extends DCLogic {
       'A "figure" is REQUIRED, not optional, on every worked example and every practice problem that involves geometry, shapes, triangles, angles, congruence or similarity proofs, number lines, coordinate graphs, functions being sketched, or any data/statistics. A student cannot do those problems without seeing the picture. Only omit "figure" when the problem is pure symbolic algebra or arithmetic with nothing to draw.\n' +
       'If the material genuinely contains no problems to solve (it is pure prose or vocabulary), return exactly {"not_math": true} instead.\n' +
       'Otherwise return ONLY JSON: {"skills": [{"skill": "short name of the procedure", "worked": {"problem": "the example problem", "steps": [{"step": "the working for this line", "why": "why you do this, one short sentence"}]}, "practice": [{"problem": "a problem of this type", "answer": "the final answer", "hint": "a one line nudge, no answer"}]}]}';
-    const p = this.parseJson(await this.callAI(prompt, 'You are a maths tutor who builds worked examples and graded practice from a student\'s own material. Respond with ONLY valid JSON, no markdown fences, no extra text. Never use em dashes in any text you return.'));
+    const p = this.parseJson(await this.callAI(prompt, 'You are a maths tutor who builds worked examples and graded practice from a student\'s own material. Respond with ONLY valid JSON, no markdown fences, no extra text. Never use em dashes in any text you return.', 'sonnet', 8000));
     if (p && p.not_math) { this.setSession('problem_sets', { phase: 'genError', notMath: true }); return; }
     const cleanFig = (f) => {
       if (!f || typeof f !== 'object') return null;
@@ -2880,7 +2883,7 @@ class Component extends DCLogic {
     this.setSession('feynman', { phase: 'gen' });
     const prompt = 'Here are a student\'s study notes:\n\n"""' + (this.state.material || '').slice(0, 6000) + '"""\n\n' +
       'Read these notes and identify the 5 to 8 most important concepts, theories, or processes. For each one return just the concept name and a one sentence plain English definition. Return ONLY a JSON array where each object has a "concept" field and a "definition" field.';
-    const p = this.parseJson(await this.callAI(prompt, 'You extract key concepts from study notes. Respond with ONLY a valid JSON array, no markdown fences, no extra text. Never use em dashes in any text you return.'));
+    const p = this.parseJson(await this.callAI(prompt, 'You extract key concepts from study notes. Respond with ONLY a valid JSON array, no markdown fences, no extra text. Never use em dashes in any text you return.', 'haiku', 1000));
     let items = Array.isArray(p) ? p.filter(x => x && typeof x.concept === 'string' && typeof x.definition === 'string').slice(0, 8) : null;
     if ((!items || !items.length) && this.offlineMode()) items = (this.state.concepts || []).slice(0, 6).map(c => ({ concept: c.question, definition: c.answer }));
     if (!items || !items.length) { this.setSession('feynman', { phase: 'genError' }); return; }
@@ -2973,7 +2976,7 @@ class Component extends DCLogic {
       '"chain" (array of 3 or 4 short step labels in causal order),\n' +
       '"chain_caption" (one short sentence naming what the chain shows),\n' +
       '"primer_terms" (array of 0 to 3 objects with "term" and "means", defining any word in "fact" a beginner would not know).';
-    const p = this.parseJson(await this.callAI(prompt, 'You write elaborative-interrogation questions from study notes. Respond with ONLY a valid JSON array, no markdown fences, no extra text. Never use em dashes in any text you return.'));
+    const p = this.parseJson(await this.callAI(prompt, 'You write elaborative-interrogation questions from study notes. Respond with ONLY a valid JSON array, no markdown fences, no extra text. Never use em dashes in any text you return.', 'sonnet', 8000));
     let items = Array.isArray(p) ? p.filter(x => x && x.fact && x.why_question && x.connection_question && x.model_answer).slice(0, 10).map(x => Object.assign({}, x, {
       chain: Array.isArray(x.chain) ? x.chain.filter(st => typeof st === 'string' && st.trim()).map(st => st.trim()).slice(0, 4) : [],
       chain_caption: typeof x.chain_caption === 'string' ? x.chain_caption : '',
@@ -3017,7 +3020,7 @@ class Component extends DCLogic {
     if (!sess || sess.phase !== 'connect' || (sess.connText || '').trim().length <= 5) return;
     const item = sess.items[sess.idx];
     this.setSession('elaborative_interrogation', { phase: 'gradingConn', gradeError: false });
-    const prompt = 'The fact is: "' + item.fact + '". The connection question was: "' + item.connection_question + '".\n\nHere are the student\'s full notes for context:\n"""' + (this.state.material || '').slice(0, 4000) + '"""\n\nThe student answered:\n"""' + sess.connText + '"""\n\n' +
+    const prompt = 'The fact is: "' + item.fact + '". The connection question was: "' + item.connection_question + '".\n\nHere are the student\'s notes for context:\n"""' + (this.state.material || '').slice(0, 2000) + '"""\n\nThe student answered:\n"""' + sess.connText + '"""\n\n' +
       'Evaluate whether the connection the student made is accurate. Return ONLY JSON: {"verdict": "correct"|"partially_correct"|"incorrect", "feedback": "brief feedback on whether the connection was accurate", "ideal_connection": "one sentence describing an ideal connection to make"}';
     const p = this.parseJson(await this.callAI(prompt, 'You grade a student\'s conceptual connections fairly. Respond with ONLY valid JSON, no markdown fences, no extra text. Never use em dashes in any text you return.'));
     let result = null;
@@ -3067,6 +3070,7 @@ class Component extends DCLogic {
           messages: [{ role: 'user', content: attempt === 0 ? prompt : prompt + '\n\nIMPORTANT: Return ONLY the raw JSON array starting with [' }],
           system,
           max_tokens: 8000,
+          model: 'sonnet',
         });
         const timer = new Promise((res) => setTimeout(() => res(null), 50000));
         raw = await Promise.race([call, timer]);
@@ -3151,7 +3155,7 @@ class Component extends DCLogic {
       'Read these notes carefully and generate 10 practice test questions based on the most important and testable content. Mix the question types: multiple choice, true or false, and short answer.\n' +
       'For multiple choice provide exactly 4 answer options where only one is correct. For true or false the answer is either "True" or "False". For short answer provide a model answer the student\'s response will be compared against.\n' +
       'Return ONLY a JSON array where each object has: "question" (string), "type" ("multiple_choice", "true_or_false", or "short_answer"), "options" (array of 4 option strings WITHOUT letter prefixes, only for multiple_choice, omit otherwise), and "correct_answer" (for multiple_choice the letter "A", "B", "C" or "D" matching the option\'s position; for true_or_false "True" or "False"; for short_answer the model answer).';
-    const raw = await this.callAI(prompt, 'You write practice tests from study notes. Respond with ONLY a valid JSON array, no markdown fences, no extra text. Never use em dashes in any text you return.');
+    const raw = await this.callAI(prompt, 'You write practice tests from study notes. Respond with ONLY a valid JSON array, no markdown fences, no extra text. Never use em dashes in any text you return.', 'sonnet', 8000);
     let qs = null;
     if (raw) {
       try {
@@ -3238,7 +3242,7 @@ class Component extends DCLogic {
       const prompt = 'Grade these short-answer responses from a student\'s practice test. For each, compare the student response to the model answer and decide if it is "correct", "partially_correct", or "incorrect", with a brief one-sentence explanation of why.\n\n' +
         JSON.stringify(pending.map(x => ({ i: x.i, question: results[x.i].question, model_answer: results[x.i].correctDisplay, student_response: results[x.i].yours }))) +
         '\n\nReturn ONLY a JSON array: [{"i": number, "verdict": "correct"|"partially_correct"|"incorrect", "explanation": "brief reason"}]';
-      const raw = await this.callAI(prompt, 'You grade short-answer test responses fairly but strictly. Respond with ONLY a valid JSON array, no markdown fences, no extra text. Never use em dashes in any text you return.');
+      const raw = await this.callAI(prompt, 'You grade short-answer test responses fairly but strictly. Respond with ONLY a valid JSON array, no markdown fences, no extra text. Never use em dashes in any text you return.', 'haiku', 1800);
       let graded = null;
       if (raw) { try { const p = JSON.parse(raw.replace(/```json|```/g, '').trim()); if (Array.isArray(p)) graded = p; } catch (e) {} }
       pending.forEach(x => {
@@ -3287,7 +3291,7 @@ class Component extends DCLogic {
     this.setSession('pomodoro', { phase: 'gen' });
     const prompt = 'Here are a student\'s study notes:\n\n"""' + (this.state.material || '').slice(0, 6000) + '"""\n\n' +
       'Break these notes into study chunks where each chunk covers one single topic or concept and can be read and understood in approximately 3 to 5 minutes. Give each chunk a short title, and rewrite its content as clear plain English bullet points with the most important terms wrapped in **double asterisks** for bold. Also write 4 short fun facts related to this subject that a student could enjoy reading on a break. Return ONLY JSON: {"chunks": [{"title": "short title", "bullets": ["bullet point with **key term** bolded", "..."]}], "fun_facts": ["fun fact 1", "..."]}';
-    const p = this.parseJson(await this.callAI(prompt, 'You break study notes into bite-size focus chunks. Respond with ONLY valid JSON, no markdown fences, no extra text. Never use em dashes in any text you return.'));
+    const p = this.parseJson(await this.callAI(prompt, 'You break study notes into bite-size focus chunks. Respond with ONLY valid JSON, no markdown fences, no extra text. Never use em dashes in any text you return.', 'haiku', 3500));
     let chunks = null, funFacts = [];
     if (p && Array.isArray(p.chunks)) {
       chunks = p.chunks.filter(c => c && typeof c.title === 'string' && Array.isArray(c.bullets) && c.bullets.length).map(c => ({ title: c.title, bullets: c.bullets.filter(x => typeof x === 'string') })).slice(0, 12);
