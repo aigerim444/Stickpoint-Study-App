@@ -2441,39 +2441,47 @@ class Component extends DCLogic {
       if (id === 'blurting') {
         const b = this.state.session.blurting;
         if (b.phase === 'grading') { this.setSession('blurting', { phase: 'write', gradeError: false }); return; }
+        if (b.phase === 'topics') return; // already loading, don't restart
         if (b.phase && b.phase !== 'topics') return;
         // old-shape session or stale topic extraction, rebuild below
       } else if (id === 'practice_testing') {
         const p = this.state.session.practice_testing;
         if (p.phase === 'test') { this.startPtInterval(); return; }
+        if (p.phase === 'gen') return; // already loading, don't restart
         if (p.phase && p.phase !== 'gen' && p.phase !== 'grading') return;
         // old shape or interrupted gen/grading, rebuild below
       } else if (id === 'self_explanation') {
         const se = this.state.session.self_explanation;
         if (se.phase === 'evaluating') { this.setSession('self_explanation', { phase: 'read', gradeError: false }); return; }
+        if (se.phase === 'chunking') return; // already loading, don't restart
         if (se.phase && se.phase !== 'chunking') return;
         // old shape or interrupted chunking, rebuild below
       } else if (id === 'problem_sets') {
         const ps = this.state.session.problem_sets;
         if (ps.phase === 'grading') { this.setSession('problem_sets', { phase: 'solve', gradeError: false }); return; }
+        if (ps.phase === 'gen') return; // already loading, don't restart
         if (ps.phase && ps.phase !== 'gen') return;
       } else if (id === 'feynman') {
         const f = this.state.session.feynman;
         if (f.phase === 'grading') { this.setSession('feynman', { phase: 'write', gradeError: false }); return; }
         if (f.phase && f.pass == null) { this.setSession('feynman', { phase: 'write', pass: 1, text: '', firstText: '', firstResult: null, result: null, firstScores: {}, finals: {}, loopsClosed: 0 }); return; }
+        if (f.phase === 'gen') return; // already loading, don't restart
         if (f.phase && f.phase !== 'gen') return;
       } else if (id === 'elaborative_interrogation') {
         const e2 = this.state.session.elaborative_interrogation;
         if (e2.phase === 'gradingWhy') { this.setSession('elaborative_interrogation', { phase: 'why', gradeError: false }); return; }
         if (e2.phase === 'gradingConn') { this.setSession('elaborative_interrogation', { phase: 'connect', gradeError: false }); return; }
+        if (e2.phase === 'gen') return; // already loading, don't restart
         if (e2.phase && e2.phase !== 'gen') return;
       } else if (id === 'concrete_examples') {
         const c2 = this.state.session.concrete_examples;
         if (c2.phase === 'grading' || c2.phase === 'newExample') { this.setSession('concrete_examples', { phase: 'card', gradeError: false }); return; }
+        if (c2.phase === 'gen') return; // already loading, don't restart
         if (c2.phase && c2.phase !== 'gen') return;
       } else if (id === 'pomodoro') {
         const p2 = this.state.session.pomodoro;
         if (p2.phase === 'study' || p2.phase === 'break') { this.startPomodoroInterval(); return; }
+        if (p2.phase === 'gen') return; // already loading, don't restart
         if (p2.phase && p2.phase !== 'gen') return;
       } else return;
     }
@@ -3422,7 +3430,34 @@ class Component extends DCLogic {
   acceptMathMethods = () => {
     const ranked = this.mod.MATH_METHODS.slice();
     const newTop = ranked.slice(0, 3);
-    this.update({ topMethods: newTop, activeMethod: newTop[0], mathNoticeOpen: false, session: {} });
+    // Pre-build sessions for all top methods so generation starts immediately in background.
+    const concepts = this.state.concepts || [];
+    const session = {};
+    newTop.forEach(id => {
+      if (id === 'problem_sets')            session[id] = { phase: 'gen', skills: null, skillIdx: 0, stepsShown: 1, pIdx: 0, work: '', result: null, guided: true, attempts: {}, solved: {}, errorTypes: {}, gradeError: false, showHint: false };
+      else if (id === 'practice_testing')   session[id] = { phase: 'gen', questions: null, idx: 0, answers: {}, saText: '', endAt: 0, timeLeft: 0, timedOut: false, results: null, score: 0 };
+      else if (id === 'feynman')            session[id] = { phase: 'gen', items: null, idx: 0, pass: 1, text: '', firstText: '', firstResult: null, result: null, scores: {}, firstScores: {}, simplers: {}, finals: {}, loopsClosed: 0, gradeError: false };
+      else if (id === 'elaborative_interrogation') session[id] = { phase: 'gen', items: null, idx: 0, whyText: '', connText: '', whyResult: null, connResult: null, struggled: {}, firstWhy: {}, idealConns: {}, gradeError: false };
+      else if (id === 'concrete_examples')  session[id] = { phase: 'gen', items: null, idx: 0, revealed: false, text: '', result: null, flags: {}, reinforces: {}, gradeError: false };
+      else if (id === 'pomodoro')           session[id] = { phase: 'gen', chunks: null, funFacts: [], chunkIdx: 0, endAt: 0, secondsLeft: 0, sessionsDone: 0, focusRating: null, hardPick: null, reviewFirst: null, hardHistory: [], coveredCount: 0 };
+      else if (id === 'blurting')           session[id] = { phase: 'topics', topics: null, idx: 0, text: '', result: null, prevScore: null, scores: {}, gradeError: false, startedAt: 0, elapsed: 0 };
+      else if (id === 'self_explanation')   session[id] = { phase: 'chunking', chunks: null, idx: 0, text: '', tries: 0, result: null, firstTry: {}, struggled: {}, gradeError: false };
+      else if (id === 'active_recall')      session[id] = { queue: concepts.map((_, i) => i), flipped: false, counts: { easy: 0, medium: 0, hard: 0 }, seenCount: {}, hardIdx: [], done: 0, finished: concepts.length === 0 };
+    });
+    this.setState({ topMethods: newTop, activeMethod: newTop[0], mathNoticeOpen: false, session }, () => {
+      // Fire all background generation tasks in parallel so they're ready when the user arrives.
+      newTop.forEach(id => {
+        if (id === 'problem_sets')            this.generateProblemSets();
+        else if (id === 'practice_testing')   this.generatePracticeTest();
+        else if (id === 'feynman')            this.extractFeynmanConcepts();
+        else if (id === 'elaborative_interrogation') this.extractEIFacts();
+        else if (id === 'concrete_examples')  this.extractCEItems();
+        else if (id === 'pomodoro')           this.generatePomChunks();
+        else if (id === 'blurting')           this.extractBlurtTopics();
+        else if (id === 'self_explanation')   this.chunkNotesSE();
+      });
+      setTimeout(() => this.persist(), 0);
+    });
   };
 
   // ---------- Add material tab (replace material) ----------
