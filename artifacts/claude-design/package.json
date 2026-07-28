@@ -3,9 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --config vite.config.ts --host 0.0.0.0",
-    "build": "vite build",
-    "serve": "vite preview",
+    "dev": "node serve.mjs",
+    "build": "node -e \"require('fs').cpSync('public','dist/public',{recursive:true})\"",
+    "serve": "node serve.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

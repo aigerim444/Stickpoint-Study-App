@@ -41,7 +41,7 @@ router.post("/claude", async (req, res): Promise<void> => {
       return;
     }
 
-    res.json({ content: textContent.text });
+    res.json({ text: textContent.text });
   } catch (err) {
     req.log.error({ err }, "Anthropic API error");
     const status =
