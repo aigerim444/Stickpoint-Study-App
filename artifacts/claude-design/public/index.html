@@ -2222,6 +2222,15 @@ class Component extends DCLogic {
     return this.aiDown === true || !window.claude || !window.claude.complete;
   }
 
+  // Client-side math detection — used as a fallback when the AI misses math content
+  // (PDF extraction often mangles symbols, so the AI may not see them clearly).
+  detectMath(text) {
+    const t = String(text || '').slice(0, 4000);
+    const keywords = /\b(equat|solving|calcul|theorem|triangle|angle|derivative|integral|fraction|algebra|geometry|trigonometr|quadratic|polynomial|sine|cosine|tangent|probability|vector|matrix|logarithm|exponent|parabola|hyperbola|function|domain|range|slope|intercept|radical|factor|prime number|statistic|mean|median|mode|standard deviation|permutation|combination|proof|congruent|similar|pythagor|circle|ellipse|area|volume|perimeter|surface area|differentiat|integrat|sequence|series|eigenvalue|determinant|arithmetic|inequality|binomial|coefficient|modular|number theory|set theory)\b/i.test(t);
+    const symbols = /[=±√π∫∑∏≈≠≤≥∞°∂∇→⊂∈]|\d+\s*[\+\-\*\/\^]\s*\d|\bx\s*[=<>]|\^\d|[a-zA-Z]\([a-zA-Z]\)/.test(t);
+    return keywords || symbols;
+  }
+
   // True when nothing can be asked of the AI: the dev flag, a dead connection, or a
   // published copy with no AI at all. Modes then build what they can from the cards.
   offlineMode() {
@@ -2276,7 +2285,7 @@ class Component extends DCLogic {
       'Each flashcard has a question asking the student to recall that single thing, and a concise answer explaining just that one thing.\n' +
       'Return between 8 and 20 cards, scaling with how much material is in the notes: lots of notes means more cards, a short paragraph means fewer, but always one card per concept, never a fixed count.\n' +
       'Return JSON only, no markdown fences, no commentary, exactly this shape:\n' +
-      'Also judge whether this material is MATHEMATICAL or problem-based (equations, calculations, procedures to execute) rather than prose or vocabulary, and report it as "is_math".\n' +
+      'IMPORTANT: Set "is_math" to true if the material contains ANY of the following: equations, formulas, algebra, geometry, trigonometry, calculus, statistics, arithmetic, proofs, graphs/coordinates, number theory, vectors, matrices, probability, or any subject where the student must execute procedures or solve problems with numbers or symbols — not just read and memorise facts. Set it to false only if the material is purely prose-based (history, literature, biology definitions, etc.) with no maths procedures.\n' +
       '{"topic": "short topic name, 4-6 words", "is_math": true or false, "cards": [{"question": "a question asking the student to recall one single term, concept, person, date, or idea", "answer": "a concise answer explaining just that one thing", "methodTag": "one of: active_recall, blurting, practice_testing, feynman, concrete_examples, pomodoro, self_explanation, elaborative_interrogation, whichever study method this card suits best"}]}';
     const system = 'You are a study assistant that turns student notes into individual study cards. Respond with ONLY valid JSON, no markdown fences, no extra text. Never use em dashes in any text you return.';
     const salvageCards = (text) => {
@@ -2300,17 +2309,23 @@ class Component extends DCLogic {
       // Partial or malformed reply: rescue whatever complete cards it contains.
       const rescued = raw ? salvageCards(String(raw)) : [];
       if (rescued.length >= 4) {
-        parsed = { topic: (p && p.topic) || this.mod.localTopic(material), is_math: !!(p && (p.is_math || p.isMath)), cards: rescued };
+        parsed = { topic: (p && p.topic) || this.mod.localTopic(material), is_math: !!(p && (p.is_math || p.isMath)) || this.detectMath(material), cards: rescued };
         break;
       }
       if (p) parsed = p;
     }
     const cardsValid = parsed && this.mod.isValidCards(parsed.cards);
 
+    // Client-side fallback: PDF extraction mangles symbols so the AI may miss math.
+    // Override is_math to true if our regex detects it even when the AI didn't.
+    if (parsed && !parsed.is_math && !parsed.isMath && this.detectMath(material)) {
+      parsed.is_math = true;
+    }
+
     if (!cardsValid) {
       const localCards = this.aiUnavailable() ? this.mod.localExtractCards(material) : [];
       if (localCards && localCards.length >= 3) {
-        parsed = { topic: this.mod.localTopic(material), is_math: false, cards: localCards };
+        parsed = { topic: this.mod.localTopic(material), is_math: this.detectMath(material), cards: localCards };
         this.setState({ offlineCards: true });
       } else if (this.props.forceOfflineGrading) {
         parsed = { topic: this.mod.localTopic(material), cards: this.mod.localExtractCards(material) };
@@ -2345,6 +2360,8 @@ class Component extends DCLogic {
   startStudying = () => {
     this.ensureSession(this.state.pendingMethod);
     this.update({ screen: 'app', tab: 'study', activeMethod: this.state.pendingMethod });
+    // Show math popup for first-time users coming through methodTutorial
+    if (this.state.isMath) setTimeout(() => this.setState({ mathNoticeOpen: true }), 80);
   };
 
   chooseMethod = (id) => {
