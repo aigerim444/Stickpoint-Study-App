@@ -1674,6 +1674,7 @@ class Component extends DCLogic {
     currentMaterialId: null,
     isMath: false,
     mathNoticeOpen: false,
+    mathNoticeSeen: false,
     renamingId: null,
     renameDraft: '',
     missedBank: [],
@@ -2346,7 +2347,7 @@ class Component extends DCLogic {
       // session object and short-circuit, leaving the previous material's cards on screen.
       setTimeout(() => {
         this.ensureSession(activeMethod);
-        if (parsed.is_math || parsed.isMath) this.setState({ mathNoticeOpen: true });
+        if ((parsed.is_math || parsed.isMath) && !this.state.mathNoticeSeen) this.setState({ mathNoticeOpen: true });
       }, 0);
       return;
     }
@@ -2363,7 +2364,7 @@ class Component extends DCLogic {
     this.ensureSession(this.state.pendingMethod);
     this.update({ screen: 'app', tab: 'study', activeMethod: this.state.pendingMethod });
     // Show math popup for first-time users coming through methodTutorial
-    if (this.state.isMath) setTimeout(() => this.setState({ mathNoticeOpen: true }), 80);
+    if (this.state.isMath && !this.state.mathNoticeSeen) setTimeout(() => this.setState({ mathNoticeOpen: true }), 80);
   };
 
   chooseMethod = (id) => {
@@ -3407,10 +3408,10 @@ class Component extends DCLogic {
     if (!entry || id === this.state.currentMaterialId) return;
     this.update({
       material: entry.material, concepts: entry.concepts, topic: entry.topic,
-      isMath: !!entry.isMath, currentMaterialId: id, session: {}, tab: 'today',
+      isMath: !!entry.isMath, currentMaterialId: id, session: {}, tab: 'today', mathNoticeSeen: false,
       activeMethod: null, screen: 'app',
     });
-    if (entry.isMath) setTimeout(() => this.setState({ mathNoticeOpen: true }), 0);
+    if (entry.isMath && !this.state.mathNoticeSeen) setTimeout(() => this.setState({ mathNoticeOpen: true }), 0);
   };
 
   startRename = (id) => { const e = (this.state.library || []).find(x => x.id === id); this.setState({ renamingId: id, renameDraft: e ? e.name : '' }); };
@@ -3426,7 +3427,7 @@ class Component extends DCLogic {
     this.setState({ renamingId: null, renameDraft: '' });
   };
 
-  closeMathNotice = () => this.setState({ mathNoticeOpen: false });
+  closeMathNotice = () => this.setState({ mathNoticeOpen: false, mathNoticeSeen: true });
   acceptMathMethods = () => {
     const ranked = this.mod.MATH_METHODS.slice();
     const newTop = ranked.slice(0, 3);
@@ -3444,7 +3445,7 @@ class Component extends DCLogic {
       else if (id === 'self_explanation')   session[id] = { phase: 'chunking', chunks: null, idx: 0, text: '', tries: 0, result: null, firstTry: {}, struggled: {}, gradeError: false };
       else if (id === 'active_recall')      session[id] = { queue: concepts.map((_, i) => i), flipped: false, counts: { easy: 0, medium: 0, hard: 0 }, seenCount: {}, hardIdx: [], done: 0, finished: concepts.length === 0 };
     });
-    this.setState({ topMethods: newTop, activeMethod: newTop[0], mathNoticeOpen: false, session }, () => {
+    this.setState({ topMethods: newTop, activeMethod: newTop[0], mathNoticeOpen: false, mathNoticeSeen: true, session }, () => {
       // Fire all background generation tasks in parallel so they're ready when the user arrives.
       newTop.forEach(id => {
         if (id === 'problem_sets')            this.generateProblemSets();
