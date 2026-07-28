@@ -1150,7 +1150,7 @@
               </div>
               <sc-if value="{{ elaborativeUI.hasPrimer }}" hint-placeholder-val="{{ false }}">
                 <div style="background:#F3FBF8;border:3px solid #2DD4A7;padding:14px;display:flex;flex-direction:column;gap:6px;">
-                  <div style="font-size:9px;font-weight:900;color:#1a9c77;letter-spacing:1.5px;">WHAT THIS ACTUALLY MEANS</div>
+                  <div style="font-size:9px;font-weight:900;color:#1a9c77;letter-spacing:1.5px;">WHAT THIS ACTUALLY MEANS (IN PLAIN ENGLISH)</div>
                   <div style="font-size:14px;font-weight:700;color:#14543f;line-height:1.65;">{{ elaborativeUI.primer }}</div>
                 </div>
               </sc-if>
@@ -2963,15 +2963,24 @@ class Component extends DCLogic {
   extractEIFacts = async () => {
     this.setSession('elaborative_interrogation', { phase: 'gen' });
     const prompt = 'Here are a student\'s study notes:\n\n"""' + (this.state.material || '').slice(0, 6000) + '"""\n\n' +
-      'Read these notes and break them into individual facts, statements, or concepts. For each one generate a why question or a how question that pushes the student to think about the reasoning behind it rather than just memorizing the fact itself. Also generate a connection question asking how this fact connects to something else in the notes. Also, for each item, build a small visual chain that shows the reasoning as a sequence of 3 or 4 steps a student can see at a glance, each step a short label of 2 to 6 words, in causal order, so the chain reads like cause then mechanism then effect. Return ONLY a JSON array (6 to 10 items) where each object has: "fact" (the original statement from the notes), "why_question" (a why or how question about that fact), "connection_question" (asking how it connects to other content in the notes), "model_answer" (a strong example answer to the why question), "chain" (array of 3 or 4 short step labels in causal order), "chain_caption" (one short sentence naming what the chain shows), "primer" (two or three sentences teaching this fact from scratch in plain English, for a student meeting it for the first time, no jargon, assume they know nothing), and "primer_terms" (array of 0 to 3 objects with "term" and "means", defining any word in the fact a beginner would not know).';
+      'Read these notes and break them into individual facts, statements, or concepts. For each one generate a why question or a how question that pushes the student to think about the reasoning behind it rather than just memorizing the fact itself. Also generate a connection question asking how this fact connects to something else in the notes. Also, for each item, build a small visual chain that shows the reasoning as a sequence of 3 or 4 steps a student can see at a glance, each step a short label of 2 to 6 words, in causal order, so the chain reads like cause then mechanism then effect.\n\n' +
+      'Return ONLY a JSON array (6 to 10 items) where each object has:\n' +
+      '"fact" (the original statement copied word-for-word from the notes),\n' +
+      '"plain_english" (a plain-English rewrite of that same fact — this MUST use completely different words from "fact", NO jargon, NO technical terms unless you immediately define them in brackets, written as if texting a friend who has never studied this subject at all; if "fact" says "mitosis is the process of cell division" then "plain_english" might say "when your body needs to make a new cell, it copies itself — the original cell splits into two identical ones"; 2 to 3 sentences, genuinely simpler than the original),\n' +
+      '"why_question" (a why or how question about that fact),\n' +
+      '"connection_question" (asking how it connects to other content in the notes),\n' +
+      '"model_answer" (a strong example answer to the why question),\n' +
+      '"chain" (array of 3 or 4 short step labels in causal order),\n' +
+      '"chain_caption" (one short sentence naming what the chain shows),\n' +
+      '"primer_terms" (array of 0 to 3 objects with "term" and "means", defining any word in "fact" a beginner would not know).';
     const p = this.parseJson(await this.callAI(prompt, 'You write elaborative-interrogation questions from study notes. Respond with ONLY a valid JSON array, no markdown fences, no extra text. Never use em dashes in any text you return.'));
     let items = Array.isArray(p) ? p.filter(x => x && x.fact && x.why_question && x.connection_question && x.model_answer).slice(0, 10).map(x => Object.assign({}, x, {
       chain: Array.isArray(x.chain) ? x.chain.filter(st => typeof st === 'string' && st.trim()).map(st => st.trim()).slice(0, 4) : [],
       chain_caption: typeof x.chain_caption === 'string' ? x.chain_caption : '',
-      primer: typeof x.primer === 'string' ? x.primer : '',
+      plain_english: typeof x.plain_english === 'string' ? x.plain_english : '',
       primer_terms: Array.isArray(x.primer_terms) ? x.primer_terms.filter(t => t && t.term && t.means).slice(0, 3) : [],
     })) : null;
-    if ((!items || !items.length) && this.offlineMode()) items = (this.state.concepts || []).slice(0, 6).map(c => ({ fact: c.answer, why_question: 'Why do you think this is true?', connection_question: 'How does this connect to the rest of your notes?', model_answer: c.answer, chain: [], chain_caption: '', primer: c.answer, primer_terms: [] }));
+    if ((!items || !items.length) && this.offlineMode()) items = (this.state.concepts || []).slice(0, 6).map(c => ({ fact: c.answer, why_question: 'Why do you think this is true?', connection_question: 'How does this connect to the rest of your notes?', model_answer: c.answer, chain: [], chain_caption: '', plain_english: '', primer_terms: [] }));
     if (!items || !items.length) { this.setSession('elaborative_interrogation', { phase: 'genError' }); return; }
     this.setSession('elaborative_interrogation', { phase: 'learn', items, idx: 0, whyText: '', connText: '', whyResult: null, connResult: null, struggled: {}, firstWhy: {}, idealConns: {}, gradeError: false });
   };
@@ -3892,7 +3901,7 @@ class Component extends DCLogic {
         phaseGen: eiSess.phase === 'gen', phaseGenError: eiSess.phase === 'genError',
         phaseActive: ['why', 'gradingWhy', 'connect', 'gradingConn', 'review'].includes(eiSess.phase),
         phaseLearn: eiSess.phase === 'learn',
-        hasPrimer: !!it.primer, primer: it.primer || '',
+        hasPrimer: !!it.plain_english, primer: it.plain_english || '',
         hasTerms: !!(it.primer_terms && it.primer_terms.length),
         primerTerms: (it.primer_terms || []).map(t => ({ term: t.term, means: t.means })),
         startQuestion: this.eiStartQuestion,
