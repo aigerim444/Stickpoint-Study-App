@@ -2240,13 +2240,13 @@ class Component extends DCLogic {
   async callAI(prompt, system) {
     try {
       if (this.props.forceOfflineGrading) return null;
+      // Only mark AI as down if the integration itself is missing — not on transient errors.
+      // A timeout or API error on one call must not permanently poison all subsequent calls.
       if (!window.claude || !window.claude.complete) { this.aiDown = true; return null; }
       const call = window.claude.complete({ messages: [{ role: 'user', content: prompt }], system: (system || '') + this.ageDirective(), max_tokens: 8000 });
-      const timeout = new Promise((resolve) => setTimeout(() => resolve(null), 45000));
-      const out = await Promise.race([call, timeout]);
-      if (out == null) this.aiDown = true;
-      return out;
-    } catch (e) { this.aiDown = true; return null; }
+      const timeout = new Promise((resolve) => setTimeout(() => resolve(null), 90000));
+      return await Promise.race([call, timeout]);
+    } catch (e) { return null; }
   }
 
   startExtractCountdown() {
@@ -3518,11 +3518,9 @@ class Component extends DCLogic {
       extractError: !!s.extractError,
       extractOk: !s.extractError,
       offlineCards: !!s.offlineCards,
-      extractErrorMsg: this.aiUnavailable()
-        ? "This copy of the app has no AI connection, so " + (s.name ? 'Chop' : 'Chop') + " can only build basic cards from your notes. Make sure your notes have a few full sentences, then try again."
-        : "Chop couldn't turn that into study cards. Please try again.",
+      extractErrorMsg: "Chop couldn't turn that into study cards — the AI took too long or hit an error. Please try again.",
       extractCountdown: (() => {
-        const left = Math.max(0, 45 - Math.floor(((s.extractNow || Date.now()) - (s.extractStartedAt || Date.now())) / 1000));
+        const left = Math.max(0, 90 - Math.floor(((s.extractNow || Date.now()) - (s.extractStartedAt || Date.now())) / 1000));
         return left > 0 ? 'about ' + left + (left === 1 ? ' second left' : ' seconds left') : 'almost there, wrapping up...';
       })(),
       retryExtract: this.retryExtract,
@@ -3780,10 +3778,8 @@ class Component extends DCLogic {
         phaseMarked: psSess.phase === 'marked', phaseSummary: psSess.phase === 'summary',
         genErrorText: psSess.notMath
           ? "These notes don't have problems to work through, Problem Sets is for maths and problem-based science. Try Active Recall or Practice Testing instead."
-          : this.offlineMode()
-            ? "Problem Sets needs Chop's AI to write worked solutions and mark your working, and this copy of the app has no AI connection. Flashcards, Practice Testing and Blurting still work here."
-            : "Chop couldn't build problem sets from your notes. Please try again.",
-        canRetryGen: !this.offlineMode(),
+          : "Chop couldn't build problem sets — the AI took too long or hit an error. Please try again.",
+        canRetryGen: true,
         retryGen: this.generateProblemSets,
         skillRows: skills.map((x, i) => {
           const done = Object.keys(psSess.solved || {}).some(k => k.startsWith(i + ':'));
