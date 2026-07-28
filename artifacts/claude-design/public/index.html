@@ -36,37 +36,12 @@
    fields and return { text: response.content[0].text }. Never put the API key in this file. */
 (function () {
   if (window.claude && window.claude.complete) return;
-  window.stickpointKey = {
-    get: function () { try { return localStorage.getItem('stickpoint_api_key') || ''; } catch (e) { return ''; } },
-    set: function (k) { try { k ? localStorage.setItem('stickpoint_api_key', k) : localStorage.removeItem('stickpoint_api_key'); } catch (e) {} },
-  };
+  // stickpointKey is intentionally not set — AI runs through the server backend.
+  window.stickpointKey = null;
   window.claude = {
     complete: async function (arg) {
       const body = typeof arg === 'string' ? { messages: [{ role: 'user', content: arg }] } : arg;
-      const key = window.stickpointKey.get();
-      // The student's own Anthropic key, entered on their device and kept in this
-      // browser only. Direct browser calls need Anthropic's opt-in header.
-      if (key) {
-        const res = await fetch('https://api.anthropic.com/v1/messages', {
-          method: 'POST',
-          headers: {
-            'content-type': 'application/json',
-            'x-api-key': key,
-            'anthropic-version': '2023-06-01',
-            'anthropic-dangerous-direct-browser-access': 'true',
-          },
-          body: JSON.stringify({
-            model: 'claude-sonnet-4-20250514',
-            max_tokens: body.max_tokens || 4000,
-            system: body.system || undefined,
-            messages: body.messages,
-          }),
-        });
-        if (!res.ok) throw new Error('Anthropic API error: ' + res.status);
-        const data = await res.json();
-        return (data.content || []).map(function (c) { return c.text || ''; }).join('');
-      }
-      // Otherwise expect a backend that holds the key (see the contract above).
+      // Always use the server backend which holds the API key securely.
       const res = await fetch('/api/claude', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -3486,11 +3461,9 @@ class Component extends DCLogic {
       materialDisabled: (s.materialDraft || '').trim().length < 40,
       materialBtnColor: (s.materialDraft || '').trim().length >= 40 ? '#FF6B4A' : '#c9c2b8',
       materialCameFromApp: !!s.fromApp,
-      showKeyBox: !!window.stickpointKey,
-      hasKey: !!(window.stickpointKey && window.stickpointKey.get()),
-      keyStatusText: window.stickpointKey && window.stickpointKey.get()
-        ? 'Connected with your own Anthropic key. All the AI features are on.'
-        : 'This copy has no built-in AI. Paste an Anthropic API key to switch on card building, practice tests and grading.',
+      showKeyBox: false,
+      hasKey: true,
+      keyStatusText: 'AI connected.',
       keyDraft: s.keyDraft || '',
       setKeyDraft: (e) => this.setState({ keyDraft: e.target.value }),
       cantSaveKey: !(s.keyDraft || '').trim(),
