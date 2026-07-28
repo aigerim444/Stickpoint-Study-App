@@ -3001,11 +3001,46 @@ class Component extends DCLogic {
   // ---------- Concrete Examples ----------
   extractCEItems = async () => {
     this.setSession('concrete_examples', { phase: 'gen' });
-    const prompt = 'Here are a student\'s study notes:\n\n"""' + (this.state.material || '').slice(0, 6000) + '"""\n\n' +
-      'Read these notes and identify every abstract concept, complex process, difficult theory, or vocabulary word that a high school student might struggle to visualize or understand. For each one generate a concrete real world example that makes the concept immediately clear and relatable to a teenager, something a high schooler has actually seen, heard, or experienced in everyday life, not another textbook example. For math and science concepts include a sample problem demonstrating the concept in action. Return ONLY a JSON array (5 to 10 items) where each object has: "concept" (the concept name), "plain_definition" (one sentence plain English definition), "example" (the vivid real world analogy or story), "sample_problem" (a worked example with numbers or steps, ONLY for math/science concepts, otherwise an empty string), and "connection_question" (asking the student to explain how the example connects back to the concept).';
-    const p = this.parseJson(await this.callAI(prompt, 'You create relatable real-world examples for study concepts. Respond with ONLY a valid JSON array, no markdown fences, no extra text. Never use em dashes in any text you return.'));
-    let items = Array.isArray(p) ? p.filter(x => x && x.concept && x.plain_definition && x.example && x.connection_question).map(x => ({ concept: x.concept, plain_definition: x.plain_definition, example: x.example, sample_problem: typeof x.sample_problem === 'string' ? x.sample_problem : '', connection_question: x.connection_question })).slice(0, 10) : null;
-    if ((!items || !items.length) && this.offlineMode()) items = (this.state.concepts || []).slice(0, 6).map(c => ({ concept: c.question, plain_definition: c.answer, example: 'Think of a moment in daily life where this shows up.', sample_problem: '', connection_question: 'How does that example connect back to ' + c.question + '?' }));
+    if (!window.claude || !window.claude.complete) { this.setSession('concrete_examples', { phase: 'genError' }); return; }
+
+    const material = (this.state.material || '').slice(0, 6000);
+    const prompt = 'Here are a student\'s study notes:\n\n"""' + material + '"""\n\n' +
+      'Read these notes carefully. Identify the 5 to 10 most abstract, confusing, or hard-to-visualise concepts a student might struggle with.\n\n' +
+      'For each concept, write a SPECIFIC, VIVID real-world example from daily life — a short scene or story the student has actually lived through (walking to school, scrolling their phone, eating, playing sport, cooking, shopping, arguing with a sibling, etc.). The example must name a real situation with real details. NEVER write vague instructions like "think of a moment", "imagine a time", or "consider how" — write the actual example directly.\n\n' +
+      'For maths/science concepts also include a worked sample problem.\n\n' +
+      'Return ONLY a raw JSON array, no markdown, no code fences:\n' +
+      '[{"concept":"...","plain_definition":"one sentence","example":"the vivid specific scene — written out, not a prompt to think of one","sample_problem":"worked problem or empty string","connection_question":"question asking student to link example back to concept"}]';
+
+    const system = 'You write vivid, specific real-world examples for study concepts. Every "example" field must be a concrete story or scene written in full — never a prompt like "think of a time" or "imagine a moment". Respond with ONLY a valid JSON array. No markdown fences, no extra text. Never use em dashes.' + this.ageDirective();
+
+    let raw = null;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const call = window.claude.complete({
+          messages: [{ role: 'user', content: attempt === 0 ? prompt : prompt + '\n\nIMPORTANT: Return ONLY the raw JSON array starting with [' }],
+          system,
+          max_tokens: 8000,
+        });
+        const timer = new Promise((res) => setTimeout(() => res(null), 50000));
+        raw = await Promise.race([call, timer]);
+        if (raw) break;
+      } catch (e) { raw = null; }
+    }
+
+    const p = this.parseJson(raw);
+    const items = Array.isArray(p)
+      ? p.filter(x => x && x.concept && x.plain_definition && x.example && x.connection_question
+                    && !x.example.toLowerCase().startsWith('think of')
+                    && !x.example.toLowerCase().startsWith('imagine'))
+          .map(x => ({
+            concept: x.concept,
+            plain_definition: x.plain_definition,
+            example: x.example,
+            sample_problem: typeof x.sample_problem === 'string' ? x.sample_problem : '',
+            connection_question: x.connection_question,
+          })).slice(0, 10)
+      : null;
+
     if (!items || !items.length) { this.setSession('concrete_examples', { phase: 'genError' }); return; }
     this.setSession('concrete_examples', { phase: 'card', items, idx: 0, revealed: false, text: '', result: null, flags: {}, reinforces: {}, gradeError: false });
   };
