@@ -632,7 +632,7 @@
               </div>
               <sc-if value="{{ seUI.phaseRead }}" hint-placeholder-val="{{ false }}">
                 <div style="font-size:12px;font-weight:800;color:#201E2E;line-height:1.5;">Say that line back in your own words, one sentence is plenty.</div>
-                <input type="text" value="{{ seUI.text }}" oninput="{{ seUI.setText }}" onkeydown="{{ seUI.onKey }}" placeholder="It basically means..." style="width:100%;box-sizing:border-box;font-family:'Nunito';font-weight:600;font-size:14px;padding:12px;border:3px solid #201E2E;background:#fff;color:#201E2E;outline:none;">
+                <textarea value="{{ seUI.text }}" oninput="{{ seUI.setText }}" onkeydown="{{ seUI.onKey }}" placeholder="It basically means..." style="width:100%;box-sizing:border-box;font-family:'Nunito';font-weight:600;font-size:14px;padding:12px;border:3px solid #201E2E;background:#fff;color:#201E2E;outline:none;resize:none;overflow:hidden;min-height:44px;height:{{ seUI.textHeight }};line-height:1.5;"></textarea>
                 <sc-if value="{{ seUI.gradeError }}" hint-placeholder-val="{{ false }}">
                   <div style="font-size:12px;font-weight:800;color:#c92c30;">Chop couldn't check that one, hit Check to try again.</div>
                 </sc-if>
@@ -2652,7 +2652,13 @@ class Component extends DCLogic {
     this.notifyReady('self_explanation');
   };
 
-  setSeText = (v) => this.setSession('self_explanation', { text: v });
+  setSeText = (e) => {
+    const el = e.target;
+    el.style.height = 'auto';
+    const h = Math.min(el.scrollHeight, 320);
+    el.style.height = h + 'px';
+    this.setSession('self_explanation', { text: el.value, textHeight: h + 'px' });
+  };
 
   seSkip = () => {
     const sess = this.state.session.self_explanation;
@@ -3155,7 +3161,7 @@ class Component extends DCLogic {
           max_tokens: 8000,
           model: 'sonnet',
         });
-        const timer = new Promise((res) => setTimeout(() => res(null), 50000));
+        const timer = new Promise((res) => setTimeout(() => res(null), 90000));
         raw = await Promise.race([call, timer]);
         if (raw) break;
       } catch (e) { raw = null; }
@@ -3163,9 +3169,7 @@ class Component extends DCLogic {
 
     const p = this.parseJson(raw);
     const items = Array.isArray(p)
-      ? p.filter(x => x && x.concept && x.plain_definition && x.example && x.connection_question
-                    && !x.example.toLowerCase().startsWith('think of')
-                    && !x.example.toLowerCase().startsWith('imagine'))
+      ? p.filter(x => x && x.concept && x.plain_definition && x.example && x.connection_question)
           .map(x => ({
             concept: x.concept,
             plain_definition: x.plain_definition,
@@ -3838,7 +3842,7 @@ class Component extends DCLogic {
               color: isCurrent ? '#201E2E' : '#201E2E', opacity: isCurrent ? 1 : done ? 0.42 : 0.3 },
           };
         }),
-        text: seSess.text || '', setText: (e) => this.setSeText(e.target.value), onKey: this.onSeKey,
+        text: seSess.text || '', textHeight: seSess.textHeight || '44px', setText: (e) => this.setSeText(e), onKey: this.onSeKey,
         cantSubmit: (seSess.text || '').trim().length < 5,
         submit: this.submitSE, skip: this.seSkip, gradeError: !!seSess.gradeError,
         verdictStyle: { display: 'flex', gap: '10px', alignItems: 'flex-start', padding: '12px',
