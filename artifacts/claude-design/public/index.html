@@ -74,7 +74,7 @@
 </template>
 
 <div style="height:100dvh;min-height:100dvh;width:100%;background:radial-gradient(circle at 20% 10%,#FFF3DE 0%,#FBE8D3 55%,#F6DCC0 100%);display:flex;align-items:center;justify-content:center;padding:clamp(0px,2.2vh,28px) clamp(0px,3vw,16px);box-sizing:border-box;">
-<div style="width:min(100%,540px);height:100%;max-height:960px;min-height:0;background:#FFF9EF;border:4px solid #201E2E;box-shadow:8px 8px 0 #201E2E;position:relative;overflow:hidden;display:flex;flex-direction:column;">
+<div style="width:min(100%,600px);height:100%;max-height:100dvh;min-height:0;background:#FFF9EF;border:4px solid #201E2E;box-shadow:8px 8px 0 #201E2E;position:relative;overflow:hidden;display:flex;flex-direction:column;">
 
   <sc-if value="{{ bootFailed }}" hint-placeholder-val="{{ false }}">
     <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:34px 28px;text-align:center;">
@@ -420,9 +420,13 @@
             </div>
           </sc-if>
         </div>
-        <div style="display:flex;gap:6px;">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
           <div style="display:flex;align-items:center;gap:3px;background:#FFF3DE;border:2px solid #201E2E;padding:4px 7px;font-size:11px;font-weight:900;color:#201E2E;">🔥{{ streak }}</div>
           <div style="display:flex;align-items:center;gap:3px;background:#EDE7FF;border:2px solid #201E2E;padding:4px 7px;font-size:11px;font-weight:900;color:#201E2E;">⭐{{ xp }}</div>
+          <sc-if value="{{ hasAccount }}" hint-placeholder-val="{{ false }}">
+            <button onclick="{{ openAccountEdit }}" title="Edit reminder email" style="font-family:'Nunito';font-weight:900;font-size:11px;color:#201E2E;background:#F3FBF8;border:2px solid #2DD4A7;padding:4px 9px;cursor:pointer;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">📬 {{ accountContactShort }}</button>
+          </sc-if>
+          <button onclick="{{ openPiP }}" title="Open floating window" style="font-family:'Nunito';font-weight:900;font-size:11px;color:#201E2E;background:#fff;border:2px solid #201E2E;padding:4px 9px;cursor:pointer;">⧉</button>
           <button onclick="{{ openRestart }}" style="font-family:'Nunito';font-weight:900;font-size:11px;color:#fff;background:#FF5A5F;border:2px solid #201E2E;padding:4px 9px;cursor:pointer;">RESTART</button>
         </div>
       </div>
@@ -529,6 +533,18 @@
             <sc-for list="{{ methodBadges }}" as="m" hint-placeholder-count="8">
               <div style="font-size:11px;font-weight:800;padding:6px 10px;border:2px solid #201E2E;background:{{ m.bg }};color:{{ m.color }};">{{ m.label }}</div>
             </sc-for>
+          </div>
+
+          <!-- Streak reminder / about section -->
+          <div style="background:#FFF3DE;border:3px solid #FFC93C;box-shadow:4px 4px 0 #201E2E;padding:16px;display:flex;flex-direction:column;gap:10px;margin-top:8px;">
+            <div style="font-family:'Press Start 2P';font-size:10px;color:#201E2E;line-height:1.8;">🔥 DON'T LOSE YOUR STREAK</div>
+            <div style="font-size:12px;font-weight:700;color:#463f52;line-height:1.5;">Chop will send you a daily reminder so you never miss a day. Small habits, big results — consistency beats cramming every time.</div>
+            <sc-if value="{{ hasAccount }}" hint-placeholder-val="{{ false }}">
+              <div style="font-size:12px;font-weight:800;color:#1a9c77;">✅ Reminders set for {{ accountContact }}</div>
+              <div style="font-size:11px;font-weight:700;color:#8a8194;">Update your email below if needed.</div>
+            </sc-if>
+            <input type="email" value="{{ aboutEmailDraft }}" oninput="{{ setAboutEmailDraft }}" placeholder="you@school.edu" style="width:100%;box-sizing:border-box;font-family:'Nunito';font-weight:700;font-size:14px;padding:11px;border:3px solid #201E2E;background:#fff;color:#201E2E;outline:none;">
+            <button onclick="{{ saveAboutEmail }}" disabled="{{ cantSaveAboutEmail }}" style="font-family:'Nunito';font-weight:900;border:3px solid #201E2E;cursor:{{ aboutEmailBtnCursor }};font-size:13px;color:#fff;background:{{ aboutEmailBtnBg }};box-shadow:3px 3px 0 #201E2E;padding:12px;">{{ aboutEmailBtnLabel }}</button>
           </div>
         </div>
       </sc-if>
@@ -929,13 +945,32 @@
               <sc-if value="{{ psUI.hasHint }}" hint-placeholder-val="{{ false }}">
                 <div style="background:#FFF3DE;border:3px solid #FFC93C;padding:11px;font-size:12px;font-weight:800;color:#201E2E;line-height:1.5;">💡 {{ psUI.hint }}</div>
               </sc-if>
-              <div style="font-size:12px;font-weight:800;color:#201E2E;line-height:1.5;">Show your work, <span style="color:#FF6B4A;">one step per line</span>. Chop checks every line, not just the answer.</div>
-              <div style="display:flex;flex-wrap:wrap;gap:5px;">
-                <sc-for list="{{ psUI.symbols }}" as="sym" hint-placeholder-count="10">
-                  <button onclick="{{ sym.tap }}" style="font-family:'Courier New',monospace;font-weight:700;font-size:15px;color:#201E2E;background:#fff;border:2px solid #201E2E;padding:5px 9px;cursor:pointer;" style-hover="background:#EDE7FF;">{{ sym.char }}</button>
-                </sc-for>
+              <!-- Input mode toggle -->
+              <div style="display:flex;gap:6px;margin-bottom:2px;">
+                <button onclick="{{ psUI.switchToType }}" style="font-family:'Nunito';font-weight:900;font-size:12px;padding:7px 14px;border:3px solid #201E2E;background:{{ psUI.typeBtnBg }};color:{{ psUI.typeBtnColor }};cursor:pointer;">⌨️ TYPE</button>
+                <button onclick="{{ psUI.switchToDraw }}" style="font-family:'Nunito';font-weight:900;font-size:12px;padding:7px 14px;border:3px solid #201E2E;background:{{ psUI.drawBtnBg }};color:{{ psUI.drawBtnColor }};cursor:pointer;">✏️ DRAW</button>
               </div>
-              <textarea value="{{ psUI.work }}" oninput="{{ psUI.setWork }}" placeholder="x² + 5x + 6 = 0&#10;(x + 2)(x + 3) = 0&#10;x = -2 or x = -3" style="width:100%;min-height:170px;box-sizing:border-box;font-family:'Courier New',monospace;font-weight:700;font-size:15px;line-height:1.9;padding:12px;border:3px solid #201E2E;background:#fff;color:#201E2E;outline:none;resize:vertical;"></textarea>
+              <!-- Type mode -->
+              <sc-if value="{{ psUI.isTypeMode }}" hint-placeholder-val="{{ true }}">
+                <div style="font-size:12px;font-weight:800;color:#201E2E;line-height:1.5;">Show your work, <span style="color:#FF6B4A;">one step per line</span>. Chop checks every line, not just the answer.</div>
+                <div style="display:flex;flex-wrap:wrap;gap:5px;">
+                  <sc-for list="{{ psUI.symbols }}" as="sym" hint-placeholder-count="10">
+                    <button onclick="{{ sym.tap }}" style="font-family:'Courier New',monospace;font-weight:700;font-size:15px;color:#201E2E;background:#fff;border:2px solid #201E2E;padding:5px 9px;cursor:pointer;" style-hover="background:#EDE7FF;">{{ sym.char }}</button>
+                  </sc-for>
+                </div>
+                <textarea value="{{ psUI.work }}" oninput="{{ psUI.setWork }}" placeholder="x² + 5x + 6 = 0&#10;(x + 2)(x + 3) = 0&#10;x = -2 or x = -3" style="width:100%;min-height:170px;box-sizing:border-box;font-family:'Courier New',monospace;font-weight:700;font-size:15px;line-height:1.9;padding:12px;border:3px solid #201E2E;background:#fff;color:#201E2E;outline:none;resize:vertical;"></textarea>
+              </sc-if>
+              <!-- Draw mode -->
+              <sc-if value="{{ psUI.isDrawMode }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:12px;font-weight:800;color:#201E2E;line-height:1.5;">Draw your work below. <span style="color:#FF6B4A;">Chop will read your handwriting</span> and check each step.</div>
+                <div style="position:relative;">
+                  <canvas data-ps-canvas width="480" height="260"
+                    onmousedown="{{ psUI.canvasDown }}" onmousemove="{{ psUI.canvasMove }}" onmouseup="{{ psUI.canvasUp }}" onmouseleave="{{ psUI.canvasUp }}"
+                    ontouchstart="{{ psUI.canvasDown }}" ontouchmove="{{ psUI.canvasMove }}" ontouchend="{{ psUI.canvasUp }}"
+                    style="width:100%;height:220px;border:3px solid #201E2E;background:#fff;cursor:crosshair;display:block;touch-action:none;"></canvas>
+                  <button onclick="{{ psUI.clearCanvas }}" style="position:absolute;top:8px;right:8px;font-family:'Nunito';font-weight:900;font-size:11px;color:#201E2E;background:#fff;border:2px solid #201E2E;padding:4px 8px;cursor:pointer;opacity:0.85;">🗑 CLEAR</button>
+                </div>
+              </sc-if>
               <sc-if value="{{ psUI.gradeError }}" hint-placeholder-val="{{ false }}">
                 <div style="font-size:12px;font-weight:800;color:#c92c30;">Chop couldn't check that one, hit Check My Work to try again.</div>
               </sc-if>
@@ -1714,9 +1749,9 @@
       <sc-if value="{{ showAccount }}" hint-placeholder-val="{{ false }}">
         <div style="position:absolute;inset:0;background:rgba(32,30,46,.55);display:flex;align-items:center;justify-content:center;padding:24px;z-index:20;">
           <div style="background:#FFFCF6;border:3px solid #201E2E;box-shadow:6px 6px 0 #201E2E;padding:22px;display:flex;flex-direction:column;gap:12px;max-width:320px;">
-            <div style="font-size:30px;text-align:center;">📬</div>
-            <div style="font-family:'Nunito';font-weight:900;font-size:17px;color:#201E2E;line-height:1.35;text-align:center;">Nice, first session done!</div>
-            <div style="font-size:13px;font-weight:700;color:#463f52;line-height:1.5;text-align:center;">Want Chop to nudge you tomorrow so the streak keeps going? Drop an email or phone number.</div>
+            <div style="font-size:30px;text-align:center;">🔥</div>
+            <div style="font-family:'Nunito';font-weight:900;font-size:17px;color:#201E2E;line-height:1.35;text-align:center;">Don't lose your streak!</div>
+            <div style="font-size:13px;font-weight:700;color:#463f52;line-height:1.5;text-align:center;">Drop your email and Chop will send you a daily nudge to keep the streak alive. Studying every day is how it sticks.</div>
             <input type="text" value="{{ accountDraft }}" oninput="{{ setAccountDraft }}" placeholder="you@school.edu" style="width:100%;box-sizing:border-box;font-family:'Nunito';font-weight:700;font-size:14px;padding:11px;border:3px solid #201E2E;background:#fff;color:#201E2E;outline:none;">
             <button onclick="{{ saveAccount }}" disabled="{{ cantSaveAccount }}" style="font-family:'Nunito';font-weight:900;border:3px solid #201E2E;cursor:{{ accountBtnBgCursor }};font-size:13px;color:#fff;background:{{ accountBtnBg }};box-shadow:3px 3px 0 #201E2E;padding:12px;">REMIND ME TOMORROW</button>
             <button onclick="{{ skipAccount }}" style="font-family:'Nunito';font-weight:900;border:3px solid #201E2E;cursor:pointer;font-size:12px;color:#201E2E;background:#fff;padding:10px;">NOT NOW</button>
@@ -1751,6 +1786,8 @@ class Component extends DCLogic {
     accountPrompted: false,
     accountDraft: '',
     sessionsFinished: 0,
+    lastStreakPromptDate: null,
+    psInputMode: 'type',
     photoStatusText: 'No photo chosen yet',
     quizIdx: 0, // 0..5 across QUIZ_QUESTIONS
     quizAnswers: [],
@@ -1879,7 +1916,7 @@ class Component extends DCLogic {
       activeMethod: s.activeMethod, studiedDates: s.studiedDates, testDate: s.testDate,
       library: s.library, currentMaterialId: s.currentMaterialId, isMath: s.isMath,
       missedBank: s.missedBank, account: s.account, accountPrompted: s.accountPrompted,
-      sessionsFinished: s.sessionsFinished, tab: s.tab,
+      sessionsFinished: s.sessionsFinished, tab: s.tab, lastStreakPromptDate: s.lastStreakPromptDate,
     };
     try { localStorage.setItem('stickpoint_v1', JSON.stringify(toSave)); } catch (e) {}
   }
@@ -2473,12 +2510,18 @@ class Component extends DCLogic {
 
   todayStr() { const d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
 
-  // Called when a study mode reaches its summary. After the first finished session we
-  // ask (once) whether they want a reminder, the "come back tomorrow" hook.
+  // Called when a study mode reaches its summary. Show the "Don't lose your streak"
+  // reminder prompt once per calendar day, but only until the user saves an email.
   sessionComplete() {
     const n = (this.state.sessionsFinished || 0) + 1;
     const patch = { sessionsFinished: n };
-    if (n >= 1 && !this.state.accountPrompted && !this.state.account) patch.showAccount = true;
+    if (!this.state.account) {
+      const today = this.todayStr();
+      if (this.state.lastStreakPromptDate !== today) {
+        patch.showAccount = true;
+        patch.lastStreakPromptDate = today;
+      }
+    }
     this.update(patch);
   }
 
@@ -2488,7 +2531,15 @@ class Component extends DCLogic {
     if (!c) return;
     this.update({ account: { contact: c, since: Date.now() }, accountPrompted: true, showAccount: false, accountDraft: '' });
   };
-  skipAccount = () => this.update({ accountPrompted: true, showAccount: false });
+  // Dismiss for today only — prompt will reappear tomorrow
+  skipAccount = () => {
+    const today = this.todayStr();
+    this.update({ showAccount: false, lastStreakPromptDate: today });
+  };
+  openAccountEdit = () => this.setState({ showAccount: true, accountDraft: this.state.account ? this.state.account.contact : '' });
+  openPiP = () => {
+    window.open(window.location.href, 'stickpoint-pip', 'width=440,height=720,menubar=no,toolbar=no,location=no,status=no,resizable=yes');
+  };
 
   markStudiedToday() {
     const today = this.todayStr();
@@ -2910,8 +2961,97 @@ class Component extends DCLogic {
   psSetWork = (v) => this.setSession('problem_sets', { work: v });
   psStuck = () => this.setSession('problem_sets', { showHint: true });
   psSymbol = (ch) => this.setSession('problem_sets', { work: (this.state.session.problem_sets.work || '') + ch });
+  psSwitchToType = () => this.setState({ psInputMode: 'type' });
+  psSwitchToDraw = () => this.setState({ psInputMode: 'draw' });
+  psClearCanvas = () => {
+    const canvas = document.querySelector('[data-ps-canvas]');
+    if (!canvas) return;
+    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+    this.setSession('problem_sets', { hasDrawing: false });
+  };
+  _psGetPos(e, canvas) {
+    const r = canvas.getBoundingClientRect();
+    const sx = canvas.width / r.width, sy = canvas.height / r.height;
+    const src = e.touches ? e.touches[0] : e;
+    return { x: (src.clientX - r.left) * sx, y: (src.clientY - r.top) * sy };
+  }
+  psCanvasDown = (e) => {
+    e.preventDefault();
+    this._psDrawing = true;
+    const canvas = e.target;
+    const pos = this._psGetPos(e, canvas);
+    this._psLastX = pos.x; this._psLastY = pos.y;
+    const ctx = canvas.getContext('2d');
+    ctx.beginPath(); ctx.arc(pos.x, pos.y, 1.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#201E2E'; ctx.fill();
+    this.setSession('problem_sets', { hasDrawing: true });
+  };
+  psCanvasMove = (e) => {
+    e.preventDefault();
+    if (!this._psDrawing) return;
+    const canvas = e.target;
+    const pos = this._psGetPos(e, canvas);
+    const ctx = canvas.getContext('2d');
+    ctx.beginPath(); ctx.moveTo(this._psLastX, this._psLastY); ctx.lineTo(pos.x, pos.y);
+    ctx.strokeStyle = '#201E2E'; ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.stroke();
+    this._psLastX = pos.x; this._psLastY = pos.y;
+  };
+  psCanvasUp = (e) => { this._psDrawing = false; };
+
+  psSubmitDraw = async () => {
+    const sess = this.state.session.problem_sets;
+    if (!sess || sess.phase !== 'solve') return;
+    const canvas = document.querySelector('[data-ps-canvas]');
+    if (!canvas) return;
+    const px = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
+    if (!Array.from(px).some((v, i) => i % 4 === 3 && v > 0)) return; // empty canvas
+    const base64 = canvas.toDataURL('image/png').replace(/^data:image\/png;base64,/, '');
+    const skill = sess.skills[sess.skillIdx];
+    const prob = skill.practice[sess.pIdx];
+    this.setSession('problem_sets', { phase: 'grading', gradeError: false });
+    try {
+      const prompt = 'A student is solving this ' + skill.skill + ' problem:\n"""' + prob.problem + '"""\nThe correct final answer is: "' + prob.answer + '".\n\nThe student drew their working on the attached image. Read their handwritten work step by step. Check it LINE BY LINE. Find the FIRST line that contains a mathematical error. Name the error with a short reusable label (e.g. "sign error", "wrong operation", "arithmetic slip"). If the handwriting is unclear say so in explanation.\nReturn ONLY JSON: {"first_error_line": 1-based line number or null if all correct, "error_type": "short label or empty string", "explanation": "one or two sentences about what went wrong and what to do instead", "correct_line": "what that line should say, or empty string", "reached_answer": true if final answer matches}';
+      const raw = await window.claude.complete({
+        messages: [{ role: 'user', content: [
+          { type: 'image', source: { type: 'base64', media_type: 'image/png', data: base64 } },
+          { type: 'text', text: prompt },
+        ]}],
+        system: 'You are a maths tutor marking a student\'s handwritten working. Read the image carefully and check step by step. Respond with ONLY valid JSON, no markdown fences, no extra text. Never use em dashes.',
+        max_tokens: 1200,
+      });
+      const p = this.parseJson(raw);
+      if (!p || (typeof p.first_error_line !== 'number' && p.first_error_line !== null)) {
+        this.setSession('problem_sets', { phase: 'solve', gradeError: true }); return;
+      }
+      const result = {
+        errLine: typeof p.first_error_line === 'number' ? p.first_error_line : null,
+        errorType: String(p.error_type || ''), explanation: String(p.explanation || ''),
+        correctLine: String(p.correct_line || ''), reached: !!p.reached_answer,
+        lines: ['(drawn work — see Chop\'s feedback below)'], isDrawing: true,
+      };
+      const attempts = Object.assign({}, sess.attempts);
+      const key = sess.skillIdx + ':' + sess.pIdx;
+      attempts[key] = (attempts[key] || 0) + 1;
+      const solved = Object.assign({}, sess.solved);
+      const errorTypes = Object.assign({}, sess.errorTypes);
+      if (result.errLine == null && result.reached) {
+        solved[key] = attempts[key] === 1 ? 'first' : 'eventually';
+      } else if (result.errorType) {
+        const t = result.errorType.toLowerCase();
+        errorTypes[t] = (errorTypes[t] || 0) + 1;
+        this.recordMissed([{ question: prob.problem, answer: prob.answer, topic: skill.skill }], 'math · ' + t);
+      }
+      this.setSession('problem_sets', { phase: 'marked', result, attempts, solved, errorTypes });
+      this.addXp(result.errLine == null ? 6 : 2);
+      this.markStudiedToday();
+    } catch(e) {
+      this.setSession('problem_sets', { phase: 'solve', gradeError: true });
+    }
+  };
 
   psSubmit = async () => {
+    if ((this.state.psInputMode || 'type') === 'draw') return this.psSubmitDraw();
     const sess = this.state.session.problem_sets;
     if (!sess || sess.phase !== 'solve' || !(sess.work || '').trim()) return;
     const skill = sess.skills[sess.skillIdx];
@@ -3487,10 +3627,22 @@ class Component extends DCLogic {
   switchMaterial = (id) => {
     const entry = (this.state.library || []).find(x => x.id === id);
     if (!entry || id === this.state.currentMaterialId) return;
+    // Save current session to current library entry before switching
+    const currentId = this.state.currentMaterialId;
+    let library = this.state.library || [];
+    if (currentId) {
+      library = library.map(x => x.id === currentId
+        ? Object.assign({}, x, { savedSession: this.state.session || {}, savedActiveMethod: this.state.activeMethod })
+        : x);
+    }
     this.update({
+      library,
       material: entry.material, concepts: entry.concepts, topic: entry.topic,
-      isMath: !!entry.isMath, currentMaterialId: id, session: {}, tab: 'today', mathNoticeSeen: false,
-      activeMethod: null, screen: 'app',
+      isMath: !!entry.isMath, currentMaterialId: id,
+      session: entry.savedSession || {},
+      activeMethod: entry.savedActiveMethod || null,
+      tab: 'today', mathNoticeSeen: false,
+      screen: 'app',
     });
     if (entry.isMath && !this.state.mathNoticeSeen) setTimeout(() => this.setState({ mathNoticeOpen: true }), 0);
   };
@@ -3970,7 +4122,16 @@ class Component extends DCLogic {
         hasHint: (psSess.pIdx === 0 || psSess.showHint) && !!prac.hint, hint: prac.hint,
         symbols: SYMS.map(ch => ({ char: ch, tap: () => this.psSymbol(ch) })),
         work: psSess.work || '', setWork: (e) => this.psSetWork(e.target.value),
-        cantSubmit: !(psSess.work || '').trim(), submit: this.psSubmit, stuck: this.psStuck,
+        isTypeMode: (s.psInputMode || 'type') === 'type', isDrawMode: (s.psInputMode || 'type') === 'draw',
+        typeBtnBg: (s.psInputMode || 'type') === 'type' ? '#201E2E' : '#fff',
+        typeBtnColor: (s.psInputMode || 'type') === 'type' ? '#fff' : '#201E2E',
+        drawBtnBg: (s.psInputMode || 'type') === 'draw' ? '#201E2E' : '#fff',
+        drawBtnColor: (s.psInputMode || 'type') === 'draw' ? '#fff' : '#201E2E',
+        switchToType: this.psSwitchToType, switchToDraw: this.psSwitchToDraw,
+        canvasDown: this.psCanvasDown, canvasMove: this.psCanvasMove, canvasUp: this.psCanvasUp,
+        clearCanvas: this.psClearCanvas,
+        cantSubmit: (s.psInputMode || 'type') === 'draw' ? !psSess.hasDrawing : !(psSess.work || '').trim(),
+        submit: this.psSubmit, stuck: this.psStuck,
         gradeError: !!psSess.gradeError,
         verdictHeadStyle: { display: 'flex', alignItems: 'center', gap: '12px', padding: '14px',
           background: r && r.errLine == null ? '#C9F5E5' : '#FFF3DE',
@@ -4337,6 +4498,15 @@ class Component extends DCLogic {
       showAccount: !!s.showAccount, accountDraft: s.accountDraft || '',
       setAccountDraft: this.setAccountDraft, saveAccount: this.saveAccount, skipAccount: this.skipAccount,
       cantSaveAccount: !(s.accountDraft || '').trim(),
+      hasAccount: !!s.account, accountContact: s.account ? s.account.contact : '',
+      accountContactShort: s.account ? (s.account.contact.length > 16 ? s.account.contact.slice(0, 15) + '…' : s.account.contact) : '',
+      openAccountEdit: this.openAccountEdit, openPiP: this.openPiP,
+      aboutEmailDraft: s.accountDraft || '', setAboutEmailDraft: this.setAccountDraft,
+      saveAboutEmail: this.saveAccount,
+      cantSaveAboutEmail: !(s.accountDraft || '').trim(),
+      aboutEmailBtnBg: (s.accountDraft || '').trim() ? '#FF6B4A' : '#c9c2b8',
+      aboutEmailBtnCursor: (s.accountDraft || '').trim() ? 'pointer' : 'default',
+      aboutEmailBtnLabel: s.account ? 'UPDATE EMAIL' : 'SET DAILY REMINDER',
       nameSaveBg: (s.nameEditDraft || '').trim() ? '#2DD4A7' : '#c9c2b8',
       nameSaveCursor: (s.nameEditDraft || '').trim() ? 'pointer' : 'default',
       accountBtnBg: (s.accountDraft || '').trim() ? '#FF6B4A' : '#c9c2b8',
@@ -4375,9 +4545,9 @@ class Component extends DCLogic {
         const m = mod.METHODS.find(x => x.id === id) || { label: id, whyWorks: '' };
         return { rank: i + 1, label: m.label, why: m.whyWorks };
       }),
-      hasLibrary: (s.library || []).length > 0,
-      libraryRows: (s.library || []).slice().reverse().map(x => {
-        const current = x.id === s.currentMaterialId;
+      hasLibrary: (s.library || []).filter(x => x.id !== s.currentMaterialId).length > 0,
+      libraryRows: (s.library || []).filter(x => x.id !== s.currentMaterialId).slice().reverse().map(x => {
+        const current = false;
         const renaming = s.renamingId === x.id;
         return {
           id: x.id, name: x.name, current, renaming, notRenaming: !renaming,
