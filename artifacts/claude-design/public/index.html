@@ -3579,15 +3579,6 @@ class Component extends DCLogic {
     const mod = this.mod;
 
     void s.genTick; // forces re-render every second while any method is loading
-    const GEN_EST = { problem_sets: 65, practice_testing: 50, elaborative_interrogation: 65, concrete_examples: 65, feynman: 25, pomodoro: 30, blurting: 20, self_explanation: 20 };
-    const genVals = (sess, id) => {
-      const est = GEN_EST[id] || 45;
-      const elapsed = sess && sess.genStartedAt ? Math.floor((Date.now() - sess.genStartedAt) / 1000) : 0;
-      const pct = Math.min(94, Math.round(elapsed / est * 100));
-      const label = elapsed < 3 ? 'Starting...' : elapsed < est ? 'About ' + Math.max(5, est - elapsed) + 's left (usually ~' + est + 's total)' : 'Almost done — nearly there...';
-      return { genPct: pct + '%', genElapsedLabel: label, goElsewhere: this.goElsewhereWhileLoading };
-    };
-    const nullGenVals = { genPct: '0%', genElapsedLabel: 'Starting...', goElsewhere: this.goElsewhereWhileLoading };
 
     const mascotName = (this.props && this.props.mascotName) || 'Chop';
     const tutorialSlides = [
@@ -3743,6 +3734,15 @@ class Component extends DCLogic {
   appRenderVals() {
     const s = this.state; const mod = this.mod;
     if (!mod || s.screen !== 'app') return {};
+    const GEN_EST = { problem_sets: 65, practice_testing: 50, elaborative_interrogation: 65, concrete_examples: 65, feynman: 25, pomodoro: 30, blurting: 20, self_explanation: 20 };
+    const genVals = (sess, id) => {
+      const est = GEN_EST[id] || 45;
+      const elapsed = sess && sess.genStartedAt ? Math.floor((Date.now() - sess.genStartedAt) / 1000) : 0;
+      const pct = Math.min(94, Math.round(elapsed / est * 100));
+      const label = elapsed < 3 ? 'Starting...' : elapsed < est ? 'About ' + Math.max(5, est - elapsed) + 's left (usually ~' + est + 's total)' : 'Almost done — nearly there...';
+      return { genPct: pct + '%', genElapsedLabel: label, goElsewhere: this.goElsewhereWhileLoading };
+    };
+    const nullGenVals = { genPct: '0%', genElapsedLabel: 'Starting...', goElsewhere: this.goElsewhereWhileLoading };
     const concepts = s.concepts || [];
     const chipColors = { 0: '#FF6B4A', 1: '#7C5CFC', 2: '#2DD4A7' };
     const chipMethods = mod.METHODS.filter(m => {
