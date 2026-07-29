@@ -591,10 +591,17 @@
           <!-- Self-Explanation -->
           <sc-if value="{{ isSelfExplain }}" hint-placeholder-val="{{ false }}">
             <sc-if value="{{ seUI.phaseChunking }}" hint-placeholder-val="{{ false }}">
-              <div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:30px 0;">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:14px;padding:28px 16px;">
                 <div style="font-size:30px;">📖</div>
-                <div style="font-size:14px;font-weight:800;color:#201E2E;">Chop is laying out your reading...</div>
+                <div style="font-size:14px;font-weight:800;color:#201E2E;text-align:center;">Chop is laying out your reading...</div>
                 <div style="font-size:12px;font-weight:700;color:#8a8194;text-align:center;max-width:250px;line-height:1.5;">Splitting your notes into one idea at a time.</div>
+                <div style="width:100%;max-width:260px;display:flex;flex-direction:column;gap:5px;">
+                  <div style="height:10px;background:#F1E4CC;border:2px solid #201E2E;overflow:hidden;">
+                    <div style="height:100%;width:{{ seUI.genPct }};background:#FF6B4A;transition:width 1s linear;"></div>
+                  </div>
+                  <div style="font-size:11px;font-weight:700;color:#8a8194;text-align:center;">{{ seUI.genElapsedLabel }}</div>
+                </div>
+                <button onclick="{{ seUI.goElsewhere }}" style="font-family:'Nunito';font-weight:900;border:2px solid #c9c2b8;font-size:11px;color:#8a8194;background:#fff;padding:8px 16px;cursor:pointer;width:100%;max-width:260px;text-align:center;">Come back later — try another method →</button>
               </div>
             </sc-if>
             <sc-if value="{{ seUI.phaseChunkError }}" hint-placeholder-val="{{ false }}">
@@ -681,10 +688,17 @@
           <!-- Blurting -->
           <sc-if value="{{ isBlurting }}" hint-placeholder-val="{{ false }}">
             <sc-if value="{{ blurtingUI.phaseTopics }}" hint-placeholder-val="{{ false }}">
-              <div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:30px 0;">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:14px;padding:28px 16px;">
                 <div style="font-size:30px;">🧠</div>
-                <div style="font-size:14px;font-weight:800;color:#201E2E;">Chop is picking your topics...</div>
+                <div style="font-size:14px;font-weight:800;color:#201E2E;text-align:center;">Chop is picking your topics...</div>
                 <div style="font-size:12px;font-weight:700;color:#8a8194;text-align:center;max-width:250px;line-height:1.5;">Reading your notes to find the most important things to blurt about.</div>
+                <div style="width:100%;max-width:260px;display:flex;flex-direction:column;gap:5px;">
+                  <div style="height:10px;background:#F1E4CC;border:2px solid #201E2E;overflow:hidden;">
+                    <div style="height:100%;width:{{ blurtingUI.genPct }};background:#FF6B4A;transition:width 1s linear;"></div>
+                  </div>
+                  <div style="font-size:11px;font-weight:700;color:#8a8194;text-align:center;">{{ blurtingUI.genElapsedLabel }}</div>
+                </div>
+                <button onclick="{{ blurtingUI.goElsewhere }}" style="font-family:'Nunito';font-weight:900;border:2px solid #c9c2b8;font-size:11px;color:#8a8194;background:#fff;padding:8px 16px;cursor:pointer;width:100%;max-width:260px;text-align:center;">Come back later — try another method →</button>
               </div>
             </sc-if>
             <sc-if value="{{ blurtingUI.phaseTopicsError }}" hint-placeholder-val="{{ false }}">
@@ -763,10 +777,17 @@
           <!-- Problem Sets (math) -->
           <sc-if value="{{ isProblemSets }}" hint-placeholder-val="{{ false }}">
             <sc-if value="{{ psUI.phaseGen }}" hint-placeholder-val="{{ false }}">
-              <div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:30px 0;">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:14px;padding:28px 16px;">
                 <div style="font-size:30px;">➗</div>
-                <div style="font-size:14px;font-weight:800;color:#201E2E;">Chop is working out your problem types...</div>
+                <div style="font-size:14px;font-weight:800;color:#201E2E;text-align:center;">Chop is working out your problem types...</div>
                 <div style="font-size:12px;font-weight:700;color:#8a8194;text-align:center;max-width:250px;line-height:1.5;">Finding the moves you need to practise, and solving one of each.</div>
+                <div style="width:100%;max-width:260px;display:flex;flex-direction:column;gap:5px;">
+                  <div style="height:10px;background:#F1E4CC;border:2px solid #201E2E;overflow:hidden;">
+                    <div style="height:100%;width:{{ psUI.genPct }};background:#FF6B4A;transition:width 1s linear;"></div>
+                  </div>
+                  <div style="font-size:11px;font-weight:700;color:#8a8194;text-align:center;">{{ psUI.genElapsedLabel }}</div>
+                </div>
+                <button onclick="{{ psUI.goElsewhere }}" style="font-family:'Nunito';font-weight:900;border:2px solid #c9c2b8;font-size:11px;color:#8a8194;background:#fff;padding:8px 16px;cursor:pointer;width:100%;max-width:260px;text-align:center;">Come back later — try another method →</button>
               </div>
             </sc-if>
             <sc-if value="{{ psUI.phaseGenError }}" hint-placeholder-val="{{ false }}">
@@ -994,10 +1015,17 @@
           <!-- Feynman -->
           <sc-if value="{{ isFeynman }}" hint-placeholder-val="{{ false }}">
             <sc-if value="{{ feynmanUI.phaseGen }}" hint-placeholder-val="{{ false }}">
-              <div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:30px 0;">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:14px;padding:28px 16px;">
                 <div style="font-size:30px;">🧑‍🏫</div>
-                <div style="font-size:14px;font-weight:800;color:#201E2E;">Chop is picking your concepts...</div>
+                <div style="font-size:14px;font-weight:800;color:#201E2E;text-align:center;">Chop is picking your concepts...</div>
                 <div style="font-size:12px;font-weight:700;color:#8a8194;text-align:center;max-width:250px;line-height:1.5;">Finding the big ideas worth teaching from memory.</div>
+                <div style="width:100%;max-width:260px;display:flex;flex-direction:column;gap:5px;">
+                  <div style="height:10px;background:#F1E4CC;border:2px solid #201E2E;overflow:hidden;">
+                    <div style="height:100%;width:{{ feynmanUI.genPct }};background:#FF6B4A;transition:width 1s linear;"></div>
+                  </div>
+                  <div style="font-size:11px;font-weight:700;color:#8a8194;text-align:center;">{{ feynmanUI.genElapsedLabel }}</div>
+                </div>
+                <button onclick="{{ feynmanUI.goElsewhere }}" style="font-family:'Nunito';font-weight:900;border:2px solid #c9c2b8;font-size:11px;color:#8a8194;background:#fff;padding:8px 16px;cursor:pointer;width:100%;max-width:260px;text-align:center;">Come back later — try another method →</button>
               </div>
             </sc-if>
             <sc-if value="{{ feynmanUI.phaseGenError }}" hint-placeholder-val="{{ false }}">
@@ -1127,10 +1155,17 @@
           <!-- Elaborative Interrogation -->
           <sc-if value="{{ isElaborative }}" hint-placeholder-val="{{ false }}">
             <sc-if value="{{ elaborativeUI.phaseGen }}" hint-placeholder-val="{{ false }}">
-              <div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:30px 0;">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:14px;padding:28px 16px;">
                 <div style="font-size:30px;">🤔</div>
-                <div style="font-size:14px;font-weight:800;color:#201E2E;">Chop is writing your why questions...</div>
+                <div style="font-size:14px;font-weight:800;color:#201E2E;text-align:center;">Chop is writing your why questions...</div>
                 <div style="font-size:12px;font-weight:700;color:#8a8194;text-align:center;max-width:250px;line-height:1.5;">This mode digs into WHY things are true, not just what they are.</div>
+                <div style="width:100%;max-width:260px;display:flex;flex-direction:column;gap:5px;">
+                  <div style="height:10px;background:#F1E4CC;border:2px solid #201E2E;overflow:hidden;">
+                    <div style="height:100%;width:{{ elaborativeUI.genPct }};background:#FF6B4A;transition:width 1s linear;"></div>
+                  </div>
+                  <div style="font-size:11px;font-weight:700;color:#8a8194;text-align:center;">{{ elaborativeUI.genElapsedLabel }}</div>
+                </div>
+                <button onclick="{{ elaborativeUI.goElsewhere }}" style="font-family:'Nunito';font-weight:900;border:2px solid #c9c2b8;font-size:11px;color:#8a8194;background:#fff;padding:8px 16px;cursor:pointer;width:100%;max-width:260px;text-align:center;">Come back later — try another method →</button>
               </div>
             </sc-if>
             <sc-if value="{{ elaborativeUI.phaseGenError }}" hint-placeholder-val="{{ false }}">
@@ -1240,10 +1275,17 @@
           <!-- Concrete Examples -->
           <sc-if value="{{ isConcrete }}" hint-placeholder-val="{{ false }}">
             <sc-if value="{{ concreteUI.phaseGen }}" hint-placeholder-val="{{ false }}">
-              <div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:30px 0;">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:14px;padding:28px 16px;">
                 <div style="font-size:30px;">🌍</div>
-                <div style="font-size:14px;font-weight:800;color:#201E2E;">Chop is finding real-world examples...</div>
+                <div style="font-size:14px;font-weight:800;color:#201E2E;text-align:center;">Chop is finding real-world examples...</div>
                 <div style="font-size:12px;font-weight:700;color:#8a8194;text-align:center;max-width:250px;line-height:1.5;">Turning the tricky abstract stuff into things you've actually seen.</div>
+                <div style="width:100%;max-width:260px;display:flex;flex-direction:column;gap:5px;">
+                  <div style="height:10px;background:#F1E4CC;border:2px solid #201E2E;overflow:hidden;">
+                    <div style="height:100%;width:{{ concreteUI.genPct }};background:#FF6B4A;transition:width 1s linear;"></div>
+                  </div>
+                  <div style="font-size:11px;font-weight:700;color:#8a8194;text-align:center;">{{ concreteUI.genElapsedLabel }}</div>
+                </div>
+                <button onclick="{{ concreteUI.goElsewhere }}" style="font-family:'Nunito';font-weight:900;border:2px solid #c9c2b8;font-size:11px;color:#8a8194;background:#fff;padding:8px 16px;cursor:pointer;width:100%;max-width:260px;text-align:center;">Come back later — try another method →</button>
               </div>
             </sc-if>
             <sc-if value="{{ concreteUI.phaseGenError }}" hint-placeholder-val="{{ false }}">
@@ -1317,10 +1359,17 @@
           <!-- Practice Testing -->
           <sc-if value="{{ isPractice }}" hint-placeholder-val="{{ false }}">
             <sc-if value="{{ ptUI.phaseGen }}" hint-placeholder-val="{{ false }}">
-              <div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:30px 0;">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:14px;padding:28px 16px;">
                 <div style="font-size:30px;">✏️</div>
-                <div style="font-size:14px;font-weight:800;color:#201E2E;">Chop is writing your practice test...</div>
-                <div style="font-size:12px;font-weight:700;color:#8a8194;text-align:center;max-width:250px;line-height:1.5;">Building 10 questions from your notes, multiple choice, true/false, and short answer.</div>
+                <div style="font-size:14px;font-weight:800;color:#201E2E;text-align:center;">Chop is writing your practice test...</div>
+                <div style="font-size:12px;font-weight:700;color:#8a8194;text-align:center;max-width:250px;line-height:1.5;">Building 10 questions from your notes — multiple choice, true/false, and short answer.</div>
+                <div style="width:100%;max-width:260px;display:flex;flex-direction:column;gap:5px;">
+                  <div style="height:10px;background:#F1E4CC;border:2px solid #201E2E;overflow:hidden;">
+                    <div style="height:100%;width:{{ ptUI.genPct }};background:#FF6B4A;transition:width 1s linear;"></div>
+                  </div>
+                  <div style="font-size:11px;font-weight:700;color:#8a8194;text-align:center;">{{ ptUI.genElapsedLabel }}</div>
+                </div>
+                <button onclick="{{ ptUI.goElsewhere }}" style="font-family:'Nunito';font-weight:900;border:2px solid #c9c2b8;font-size:11px;color:#8a8194;background:#fff;padding:8px 16px;cursor:pointer;width:100%;max-width:260px;text-align:center;">Come back later — try another method →</button>
               </div>
             </sc-if>
             <sc-if value="{{ ptUI.phaseGenError }}" hint-placeholder-val="{{ false }}">
@@ -1430,10 +1479,17 @@
           <!-- Pomodoro -->
           <sc-if value="{{ isPomodoro }}" hint-placeholder-val="{{ false }}">
             <sc-if value="{{ pomodoroUI.phaseGen }}" hint-placeholder-val="{{ false }}">
-              <div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:30px 0;">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:14px;padding:28px 16px;">
                 <div style="font-size:30px;">🍅</div>
-                <div style="font-size:14px;font-weight:800;color:#201E2E;">Chop is splitting your notes into focus chunks...</div>
+                <div style="font-size:14px;font-weight:800;color:#201E2E;text-align:center;">Chop is splitting your notes into focus chunks...</div>
                 <div style="font-size:12px;font-weight:700;color:#8a8194;text-align:center;max-width:250px;line-height:1.5;">Each chunk is one topic you can read in a few minutes.</div>
+                <div style="width:100%;max-width:260px;display:flex;flex-direction:column;gap:5px;">
+                  <div style="height:10px;background:#F1E4CC;border:2px solid #201E2E;overflow:hidden;">
+                    <div style="height:100%;width:{{ pomodoroUI.genPct }};background:#FF6B4A;transition:width 1s linear;"></div>
+                  </div>
+                  <div style="font-size:11px;font-weight:700;color:#8a8194;text-align:center;">{{ pomodoroUI.genElapsedLabel }}</div>
+                </div>
+                <button onclick="{{ pomodoroUI.goElsewhere }}" style="font-family:'Nunito';font-weight:900;border:2px solid #c9c2b8;font-size:11px;color:#8a8194;background:#fff;padding:8px 16px;cursor:pointer;width:100%;max-width:260px;text-align:center;">Come back later — try another method →</button>
               </div>
             </sc-if>
             <sc-if value="{{ pomodoroUI.phaseGenError }}" hint-placeholder-val="{{ false }}">
@@ -1632,6 +1688,17 @@
         </div>
       </sc-if>
 
+      <!-- ready toast -->
+      <sc-if value="{{ readyToast.show }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#201E2E;padding:11px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0;border-top:3px solid #2DD4A7;">
+          <div style="font-size:12px;font-weight:800;color:#fff;line-height:1.4;">✅ <span style="color:#2DD4A7;">{{ readyToast.label }}</span> is ready!</div>
+          <div style="display:flex;gap:6px;flex-shrink:0;align-items:center;">
+            <button onclick="{{ readyToast.go }}" style="font-family:'Nunito';font-weight:900;font-size:11px;color:#201E2E;background:#2DD4A7;border:2px solid #2DD4A7;padding:6px 12px;cursor:pointer;">GO NOW →</button>
+            <button onclick="{{ readyToast.dismiss }}" style="font-size:14px;color:#8a8194;background:transparent;border:none;cursor:pointer;padding:2px 6px;line-height:1;">✕</button>
+          </div>
+        </div>
+      </sc-if>
+
       <!-- bottom nav -->
       <div style="display:flex;border-top:3px solid #201E2E;background:#fff;flex-shrink:0;">
         <button onclick="{{ goTabToday }}" style="flex:1;padding:11px 2px;border:none;cursor:pointer;background:{{ navTodayBg }};color:{{ navTodayColor }};font-family:'Nunito';font-weight:900;font-size:10px;">🎯 TODAY</button>
@@ -1711,12 +1778,15 @@ class Component extends DCLogic {
     testDate: null,
     calendarMode: 'studied',
     toast: null,
+    genTick: 0,
+    readyToast: null,
     calMonthOffset: 0,
   };
 
   componentDidMount() {
     this.boot();
     this.startBlurtInterval();
+    this.startGenInterval();
     this.beforeUnloadHandler = (e) => {
       const pom = this.state.session && this.state.session.pomodoro;
       if (this.state.activeMethod === 'pomodoro' && pom && pom.phase === 'study') {
@@ -2491,21 +2561,21 @@ class Component extends DCLogic {
     if (id === 'active_recall') {
       session[id] = { queue: concepts.map((_, i) => i), flipped: false, counts: { easy: 0, medium: 0, hard: 0 }, seenCount: {}, hardIdx: [], done: 0, finished: concepts.length === 0 };
     } else if (id === 'self_explanation') {
-      session[id] = { phase: 'chunking', chunks: null, idx: 0, text: '', tries: 0, result: null, firstTry: {}, struggled: {}, gradeError: false };
+      session[id] = { phase: 'chunking', chunks: null, idx: 0, text: '', tries: 0, result: null, firstTry: {}, struggled: {}, gradeError: false, genStartedAt: Date.now() };
     } else if (id === 'blurting') {
-      session[id] = { phase: 'topics', topics: null, idx: 0, text: '', result: null, prevScore: null, scores: {}, gradeError: false, startedAt: 0, elapsed: 0 };
+      session[id] = { phase: 'topics', topics: null, idx: 0, text: '', result: null, prevScore: null, scores: {}, gradeError: false, startedAt: 0, elapsed: 0, genStartedAt: Date.now() };
     } else if (id === 'problem_sets') {
-      session[id] = { phase: 'gen', skills: null, skillIdx: 0, stepsShown: 1, pIdx: 0, work: '', result: null, guided: true, attempts: {}, solved: {}, errorTypes: {}, gradeError: false, showHint: false };
+      session[id] = { phase: 'gen', skills: null, skillIdx: 0, stepsShown: 1, pIdx: 0, work: '', result: null, guided: true, attempts: {}, solved: {}, errorTypes: {}, gradeError: false, showHint: false, genStartedAt: Date.now() };
     } else if (id === 'feynman') {
-      session[id] = { phase: 'gen', items: null, idx: 0, pass: 1, text: '', firstText: '', firstResult: null, result: null, scores: {}, firstScores: {}, simplers: {}, finals: {}, loopsClosed: 0, gradeError: false };
+      session[id] = { phase: 'gen', items: null, idx: 0, pass: 1, text: '', firstText: '', firstResult: null, result: null, scores: {}, firstScores: {}, simplers: {}, finals: {}, loopsClosed: 0, gradeError: false, genStartedAt: Date.now() };
     } else if (id === 'elaborative_interrogation') {
-      session[id] = { phase: 'gen', items: null, idx: 0, whyText: '', connText: '', whyResult: null, connResult: null, struggled: {}, firstWhy: {}, idealConns: {}, gradeError: false };
+      session[id] = { phase: 'gen', items: null, idx: 0, whyText: '', connText: '', whyResult: null, connResult: null, struggled: {}, firstWhy: {}, idealConns: {}, gradeError: false, genStartedAt: Date.now() };
     } else if (id === 'concrete_examples') {
-      session[id] = { phase: 'gen', items: null, idx: 0, revealed: false, text: '', result: null, flags: {}, reinforces: {}, gradeError: false };
+      session[id] = { phase: 'gen', items: null, idx: 0, revealed: false, text: '', result: null, flags: {}, reinforces: {}, gradeError: false, genStartedAt: Date.now() };
     } else if (id === 'practice_testing') {
-      session[id] = { phase: 'gen', questions: null, idx: 0, answers: {}, saText: '', endAt: 0, timeLeft: 0, timedOut: false, results: null, score: 0 };
+      session[id] = { phase: 'gen', questions: null, idx: 0, answers: {}, saText: '', endAt: 0, timeLeft: 0, timedOut: false, results: null, score: 0, genStartedAt: Date.now() };
     } else if (id === 'pomodoro') {
-      session[id] = { phase: 'gen', chunks: null, funFacts: [], chunkIdx: 0, endAt: 0, secondsLeft: 0, sessionsDone: 0, focusRating: null, hardPick: null, reviewFirst: null, hardHistory: [], coveredCount: 0 };
+      session[id] = { phase: 'gen', chunks: null, funFacts: [], chunkIdx: 0, endAt: 0, secondsLeft: 0, sessionsDone: 0, focusRating: null, hardPick: null, reviewFirst: null, hardHistory: [], coveredCount: 0, genStartedAt: Date.now() };
     }
     this.setState({ session }, () => {
       if (id === 'pomodoro') this.generatePomChunks();
@@ -2580,6 +2650,7 @@ class Component extends DCLogic {
     }
     if (!chunks || !chunks.length) { this.setSession('self_explanation', { phase: 'chunkError' }); return; }
     this.setSession('self_explanation', { phase: 'read', chunks, idx: 0, text: '', tries: 0, result: null, firstTry: {}, struggled: {}, gradeError: false });
+    this.notifyReady('self_explanation');
   };
 
   setSeText = (v) => this.setSession('self_explanation', { text: v });
@@ -2710,6 +2781,7 @@ class Component extends DCLogic {
     }
     if (!topics || !topics.length) { this.setSession('blurting', { phase: 'topicsError' }); return; }
     this.setSession('blurting', { phase: 'write', topics, idx: 0, text: '', result: null, prevScore: null, scores: {}, gradeError: false, startedAt: Date.now(), elapsed: 0 });
+    this.notifyReady('blurting');
   };
 
   submitBlurt = async () => {
@@ -2824,6 +2896,7 @@ class Component extends DCLogic {
     })) : null;
     if (!skills || !skills.length) { this.setSession('problem_sets', { phase: 'genError', notMath: false }); return; }
     this.setSession('problem_sets', { phase: 'pick', skills, notMath: false });
+    this.notifyReady('problem_sets');
   };
 
   psPickSkill = (i) => this.setSession('problem_sets', { phase: 'worked', skillIdx: i, stepsShown: 1, pIdx: 0, work: '', result: null, guided: true, showHint: false });
@@ -2897,6 +2970,7 @@ class Component extends DCLogic {
     if ((!items || !items.length) && this.offlineMode()) items = (this.state.concepts || []).slice(0, 6).map(c => ({ concept: c.question, definition: c.answer }));
     if (!items || !items.length) { this.setSession('feynman', { phase: 'genError' }); return; }
     this.setSession('feynman', { phase: 'write', items, idx: 0, pass: 1, text: '', firstText: '', firstResult: null, result: null, scores: {}, firstScores: {}, simplers: {}, finals: {}, loopsClosed: 0, gradeError: false });
+    this.notifyReady('feynman');
   };
 
   setFeynText = (v) => this.setSession('feynman', { text: v });
@@ -2995,6 +3069,7 @@ class Component extends DCLogic {
     if ((!items || !items.length) && this.offlineMode()) items = (this.state.concepts || []).slice(0, 6).map(c => ({ fact: c.answer, why_question: 'Why do you think this is true?', connection_question: 'How does this connect to the rest of your notes?', model_answer: c.answer, chain: [], chain_caption: '', plain_english: '', primer_terms: [] }));
     if (!items || !items.length) { this.setSession('elaborative_interrogation', { phase: 'genError' }); return; }
     this.setSession('elaborative_interrogation', { phase: 'learn', items, idx: 0, whyText: '', connText: '', whyResult: null, connResult: null, struggled: {}, firstWhy: {}, idealConns: {}, gradeError: false });
+    this.notifyReady('elaborative_interrogation');
   };
 
   eiStartQuestion = () => this.setSession('elaborative_interrogation', { phase: 'why' });
@@ -3103,6 +3178,7 @@ class Component extends DCLogic {
 
     if (!items || !items.length) { this.setSession('concrete_examples', { phase: 'genError' }); return; }
     this.setSession('concrete_examples', { phase: 'card', items, idx: 0, revealed: false, text: '', result: null, flags: {}, reinforces: {}, gradeError: false });
+    this.notifyReady('concrete_examples');
   };
 
   ceReveal = () => this.setSession('concrete_examples', { revealed: true });
@@ -3185,6 +3261,7 @@ class Component extends DCLogic {
     }
     if (!qs || !qs.length) { this.setSession('practice_testing', { phase: 'genError' }); return; }
     this.setSession('practice_testing', { phase: 'start', questions: qs, idx: 0, answers: {}, saText: '', timedOut: false, results: null, score: 0 });
+    this.notifyReady('practice_testing');
   };
 
   startPracticeTest = () => {
@@ -3311,6 +3388,7 @@ class Component extends DCLogic {
     if (!chunks) { this.setSession('pomodoro', { phase: 'genError' }); return; }
     if (!funFacts.length) funFacts = ['Taking real breaks actually improves how much you remember, your brain consolidates while you rest.'];
     this.setSession('pomodoro', { phase: 'start', chunks, funFacts, chunkIdx: 0, sessionsDone: 0, hardHistory: [], coveredCount: 0 });
+    this.notifyReady('pomodoro');
   };
 
   startPomSession = () => {
@@ -3379,7 +3457,7 @@ class Component extends DCLogic {
     this.setSession('pomodoro', { phase: 'start', chunkIdx: 0, coveredCount: 0 });
   };
 
-  componentWillUnmount() { this.clearPomodoroTimer(); if (this.blurtTimer) { clearInterval(this.blurtTimer); this.blurtTimer = null; } if (this.ptTimer) { clearInterval(this.ptTimer); this.ptTimer = null; } if (this.extractTick) { clearInterval(this.extractTick); this.extractTick = null; } if (this.beforeUnloadHandler) window.removeEventListener('beforeunload', this.beforeUnloadHandler); }
+  componentWillUnmount() { this.clearPomodoroTimer(); if (this.blurtTimer) { clearInterval(this.blurtTimer); this.blurtTimer = null; } if (this.ptTimer) { clearInterval(this.ptTimer); this.ptTimer = null; } if (this.extractTick) { clearInterval(this.extractTick); this.extractTick = null; } if (this.genTimer) { clearInterval(this.genTimer); this.genTimer = null; } if (this.beforeUnloadHandler) window.removeEventListener('beforeunload', this.beforeUnloadHandler); }
 
   // ---------- Calendar ----------
   setCalendarMode = (m) => this.setState({ calendarMode: m });
@@ -3435,14 +3513,14 @@ class Component extends DCLogic {
     const concepts = this.state.concepts || [];
     const session = {};
     newTop.forEach(id => {
-      if (id === 'problem_sets')            session[id] = { phase: 'gen', skills: null, skillIdx: 0, stepsShown: 1, pIdx: 0, work: '', result: null, guided: true, attempts: {}, solved: {}, errorTypes: {}, gradeError: false, showHint: false };
-      else if (id === 'practice_testing')   session[id] = { phase: 'gen', questions: null, idx: 0, answers: {}, saText: '', endAt: 0, timeLeft: 0, timedOut: false, results: null, score: 0 };
-      else if (id === 'feynman')            session[id] = { phase: 'gen', items: null, idx: 0, pass: 1, text: '', firstText: '', firstResult: null, result: null, scores: {}, firstScores: {}, simplers: {}, finals: {}, loopsClosed: 0, gradeError: false };
-      else if (id === 'elaborative_interrogation') session[id] = { phase: 'gen', items: null, idx: 0, whyText: '', connText: '', whyResult: null, connResult: null, struggled: {}, firstWhy: {}, idealConns: {}, gradeError: false };
-      else if (id === 'concrete_examples')  session[id] = { phase: 'gen', items: null, idx: 0, revealed: false, text: '', result: null, flags: {}, reinforces: {}, gradeError: false };
-      else if (id === 'pomodoro')           session[id] = { phase: 'gen', chunks: null, funFacts: [], chunkIdx: 0, endAt: 0, secondsLeft: 0, sessionsDone: 0, focusRating: null, hardPick: null, reviewFirst: null, hardHistory: [], coveredCount: 0 };
-      else if (id === 'blurting')           session[id] = { phase: 'topics', topics: null, idx: 0, text: '', result: null, prevScore: null, scores: {}, gradeError: false, startedAt: 0, elapsed: 0 };
-      else if (id === 'self_explanation')   session[id] = { phase: 'chunking', chunks: null, idx: 0, text: '', tries: 0, result: null, firstTry: {}, struggled: {}, gradeError: false };
+      if (id === 'problem_sets')            session[id] = { phase: 'gen', skills: null, skillIdx: 0, stepsShown: 1, pIdx: 0, work: '', result: null, guided: true, attempts: {}, solved: {}, errorTypes: {}, gradeError: false, showHint: false, genStartedAt: Date.now() };
+      else if (id === 'practice_testing')   session[id] = { phase: 'gen', questions: null, idx: 0, answers: {}, saText: '', endAt: 0, timeLeft: 0, timedOut: false, results: null, score: 0, genStartedAt: Date.now() };
+      else if (id === 'feynman')            session[id] = { phase: 'gen', items: null, idx: 0, pass: 1, text: '', firstText: '', firstResult: null, result: null, scores: {}, firstScores: {}, simplers: {}, finals: {}, loopsClosed: 0, gradeError: false, genStartedAt: Date.now() };
+      else if (id === 'elaborative_interrogation') session[id] = { phase: 'gen', items: null, idx: 0, whyText: '', connText: '', whyResult: null, connResult: null, struggled: {}, firstWhy: {}, idealConns: {}, gradeError: false, genStartedAt: Date.now() };
+      else if (id === 'concrete_examples')  session[id] = { phase: 'gen', items: null, idx: 0, revealed: false, text: '', result: null, flags: {}, reinforces: {}, gradeError: false, genStartedAt: Date.now() };
+      else if (id === 'pomodoro')           session[id] = { phase: 'gen', chunks: null, funFacts: [], chunkIdx: 0, endAt: 0, secondsLeft: 0, sessionsDone: 0, focusRating: null, hardPick: null, reviewFirst: null, hardHistory: [], coveredCount: 0, genStartedAt: Date.now() };
+      else if (id === 'blurting')           session[id] = { phase: 'topics', topics: null, idx: 0, text: '', result: null, prevScore: null, scores: {}, gradeError: false, startedAt: 0, elapsed: 0, genStartedAt: Date.now() };
+      else if (id === 'self_explanation')   session[id] = { phase: 'chunking', chunks: null, idx: 0, text: '', tries: 0, result: null, firstTry: {}, struggled: {}, gradeError: false, genStartedAt: Date.now() };
       else if (id === 'active_recall')      session[id] = { queue: concepts.map((_, i) => i), flipped: false, counts: { easy: 0, medium: 0, hard: 0 }, seenCount: {}, hardIdx: [], done: 0, finished: concepts.length === 0 };
     });
     this.setState({ topMethods: newTop, activeMethod: newTop[0], mathNoticeOpen: false, mathNoticeSeen: true, session }, () => {
@@ -3464,9 +3542,53 @@ class Component extends DCLogic {
   // ---------- Add material tab (replace material) ----------
   goEditMaterial = () => this.setState({ materialDraft: '', materialMode: 'paste', screen: 'material', fromApp: true });
 
+  startGenInterval() {
+    if (this.genTimer) return;
+    this.genTimer = setInterval(() => {
+      const s = this.state;
+      if (s.screen !== 'app' || !s.session) return;
+      const isLoading = ['problem_sets', 'practice_testing', 'elaborative_interrogation', 'concrete_examples', 'feynman', 'pomodoro', 'blurting', 'self_explanation'].some(id => {
+        const sess = s.session[id];
+        return sess && (sess.phase === 'gen' || sess.phase === 'topics' || sess.phase === 'chunking');
+      });
+      if (isLoading) this.setState(prev => ({ genTick: (prev.genTick || 0) + 1 }));
+    }, 1000);
+  }
+
+  notifyReady(id) {
+    if (this.state.activeMethod === id || this.state.screen !== 'app') return;
+    const LABELS = { problem_sets: 'Problem Sets', practice_testing: 'Practice Test', elaborative_interrogation: 'Deep Why Questions', concrete_examples: 'Concrete Examples', feynman: 'Feynman Technique', pomodoro: 'Pomodoro Focus', blurting: 'Blurting', self_explanation: 'Self-Explanation' };
+    this.setState({ readyToast: { id, label: LABELS[id] || id } });
+  }
+
+  goElsewhereWhileLoading = () => {
+    const loadingPhases = new Set(['gen', 'topics', 'chunking']);
+    const s = this.state;
+    const alt = (s.topMethods || []).find(id => {
+      if (id === s.activeMethod) return false;
+      const sess = s.session && s.session[id];
+      return !sess || !loadingPhases.has(sess.phase);
+    });
+    if (alt) this.chooseMethod(alt);
+    else this.update({ tab: 'today' });
+  };
+
+  dismissReadyToast = () => this.setState({ readyToast: null });
+
   renderVals() {
     const s = this.state;
     const mod = this.mod;
+
+    void s.genTick; // forces re-render every second while any method is loading
+    const GEN_EST = { problem_sets: 65, practice_testing: 50, elaborative_interrogation: 65, concrete_examples: 65, feynman: 25, pomodoro: 30, blurting: 20, self_explanation: 20 };
+    const genVals = (sess, id) => {
+      const est = GEN_EST[id] || 45;
+      const elapsed = sess && sess.genStartedAt ? Math.floor((Date.now() - sess.genStartedAt) / 1000) : 0;
+      const pct = Math.min(94, Math.round(elapsed / est * 100));
+      const label = elapsed < 3 ? 'Starting...' : elapsed < est ? 'About ' + Math.max(5, est - elapsed) + 's left (usually ~' + est + 's total)' : 'Almost done — nearly there...';
+      return { genPct: pct + '%', genElapsedLabel: label, goElsewhere: this.goElsewhereWhileLoading };
+    };
+    const nullGenVals = { genPct: '0%', genElapsedLabel: 'Starting...', goElsewhere: this.goElsewhereWhileLoading };
 
     const mascotName = (this.props && this.props.mascotName) || 'Chop';
     const tutorialSlides = [
@@ -3686,7 +3808,7 @@ class Component extends DCLogic {
     const seSess = s.session.self_explanation;
     let seUI;
     if (!seSess || !seSess.phase) {
-      seUI = { showDoc: false, docChunks: [], onKey: () => {}, skip: () => {}, verdictStyle: {}, verdictIcon: '', verdictTextColor: '#201E2E', phaseChunking: true, phaseChunkError: false, phaseRead: false, phaseEvaluating: false, phaseFeedback: false, phaseSummary: false, retryChunks: () => {}, chunkNum: 0, chunkCount: 0, progressPct: '0%', keyIdea: '', chunk: '', text: '', setText: () => {}, cantSubmit: true, submit: () => {}, gradeError: false, correctFlag: false, wrongFlag: false, feedback: '', simpler: '', gotIt: () => {}, gotItLabel: 'GOT IT', explainAgain: () => {}, firstTryCount: 0, hasStruggled: false, noStruggled: true, struggledCount: 0, struggledRows: [], toFlashcards: () => {}, restart: () => {} };
+      seUI = { ...nullGenVals, showDoc: false, docChunks: [], onKey: () => {}, skip: () => {}, verdictStyle: {}, verdictIcon: '', verdictTextColor: '#201E2E', phaseChunking: true, phaseChunkError: false, phaseRead: false, phaseEvaluating: false, phaseFeedback: false, phaseSummary: false, retryChunks: () => {}, chunkNum: 0, chunkCount: 0, progressPct: '0%', keyIdea: '', chunk: '', text: '', setText: () => {}, cantSubmit: true, submit: () => {}, gradeError: false, correctFlag: false, wrongFlag: false, feedback: '', simpler: '', gotIt: () => {}, gotItLabel: 'GOT IT', explainAgain: () => {}, firstTryCount: 0, hasStruggled: false, noStruggled: true, struggledCount: 0, struggledRows: [], toFlashcards: () => {}, restart: () => {} };
     } else {
       const chunks = seSess.chunks || [];
       const cur = chunks[seSess.idx] || { chunk: '', key_idea: '' };
@@ -3694,6 +3816,7 @@ class Component extends DCLogic {
       const ft = seSess.firstTry || {};
       const sk = Object.keys(seSess.struggled || {});
       seUI = {
+        ...genVals(seSess, 'self_explanation'),
         phaseChunking: seSess.phase === 'chunking', phaseChunkError: seSess.phase === 'chunkError',
         phaseRead: seSess.phase === 'read', phaseEvaluating: seSess.phase === 'evaluating',
         phaseFeedback: seSess.phase === 'feedback', phaseSummary: seSess.phase === 'summary',
@@ -3753,7 +3876,7 @@ class Component extends DCLogic {
     };
     let blurtingUI;
     if (!blurtSess || !blurtSess.phase) {
-      blurtingUI = { phaseTopics: true, phaseTopicsError: false, phaseWrite: false, phaseGrading: false, phaseCompare: false, phaseSummary: false, topicName: '', topicNum: 0, topicCount: 0, timerLabel: '0:00', text: '', setText: () => {}, cantSubmit: true, submit: () => {}, gradeError: false, blurtSegments: [], noteSegments: [], scoreLine: '', hasPrev: false, prevLine: '', tryAgain: () => {}, nextTopic: () => {}, nextLabel: '', retryTopics: () => {}, summaryRows: [], overall: 0, restart: () => {} };
+      blurtingUI = { ...nullGenVals, phaseTopics: true, phaseTopicsError: false, phaseWrite: false, phaseGrading: false, phaseCompare: false, phaseSummary: false, topicName: '', topicNum: 0, topicCount: 0, timerLabel: '0:00', text: '', setText: () => {}, cantSubmit: true, submit: () => {}, gradeError: false, blurtSegments: [], noteSegments: [], scoreLine: '', hasPrev: false, prevLine: '', tryAgain: () => {}, nextTopic: () => {}, nextLabel: '', retryTopics: () => {}, summaryRows: [], overall: 0, restart: () => {} };
     } else {
       const bTopics = blurtSess.topics || [];
       const bCur = bTopics[blurtSess.idx] || { topic: '' };
@@ -3763,6 +3886,7 @@ class Component extends DCLogic {
       const rowBase = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', padding: '10px 12px', background: '#fff', border: '3px solid #201E2E' };
       const bPcts = bTopics.map((t, i) => { const s2 = blurtSess.scores && blurtSess.scores[i]; return s2 ? Math.round(100 * s2.covered / Math.max(1, s2.total)) : 0; });
       blurtingUI = {
+        ...genVals(blurtSess, 'blurting'),
         phaseTopics: blurtSess.phase === 'topics', phaseTopicsError: blurtSess.phase === 'topicsError',
         phaseWrite: blurtSess.phase === 'write', phaseGrading: blurtSess.phase === 'grading',
         phaseCompare: blurtSess.phase === 'compare', phaseSummary: blurtSess.phase === 'summary',
@@ -3801,7 +3925,7 @@ class Component extends DCLogic {
     };
     let psUI;
     if (!psSess || !psSess.phase) {
-      psUI = { canRetryGen: true, workedFig: figureVals(null), probFig: figureVals(null), phaseGen: true, phaseGenError: false, phasePick: false, phaseWorked: false, phaseSolve: false, phaseGrading: false, phaseMarked: false, phaseSummary: false, genErrorText: '', retryGen: () => {}, skillRows: [], anyDone: false, toSummary: () => {}, skillName: '', workedProblem: '', revealedSteps: [], moreSteps: true, allStepsShown: false, revealStep: () => {}, startPractice: () => {}, pNum: 0, pTotal: 0, stageLabel: '', stageBg: '#7C5CFC', problem: '', hasHint: false, hint: '', symbols: [], work: '', setWork: () => {}, cantSubmit: true, submit: () => {}, stuck: () => {}, gradeError: false, verdictHeadStyle: {}, verdictIcon: '', verdictTitle: '', markedLines: [], hasError: false, errorTypeLabel: '', errorExplanation: '', hasCorrectLine: false, correctLine: '', showAnswer: false, answer: '', fixIt: () => {}, nextProblem: () => {}, nextLabel: '', summaryHeadline: '', summaryLine: '', hasPatterns: false, noPatterns: true, patternRows: [], backToSkills: () => {} };
+      psUI = { ...nullGenVals, canRetryGen: true, workedFig: figureVals(null), probFig: figureVals(null), phaseGen: true, phaseGenError: false, phasePick: false, phaseWorked: false, phaseSolve: false, phaseGrading: false, phaseMarked: false, phaseSummary: false, genErrorText: '', retryGen: () => {}, skillRows: [], anyDone: false, toSummary: () => {}, skillName: '', workedProblem: '', revealedSteps: [], moreSteps: true, allStepsShown: false, revealStep: () => {}, startPractice: () => {}, pNum: 0, pTotal: 0, stageLabel: '', stageBg: '#7C5CFC', problem: '', hasHint: false, hint: '', symbols: [], work: '', setWork: () => {}, cantSubmit: true, submit: () => {}, stuck: () => {}, gradeError: false, verdictHeadStyle: {}, verdictIcon: '', verdictTitle: '', markedLines: [], hasError: false, errorTypeLabel: '', errorExplanation: '', hasCorrectLine: false, correctLine: '', showAnswer: false, answer: '', fixIt: () => {}, nextProblem: () => {}, nextLabel: '', summaryHeadline: '', summaryLine: '', hasPatterns: false, noPatterns: true, patternRows: [], backToSkills: () => {} };
     } else {
       const skills = psSess.skills || [];
       const sk = skills[psSess.skillIdx] || { skill: '', worked: { problem: '', steps: [] }, practice: [] };
@@ -3813,6 +3937,7 @@ class Component extends DCLogic {
       const errs = Object.entries(psSess.errorTypes || {}).sort((a, b) => b[1] - a[1]);
       const firstTry = solvedKeys.filter(k => psSess.solved[k] === 'first').length;
       psUI = {
+        ...genVals(psSess, 'problem_sets'),
         phaseGen: psSess.phase === 'gen', phaseGenError: psSess.phase === 'genError',
         phasePick: psSess.phase === 'pick', phaseWorked: psSess.phase === 'worked',
         phaseSolve: psSess.phase === 'solve', phaseGrading: psSess.phase === 'grading',
@@ -3888,13 +4013,14 @@ class Component extends DCLogic {
     const feySess = s.session.feynman;
     let feynmanUI;
     if (!feySess || !feySess.phase) {
-      feynmanUI = { phaseGen: true, phaseGenError: false, phaseWrite: false, phaseGrading: false, phaseGap: false, phaseSource: false, phaseFinal: false, phaseSummary: false, retryGen: () => {}, num: 0, total: 0, conceptName: '', definition: '', stepLabel: '', isSecondPass: false, gap: '', hasJargon: false, jargonRows: [], nailedIt: false, text: '', setText: () => {}, cantSubmit: true, submit: () => {}, submitLabel: '', gradeError: false, score: 0, firstScore: 0, improved: false, finalText: '', gotRight: '', hasMissed: false, missed: '', simpler: '', toSource: () => {}, toRewrite: () => {}, tryAgain: () => {}, next: () => {}, nextLabel: '', loopLine: '', summaryRows: [], weakToFlash: () => {}, noWeak: true, restart: () => {} };
+      feynmanUI = { ...nullGenVals, phaseGen: true, phaseGenError: false, phaseWrite: false, phaseGrading: false, phaseGap: false, phaseSource: false, phaseFinal: false, phaseSummary: false, retryGen: () => {}, num: 0, total: 0, conceptName: '', definition: '', stepLabel: '', isSecondPass: false, gap: '', hasJargon: false, jargonRows: [], nailedIt: false, text: '', setText: () => {}, cantSubmit: true, submit: () => {}, submitLabel: '', gradeError: false, score: 0, firstScore: 0, improved: false, finalText: '', gotRight: '', hasMissed: false, missed: '', simpler: '', toSource: () => {}, toRewrite: () => {}, tryAgain: () => {}, next: () => {}, nextLabel: '', loopLine: '', summaryRows: [], weakToFlash: () => {}, noWeak: true, restart: () => {} };
     } else {
       const items = feySess.items || [];
       const it = items[feySess.idx] || { concept: '', definition: '' };
       const r = feySess.result;
       const weakCount = items.filter((_, i) => (feySess.scores[i] || 0) < 3).length;
       feynmanUI = {
+        ...genVals(feySess, 'feynman'),
         phaseGen: feySess.phase === 'gen', phaseGenError: feySess.phase === 'genError',
         phaseWrite: feySess.phase === 'write', phaseGrading: feySess.phase === 'grading',
         phaseGap: feySess.phase === 'gap', phaseSource: feySess.phase === 'source',
@@ -3928,13 +4054,14 @@ class Component extends DCLogic {
     const eiSess = s.session.elaborative_interrogation;
     let elaborativeUI;
     if (!eiSess || !eiSess.phase) {
-      elaborativeUI = { phaseLearn: false, hasPrimer: false, primer: '', hasTerms: false, primerTerms: [], startQuestion: () => {}, hasChain: false, chainNodes: [], hasChainCaption: false, chainCaption: '', phaseGen: true, phaseGenError: false, phaseActive: false, phaseWhy: false, phaseGrading: false, phaseConnect: false, phaseReview: false, phaseSummary: false, hasWhyResult: false, retryGen: () => {}, num: 0, total: 0, fact: '', whyQuestion: '', whyText: '', setWhyText: () => {}, cantSubmitWhy: true, submitWhy: () => {}, gradeError: false, whyBoxStyle: {}, whyVerdictLabel: '', whyFeedback: '', modelAnswer: '', connQuestion: '', connText: '', setConnText: () => {}, cantSubmitConn: true, submitConn: () => {}, connBoxStyle: {}, connVerdictLabel: '', connFeedback: '', thinkAgain: () => {}, gotIt: () => {}, gotItLabel: '', summaryLine: '', summaryRows: [], restart: () => {} };
+      elaborativeUI = { ...nullGenVals, phaseLearn: false, hasPrimer: false, primer: '', hasTerms: false, primerTerms: [], startQuestion: () => {}, hasChain: false, chainNodes: [], hasChainCaption: false, chainCaption: '', phaseGen: true, phaseGenError: false, phaseActive: false, phaseWhy: false, phaseGrading: false, phaseConnect: false, phaseReview: false, phaseSummary: false, hasWhyResult: false, retryGen: () => {}, num: 0, total: 0, fact: '', whyQuestion: '', whyText: '', setWhyText: () => {}, cantSubmitWhy: true, submitWhy: () => {}, gradeError: false, whyBoxStyle: {}, whyVerdictLabel: '', whyFeedback: '', modelAnswer: '', connQuestion: '', connText: '', setConnText: () => {}, cantSubmitConn: true, submitConn: () => {}, connBoxStyle: {}, connVerdictLabel: '', connFeedback: '', thinkAgain: () => {}, gotIt: () => {}, gotItLabel: '', summaryLine: '', summaryRows: [], restart: () => {} };
     } else {
       const items = eiSess.items || [];
       const it = items[eiSess.idx] || { fact: '', why_question: '', connection_question: '', model_answer: '' };
       const wr = eiSess.whyResult, cr = eiSess.connResult;
       const okCount = items.filter((_, i) => !eiSess.struggled[i]).length;
       elaborativeUI = {
+        ...genVals(eiSess, 'elaborative_interrogation'),
         phaseGen: eiSess.phase === 'gen', phaseGenError: eiSess.phase === 'genError',
         phaseActive: ['why', 'gradingWhy', 'connect', 'gradingConn', 'review'].includes(eiSess.phase),
         phaseLearn: eiSess.phase === 'learn',
@@ -3975,13 +4102,14 @@ class Component extends DCLogic {
     const ceSess = s.session.concrete_examples;
     let concreteUI;
     if (!ceSess || !ceSess.phase) {
-      concreteUI = { phaseGen: true, phaseGenError: false, phaseCard: false, phaseGrading: false, phaseNewExample: false, phaseFeedback: false, phaseSummary: false, retryGen: () => {}, num: 0, total: 0, conceptName: '', plainDef: '', notRevealed: true, revealed: false, reveal: () => {}, example: '', hasProblem: false, sampleProblem: '', connQuestion: '', text: '', setText: () => {}, cantSubmit: true, submit: () => {}, gradeError: false, gotRight: '', hasMissed: false, missed: '', reinforce: '', differently: () => {}, gotIt: () => {}, gotItLabel: '', summaryRows: [], strugglingToFlash: () => {}, noStruggling: true, restart: () => {} };
+      concreteUI = { ...nullGenVals, phaseGen: true, phaseGenError: false, phaseCard: false, phaseGrading: false, phaseNewExample: false, phaseFeedback: false, phaseSummary: false, retryGen: () => {}, num: 0, total: 0, conceptName: '', plainDef: '', notRevealed: true, revealed: false, reveal: () => {}, example: '', hasProblem: false, sampleProblem: '', connQuestion: '', text: '', setText: () => {}, cantSubmit: true, submit: () => {}, gradeError: false, gotRight: '', hasMissed: false, missed: '', reinforce: '', differently: () => {}, gotIt: () => {}, gotItLabel: '', summaryRows: [], strugglingToFlash: () => {}, noStruggling: true, restart: () => {} };
     } else {
       const items = ceSess.items || [];
       const it = items[ceSess.idx] || { concept: '', plain_definition: '', example: '', sample_problem: '', connection_question: '' };
       const r = ceSess.result;
       const struggling = items.filter((_, i) => ceSess.flags[i] === false).length;
       concreteUI = {
+        ...genVals(ceSess, 'concrete_examples'),
         phaseGen: ceSess.phase === 'gen', phaseGenError: ceSess.phase === 'genError',
         phaseCard: ceSess.phase === 'card', phaseGrading: ceSess.phase === 'grading',
         phaseNewExample: ceSess.phase === 'newExample',
@@ -4005,7 +4133,7 @@ class Component extends DCLogic {
     const ptSess = s.session.practice_testing;
     let ptUI;
     if (!ptSess || !ptSess.phase) {
-      ptUI = { phaseGen: true, phaseGenError: false, phaseStart: false, phaseTest: false, phaseGrading: false, phaseResults: false, retryGen: () => {}, total: 0, subject: '', totalTimeLabel: '', start: () => {}, qNum: 0, timerLabel: '', timerColor: '#201E2E', progressPct: '0%', question: '', isMC: false, mcOptions: [], isTF: false, pickTrue: () => {}, pickFalse: () => {}, isSA: false, saText: '', setSaText: () => {}, submitSA: () => {}, cantSubmitSA: true, score: 0, scorePct: '', timedOut: false, rightCount: 0, rightRows: [], noneRight: true, wrongCount: 0, reviewRows: [], noneWrong: true, historyRows: [], retake: () => {}, studyWrong: () => {} };
+      ptUI = { ...nullGenVals, phaseGen: true, phaseGenError: false, phaseStart: false, phaseTest: false, phaseGrading: false, phaseResults: false, retryGen: () => {}, total: 0, subject: '', totalTimeLabel: '', start: () => {}, qNum: 0, timerLabel: '', timerColor: '#201E2E', progressPct: '0%', question: '', isMC: false, mcOptions: [], isTF: false, pickTrue: () => {}, pickFalse: () => {}, isSA: false, saText: '', setSaText: () => {}, submitSA: () => {}, cantSubmitSA: true, score: 0, scorePct: '', timedOut: false, rightCount: 0, rightRows: [], noneRight: true, wrongCount: 0, reviewRows: [], noneWrong: true, historyRows: [], retake: () => {}, studyWrong: () => {} };
     } else {
       const qs = ptSess.questions || [];
       const q = qs[ptSess.idx] || { question: '', type: 'multiple_choice', options: [] };
@@ -4016,6 +4144,7 @@ class Component extends DCLogic {
       const wrong = res.map((r, i) => ({ r, i })).filter(x => x.r.verdict !== 'correct');
       const subj = (mod.SUBJECTS.find(x => x.id === s.subjectId) || {}).label || 'your subject';
       ptUI = {
+        ...genVals(ptSess, 'practice_testing'),
         phaseGen: ptSess.phase === 'gen', phaseGenError: ptSess.phase === 'genError',
         phaseStart: ptSess.phase === 'start', phaseTest: ptSess.phase === 'test',
         phaseGrading: ptSess.phase === 'grading', phaseResults: ptSess.phase === 'results',
@@ -4055,7 +4184,7 @@ class Component extends DCLogic {
     const boldSegs = (text) => String(text).split(/\*\*/).map((t, i) => ({ text: t, style: i % 2 ? { fontWeight: 900, color: '#201E2E' } : {} })).filter(x => x.text !== '');
     let pomodoroUI;
     if (!pomSess || !pomSess.phase) {
-      pomodoroUI = { phaseGen: true, phaseGenError: false, phaseStart: false, phaseStudy: false, phaseCheckin: false, phaseBreak: false, phaseComplete: false, retryGen: () => {}, chunkCount: 0, start: () => {}, sessionNum: 1, chunkNum: 0, timerLabel: '25:00', progressPct: '0%', chunkTitle: '', bullets: [], nextChunk: () => {}, focusOptions: [], hardOptions: [], reviewYes: () => {}, reviewNo: () => {}, reviewYesBg: '#fff', reviewYesColor: '#201E2E', reviewNoBg: '#fff', reviewNoColor: '#201E2E', submitCheckin: () => {}, cantSubmitCheckin: true, breakTitle: '', funFact: '', isLongBreak: false, longSummary: '', completeLine: '', restart: () => {} };
+      pomodoroUI = { ...nullGenVals, phaseGen: true, phaseGenError: false, phaseStart: false, phaseStudy: false, phaseCheckin: false, phaseBreak: false, phaseComplete: false, retryGen: () => {}, chunkCount: 0, start: () => {}, sessionNum: 1, chunkNum: 0, timerLabel: '25:00', progressPct: '0%', chunkTitle: '', bullets: [], nextChunk: () => {}, focusOptions: [], hardOptions: [], reviewYes: () => {}, reviewNo: () => {}, reviewYesBg: '#fff', reviewYesColor: '#201E2E', reviewNoBg: '#fff', reviewNoColor: '#201E2E', submitCheckin: () => {}, cantSubmitCheckin: true, breakTitle: '', funFact: '', isLongBreak: false, longSummary: '', completeLine: '', restart: () => {} };
     } else {
       const chunks = pomSess.chunks || [];
       const chunk = chunks[pomSess.chunkIdx] || { title: '', bullets: [] };
@@ -4063,6 +4192,7 @@ class Component extends DCLogic {
       const sl = pomSess.secondsLeft || 0;
       const hardTitles = (pomSess.hardHistory || []).filter(Boolean);
       pomodoroUI = {
+        ...genVals(pomSess, 'pomodoro'),
         phaseGen: pomSess.phase === 'gen', phaseGenError: pomSess.phase === 'genError',
         phaseStart: pomSess.phase === 'start', phaseStudy: pomSess.phase === 'study',
         phaseCheckin: pomSess.phase === 'checkin', phaseBreak: pomSess.phase === 'break',
@@ -4198,6 +4328,7 @@ class Component extends DCLogic {
       tabToday: s.tab === 'today', tabProgress: s.tab === 'progress',
       goTabStudy: () => this.setTab('study'), goTabCalendar: () => this.setTab('calendar'), goTabMaterial: () => this.setTab('material'),
       goTabToday: () => this.setTab('today'), goTabProgress: () => this.setTab('progress'),
+      readyToast: (() => { const rt = s.readyToast; return rt ? { show: true, label: rt.label, go: () => { this.dismissReadyToast(); this.chooseMethod(rt.id); }, dismiss: this.dismissReadyToast } : { show: false, label: '', go: () => {}, dismiss: () => {} }; })(),
       navTodayBg: s.tab === 'today' ? '#201E2E' : '#fff', navTodayColor: s.tab === 'today' ? '#fff' : '#201E2E',
       navProgressBg: s.tab === 'progress' ? '#201E2E' : '#fff', navProgressColor: s.tab === 'progress' ? '#fff' : '#201E2E',
       showAccount: !!s.showAccount, accountDraft: s.accountDraft || '',
