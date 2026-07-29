@@ -2293,12 +2293,13 @@ class Component extends DCLogic {
     return this.aiDown === true || !window.claude || !window.claude.complete;
   }
 
-  // Client-side math detection — used as a fallback when the AI misses math content
-  // (PDF extraction often mangles symbols, so the AI may not see them clearly).
+  // Client-side math detection — used as a fallback when the AI is unavailable or
+  // returns a malformed response. Only matches terms that are unambiguously mathematical
+  // so that subjects like psychology, biology, and history don't get false-positives.
   detectMath(text) {
     const t = String(text || '').slice(0, 4000);
-    const keywords = /\b(equat|solving|calcul|theorem|triangle|angle|derivative|integral|fraction|algebra|geometry|trigonometr|quadratic|polynomial|sine|cosine|tangent|probability|vector|matrix|logarithm|exponent|parabola|hyperbola|function|domain|range|slope|intercept|radical|factor|prime number|statistic|mean|median|mode|standard deviation|permutation|combination|proof|congruent|similar|pythagor|circle|ellipse|area|volume|perimeter|surface area|differentiat|integrat|sequence|series|eigenvalue|determinant|arithmetic|inequality|binomial|coefficient|modular|number theory|set theory)\b/i.test(t);
-    const symbols = /[=±√π∫∑∏≈≠≤≥∞°∂∇→⊂∈]|\d+\s*[\+\-\*\/\^]\s*\d|\bx\s*[=<>]|\^\d|[a-zA-Z]\([a-zA-Z]\)/.test(t);
+    const keywords = /\b(equat|calcul|theorem|triangle|derivative|integral|algebra|geometry|trigonometr|quadratic|polynomial|sine|cosine|tangent|vector|matrix|logarithm|exponent|parabola|hyperbola|radical|pythagor|differentiat|integrat|eigenvalue|determinant|binomial|modular|number theory|set theory|congruent|perpendicular|hypotenuse)\b/i.test(t);
+    const symbols = /[±√π∫∑∏∂∇]|\d+\s*[\+\-\*\/\^]\s*\d|\^\d/.test(t);
     return keywords || symbols;
   }
 
@@ -2389,11 +2390,7 @@ class Component extends DCLogic {
     }
     const cardsValid = parsed && this.mod.isValidCards(parsed.cards);
 
-    // Client-side fallback: PDF extraction mangles symbols so the AI may miss math.
-    // Override is_math to true if our regex detects it even when the AI didn't.
-    if (parsed && !parsed.is_math && !parsed.isMath && this.detectMath(material)) {
-      parsed.is_math = true;
-    }
+
 
     if (!cardsValid) {
       const localCards = this.aiUnavailable() ? this.mod.localExtractCards(material) : [];
