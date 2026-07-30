@@ -47,6 +47,43 @@ async function cacheSkills(notes: string, skills: PsSkill[]): Promise<void> {
   }
 }
 
+interface PsProgress {
+  solved: Record<string, 'first' | 'eventually'>;
+  errorTypes: Record<string, number>;
+  attempts: Record<string, number>;
+}
+
+const PS_PROGRESS_VERSION = 'ps_progress_v1';
+
+async function loadCachedProgress(notes: string): Promise<PsProgress | null> {
+  try {
+    const key = `${PS_PROGRESS_VERSION}_${hashNotes(notes)}`;
+    const raw = await AsyncStorage.getItem(key);
+    if (!raw) return null;
+    return JSON.parse(raw) as PsProgress;
+  } catch {
+    return null;
+  }
+}
+
+async function saveProgress(notes: string, progress: PsProgress): Promise<void> {
+  try {
+    const key = `${PS_PROGRESS_VERSION}_${hashNotes(notes)}`;
+    await AsyncStorage.setItem(key, JSON.stringify(progress));
+  } catch {
+    // non-fatal
+  }
+}
+
+async function clearProgress(notes: string): Promise<void> {
+  try {
+    const key = `${PS_PROGRESS_VERSION}_${hashNotes(notes)}`;
+    await AsyncStorage.removeItem(key);
+  } catch {
+    // non-fatal
+  }
+}
+
 interface Props {
   notes: string;
   name: string;
@@ -139,7 +176,14 @@ export default function ProblemSets({ notes, name, age, onComplete, onBack }: Pr
       // Try cache before hitting the API
       const cached = await loadCachedSkills(notes);
       if (cached && cached.length > 0) {
-        setSess((s) => ({ ...s, skills: cached }));
+        const progress = await loadCachedProgress(notes);
+        setSess((s) => ({
+          ...s,
+          skills: cached,
+          solved: progress?.solved ?? {},
+          errorTypes: progress?.errorTypes ?? {},
+          attempts: progress?.attempts ?? {},
+        }));
         setPhase('pick');
         return;
       }
@@ -206,7 +250,9 @@ export default function ProblemSets({ notes, name, age, onComplete, onBack }: Pr
     }
     update({ result: res, attempts, solved, errorTypes, gradeError: false });
     setPhase('marked');
-  }, [sess, name, age, update]);
+    // Persist progress so ✓ DONE badges survive across sessions
+    saveProgress(notes, { solved, errorTypes, attempts });
+  }, [sess, name, age, notes, update]);
 
   const fixIt = useCallback(() => {
     const r = sess.result;
@@ -240,10 +286,13 @@ export default function ProblemSets({ notes, name, age, onComplete, onBack }: Pr
   // ── REGENERATE ────────────────────────────────────────────────────────────
   const regenerate = useCallback(async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    // Bust the cache for these notes
+    // Bust the skill cache and progress cache for these notes
     try {
-      const key = `${PS_CACHE_VERSION}_${hashNotes(notes)}`;
-      await AsyncStorage.removeItem(key);
+      const hash = hashNotes(notes);
+      await AsyncStorage.multiRemove([
+        `${PS_CACHE_VERSION}_${hash}`,
+        `${PS_PROGRESS_VERSION}_${hash}`,
+      ]);
     } catch {
       // non-fatal
     }
