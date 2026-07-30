@@ -2628,15 +2628,30 @@ class Component extends DCLogic {
   };
 
   static TUTORIAL_STEPS = [
-    { icon:'🎯', title:'TODAY', desc:'Your daily plan lives here — see your next study step, your streak count, and any items due for review. Open this first every session.', hl:'bottom:0;left:0%;width:20%;height:52px', cardTop:'22%' },
-    { icon:'📖', title:'STUDY', desc:'Jump into your personalised study methods. The first chip is ranked #1 for how your brain learns — based on your quiz answers.', hl:'bottom:0;left:20%;width:20%;height:52px', cardTop:'22%' },
-    { icon:'📈', title:'PROGRESS', desc:'See mastered vs shaky concepts, your practice test scores, and set up daily reminder emails to keep your streak alive.', hl:'bottom:0;left:40%;width:20%;height:52px', cardTop:'22%' },
-    { icon:'📅', title:'PLAN', desc:'Set your test date and see your study history on the calendar. Chop shows how many days you have left to prepare.', hl:'bottom:0;left:60%;width:20%;height:52px', cardTop:'22%' },
-    { icon:'➕', title:'ADD MATERIAL', desc:'Paste notes, upload a PDF, or snap a photo to add new material. Your previous study sets are saved and you can switch between them any time.', hl:'bottom:0;left:80%;width:20%;height:52px', cardTop:'22%' },
-    { icon:'🔖', title:'STUDY METHODS', desc:'These chips switch between your study methods. Swipe to see all of them. Tap any chip to jump straight into that method.', hl:'top:58px;left:0;right:0;height:46px', cardTop:'52%' },
-    { icon:'⧉', title:'FLOATING WINDOW', desc:'Tap ⧉ to open Stickpoint in a small pop-up window — study while keeping your notes, slides, or video open on the same screen.', hl:'top:6px;right:2px;width:52px;height:46px', cardTop:'52%' },
-    { icon:'✏️', title:'EDIT YOUR PROFILE', desc:'Tap the ✏️ pencil next to your name to update your name or age at any time. Chop uses your age to pitch explanations at the right level for you.', hl:'top:6px;left:0;width:54%;height:46px', cardTop:'52%' },
-    { icon:'🔥', title:'YOUR STREAK', desc:'Study every day to build your streak. Even 10 minutes counts. Set a daily reminder email in Progress → Don\'t Lose Your Streak so Chop can nudge you.', hl:'top:6px;right:58px;width:82px;height:46px', cardTop:'52%' },
+    // Steps 0–4: bottom nav tabs — card floats in the upper-middle of the screen
+    { icon:'🎯', title:'TODAY', desc:'Your daily plan lives here — see your next study step, your streak count, and any items due for review. Open this first every session.',
+      hl:'bottom:0;left:0%;width:20%;height:54px', cardAnchor:'top' },
+    { icon:'📖', title:'STUDY', desc:'Jump into your personalised study methods. The first chip is ranked #1 for how your brain learns — based on your quiz answers.',
+      hl:'bottom:0;left:20%;width:20%;height:54px', cardAnchor:'top' },
+    { icon:'📈', title:'PROGRESS', desc:'See mastered vs shaky concepts, your practice test scores, and set up daily reminder emails to keep your streak alive.',
+      hl:'bottom:0;left:40%;width:20%;height:54px', cardAnchor:'top' },
+    { icon:'📅', title:'PLAN', desc:'Set your test date and see your study history on the calendar. Chop shows how many days you have left to prepare.',
+      hl:'bottom:0;left:60%;width:20%;height:54px', cardAnchor:'top' },
+    { icon:'➕', title:'ADD MATERIAL', desc:'Paste notes, upload a PDF, or snap a photo to add new material. Your previous study sets are saved and you can switch between them any time.',
+      hl:'bottom:0;left:80%;width:20%;height:54px', cardAnchor:'top' },
+    // Step 5: chip row — card floats above the nav at the bottom
+    { icon:'🔖', title:'STUDY METHODS', desc:'These chips switch between your study methods. Swipe to see all of them. Tap any chip to jump straight into that method.',
+      hl:'top:63px;left:0;right:0;height:46px', cardAnchor:'bottom' },
+    // Steps 6–8: header elements — card floats just below the header
+    // ⧉ PiP: sits just left of RESTART. RESTART ≈ 80px wide, gap 6px → PiP right edge ≈ 92px from container right
+    { icon:'⧉', title:'FLOATING WINDOW', desc:'Tap ⧉ to open Stickpoint in a small pop-up window — study while keeping your notes, slides, or video open on the same screen.',
+      hl:'top:14px;right:92px;width:38px;height:30px', cardAnchor:'belowHeader' },
+    // ✏️ name+pencil: left side of header after the mini Chop icon (~46px from left)
+    { icon:'✏️', title:'EDIT YOUR PROFILE', desc:'Tap the ✏️ pencil next to your name to update your name or age at any time. Chop uses your age to pitch explanations at the right level for you.',
+      hl:'top:6px;left:8px;width:56%;height:50px', cardAnchor:'belowHeader' },
+    // 🔥 streak badge: leftmost badge in the right group. From right: RESTART(80)+gap(6)+⧉(38)+gap(6)+⭐(52)+gap(6) = 188px → streak starts ~196px from right
+    { icon:'🔥', title:'YOUR STREAK', desc:'Study every day to build your streak. Even 10 minutes counts. Set a daily reminder email in Progress → Don\'t Lose Your Streak so Chop can nudge you.',
+      hl:'top:14px;right:196px;width:52px;height:30px', cardAnchor:'belowHeader' },
   ];
 
   appTourNext = () => {
@@ -4811,7 +4826,9 @@ class Component extends DCLogic {
         const hlParts = step.hl.split(';').reduce((o, p) => { const [k, v] = p.trim().split(':'); if (k && v) o[k.trim()] = v.trim(); return o; }, {});
         let spotStyle = 'position:absolute;z-index:51;pointer-events:none;border:3px solid #FFC93C;box-shadow:0 0 0 9999px rgba(32,30,46,0.82);';
         Object.entries(hlParts).forEach(([k, v]) => { spotStyle += k + ':' + v + ';'; });
-        const cardStyle = 'position:absolute;left:50%;transform:translateX(-50%);' + step.cardTop + ';width:min(290px,88%);background:#FFFCF6;border:3px solid #201E2E;box-shadow:6px 6px 0 #201E2E;padding:18px;display:flex;flex-direction:column;gap:8px;z-index:52;pointer-events:auto;box-sizing:border-box;';
+        // Place card on the opposite side of the screen from the highlighted element
+        const cardPos = { top: 'top:80px', belowHeader: 'top:70px', bottom: 'bottom:68px' }[step.cardAnchor] || 'top:80px';
+        const cardStyle = 'position:absolute;left:50%;transform:translateX(-50%);' + cardPos + ';width:min(290px,88%);background:#FFFCF6;border:3px solid #201E2E;box-shadow:6px 6px 0 #201E2E;padding:18px;display:flex;flex-direction:column;gap:8px;z-index:52;pointer-events:auto;box-sizing:border-box;';
         const dots = STEPS.map((_, i) => ({ bg: i === idx ? '#FF6B4A' : i < idx ? '#2DD4A7' : 'rgba(255,255,255,0.35)' }));
         return {
           ...step, spotStyle, cardStyle, dots,
