@@ -1,16 +1,61 @@
-import React from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { Alert, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useApp } from '@/context/AppContext';
 import { METHODS } from '@/lib/content';
 import colors from '@/constants/colors';
+import { scheduleDaily, cancelDailyReminder } from '@/lib/notifications';
 
 const c = colors.light;
 
 export default function ProgressTab() {
   const insets = useSafeAreaInsets();
-  const { state, gradeMissedItem, dueMissed } = useApp();
+  const { state, gradeMissedItem, dueMissed, setNotificationPreference } = useApp();
+
+  // Local mirror for notification time so the UI updates immediately
+  const [notifHour, setNotifHour] = useState(state.notificationHour ?? 20);
+  const [notifMinute, setNotifMinute] = useState(state.notificationMinute ?? 0);
+
+  const adjustHour = (delta: number) => setNotifHour((h) => (h + delta + 24) % 24);
+  const adjustMinute = (delta: number) => setNotifMinute((m) => (m + delta + 60) % 60);
+
+  const fmt12 = (h: number) => {
+    const ampm = h < 12 ? 'AM' : 'PM';
+    const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+    return { h12: String(h12), ampm };
+  };
+  const { h12, ampm } = fmt12(notifHour);
+  const minStr = String(notifMinute).padStart(2, '0');
+
+  const handleToggleNotifications = async (val: boolean) => {
+    if (val) {
+      const scheduled = await scheduleDaily(notifHour, notifMinute, state.streak ?? 0);
+      if (scheduled) {
+        setNotificationPreference(true, notifHour, notifMinute);
+      } else {
+        Alert.alert(
+          'Permission needed',
+          'Allow notifications in your device settings to receive daily study reminders.',
+        );
+      }
+    } else {
+      await cancelDailyReminder();
+      setNotificationPreference(false, notifHour, notifMinute);
+    }
+  };
+
+  const handleSaveTime = async () => {
+    const scheduled = await scheduleDaily(notifHour, notifMinute, state.streak ?? 0);
+    if (scheduled) {
+      setNotificationPreference(true, notifHour, notifMinute);
+    } else {
+      Alert.alert(
+        'Permission needed',
+        'Allow notifications in your device settings to receive daily study reminders.',
+      );
+    }
+  };
 
   const due = dueMissed();
   const methodsTriedCount = Object.keys(state.methodsTried || {}).length;
@@ -167,6 +212,84 @@ export default function ProgressTab() {
           </Text>
         </View>
       )}
+
+      {/* Notification settings */}
+      <Text style={[styles.sectionLabel, { color: c.dark }]}>DAILY REMINDER</Text>
+      <View style={[styles.card, { borderColor: c.dark }]}>
+        {/* Toggle row */}
+        <View style={styles.notifRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.notifTitle, { color: c.dark }]}>Study reminder</Text>
+            <Text style={[styles.notifSub, { color: c.muted }]}>
+              {state.notificationsEnabled
+                ? `Every day at ${h12}:${minStr} ${ampm}`
+                : 'Off — tap to turn on'}
+            </Text>
+          </View>
+          <Switch
+            value={!!state.notificationsEnabled}
+            onValueChange={handleToggleNotifications}
+            trackColor={{ false: c.borderLight, true: c.primary }}
+            thumbColor={state.notificationsEnabled ? '#fff' : c.muted}
+          />
+        </View>
+
+        {/* Time picker (only shown when enabled) */}
+        {state.notificationsEnabled && (
+          <>
+            <View style={[styles.divider, { backgroundColor: c.borderLight }]} />
+            <View style={styles.timePicker}>
+              {/* Hours */}
+              <View style={styles.timeColumn}>
+                <Pressable
+                  onPress={() => adjustHour(1)}
+                  style={[styles.timeArrow, { borderColor: c.dark }]}>
+                  <Text style={[styles.timeArrowText, { color: c.dark }]}>▲</Text>
+                </Pressable>
+                <View style={[styles.timeDisplay, { borderColor: c.dark, backgroundColor: c.card }]}>
+                  <Text style={[styles.timeValue, { color: c.dark }]}>{h12}</Text>
+                </View>
+                <Pressable
+                  onPress={() => adjustHour(-1)}
+                  style={[styles.timeArrow, { borderColor: c.dark }]}>
+                  <Text style={[styles.timeArrowText, { color: c.dark }]}>▼</Text>
+                </Pressable>
+              </View>
+
+              <Text style={[styles.timeSep, { color: c.dark }]}>:</Text>
+
+              {/* Minutes */}
+              <View style={styles.timeColumn}>
+                <Pressable
+                  onPress={() => adjustMinute(5)}
+                  style={[styles.timeArrow, { borderColor: c.dark }]}>
+                  <Text style={[styles.timeArrowText, { color: c.dark }]}>▲</Text>
+                </Pressable>
+                <View style={[styles.timeDisplay, { borderColor: c.dark, backgroundColor: c.card }]}>
+                  <Text style={[styles.timeValue, { color: c.dark }]}>{minStr}</Text>
+                </View>
+                <Pressable
+                  onPress={() => adjustMinute(-5)}
+                  style={[styles.timeArrow, { borderColor: c.dark }]}>
+                  <Text style={[styles.timeArrowText, { color: c.dark }]}>▼</Text>
+                </Pressable>
+              </View>
+
+              <Pressable
+                onPress={() => adjustHour(notifHour < 12 ? 12 : -12)}
+                style={[styles.ampmBtn, { borderColor: c.dark, backgroundColor: c.card }]}>
+                <Text style={[styles.ampmText, { color: c.primary }]}>{ampm}</Text>
+              </Pressable>
+            </View>
+
+            <Pressable
+              onPress={handleSaveTime}
+              style={({ pressed }) => [styles.saveBtn, { borderColor: c.dark, backgroundColor: c.primary, opacity: pressed ? 0.85 : 1 }]}>
+              <Text style={[styles.saveBtnText, { color: '#fff' }]}>SAVE TIME</Text>
+            </Pressable>
+          </>
+        )}
+      </View>
     </ScrollView>
   );
 }
@@ -223,4 +346,22 @@ const styles = StyleSheet.create({
   emptyCard: { borderWidth: 3, borderStyle: 'dashed', padding: 32, alignItems: 'center', gap: 10, marginTop: 20 },
   emptyTitle: { fontWeight: '900', fontSize: 16 },
   emptyBody: { fontWeight: '700', fontSize: 13, lineHeight: 20, textAlign: 'center' },
+
+  // Notification settings
+  notifRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  notifTitle: { fontWeight: '900', fontSize: 14 },
+  notifSub: { fontWeight: '700', fontSize: 12, marginTop: 2 },
+  divider: { height: 2, marginVertical: 4 },
+
+  timePicker: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  timeColumn: { alignItems: 'center', gap: 4 },
+  timeArrow: { borderWidth: 2, paddingHorizontal: 14, paddingVertical: 6 },
+  timeArrowText: { fontWeight: '900', fontSize: 14 },
+  timeDisplay: { borderWidth: 3, paddingHorizontal: 18, paddingVertical: 8, minWidth: 60, alignItems: 'center' },
+  timeValue: { fontWeight: '900', fontSize: 26, letterSpacing: 1 },
+  timeSep: { fontWeight: '900', fontSize: 26, marginBottom: 2 },
+  ampmBtn: { borderWidth: 3, paddingHorizontal: 12, paddingVertical: 10, alignItems: 'center', justifyContent: 'center', alignSelf: 'center' },
+  ampmText: { fontWeight: '900', fontSize: 16 },
+  saveBtn: { borderWidth: 3, padding: 12, alignItems: 'center', marginTop: 4 },
+  saveBtnText: { fontWeight: '900', fontSize: 13, letterSpacing: 1 },
 });

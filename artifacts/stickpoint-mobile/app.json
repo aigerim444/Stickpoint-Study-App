@@ -31,7 +31,13 @@
       ],
       "expo-font",
       "expo-web-browser",
-      "expo-image-picker"
+      "expo-image-picker",
+      [
+        "expo-notifications",
+        {
+          "sounds": []
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

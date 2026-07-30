@@ -67,6 +67,11 @@ export interface AppState {
   activeMethod: string;
   materialTopMethods: string[] | null;
 
+  // Notifications
+  notificationsEnabled: boolean;
+  notificationHour: number;
+  notificationMinute: number;
+
   // Internal
   loaded: boolean;
 }
@@ -92,6 +97,9 @@ const defaultState: AppState = {
   ptHistory: [],
   activeMethod: 'active_recall',
   materialTopMethods: null,
+  notificationsEnabled: false,
+  notificationHour: 20,
+  notificationMinute: 0,
   loaded: false,
 };
 
@@ -111,6 +119,7 @@ interface AppContextValue {
   deleteFromLibrary: (id: string) => void;
   renameLibraryEntry: (id: string, name: string) => void;
   setMaterialTopMethods: (methods: string[] | null) => void;
+  setNotificationPreference: (enabled: boolean, hour: number, minute: number) => void;
   resetApp: () => void;
   dueMissed: () => MissedItem[];
 }
@@ -173,6 +182,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           ptHistory: next.ptHistory,
           activeMethod: next.activeMethod,
           materialTopMethods: next.materialTopMethods,
+          notificationsEnabled: next.notificationsEnabled,
+          notificationHour: next.notificationHour,
+          notificationMinute: next.notificationMinute,
         };
         AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
       }, 300);
@@ -374,6 +386,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     persist({ materialTopMethods: methods });
   }, [persist]);
 
+  const setNotificationPreference = useCallback(
+    (enabled: boolean, hour: number, minute: number) => {
+      persist({ notificationsEnabled: enabled, notificationHour: hour, notificationMinute: minute });
+    },
+    [persist],
+  );
+
   const resetApp = useCallback(() => {
     AsyncStorage.removeItem(STORAGE_KEY);
     setState({ ...defaultState, loaded: true });
@@ -392,7 +411,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setName, setQuizResult, setMaterial, setActiveMethod, recordSession,
       recordMissed, gradeMissedItem, addPtResult, markStudiedToday,
       addToLibrary, switchMaterial, deleteFromLibrary, renameLibraryEntry,
-      setMaterialTopMethods, resetApp, dueMissed,
+      setMaterialTopMethods, setNotificationPreference, resetApp, dueMissed,
     }}>
       {children}
     </AppContext.Provider>
