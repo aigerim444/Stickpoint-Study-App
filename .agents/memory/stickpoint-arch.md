@@ -1,14 +1,29 @@
 ---
-name: Stickpoint architecture overview
-description: Key architectural facts not derivable from a quick scan
+name: Stickpoint architecture
+description: Core structure of the Stickpoint app — where code lives, how the AI call chain works, key patterns.
 ---
 
-- **Frontend:** `artifacts/claude-design/public/index.html` — one self-contained file, ~4500 lines, custom DCLogic/StreamableLogic template system with `{{ }}` bindings, `<sc-if>`, `<sc-for>`.
-- **Content/quiz data:** `artifacts/claude-design/public/stickpoint-content.js` — METHODS, MATH_METHODS, quiz scoring.
-- **API backend:** `artifacts/api-server/src/routes/claude.ts` — POST /api/claude → **claude-sonnet-4-5 hardcoded**, max_tokens 8000. The model param is ignored; server always uses claude-sonnet-4-5 which supports vision (image content in messages).
-- **Vision:** Pass `messages: [{ role: 'user', content: [{ type: 'image', source: { type: 'base64', media_type: 'image/png', data: base64 } }, { type: 'text', text: prompt }] }]` — same API, no server changes needed.
-- **Persistence:** `localStorage` key `stickpoint_v1`; `persist()` is called via `update()`. Session state is intentionally NOT persisted to localStorage (ephemeral), but `savedSession`/`savedActiveMethod` on library entries are persisted.
-- **Template system refs:** To get a DOM element from JS, use `document.querySelector('[data-attr]')` — no ref system exists.
-- **Canvas drawing:** `_psDrawing`, `_psLastX`, `_psLastY` are class instance vars (not React state) for PS canvas.
+Single-file frontend: `artifacts/claude-design/public/index.html` (~5080 lines).
+API server: `artifacts/api-server` proxies to claude-sonnet-4-5 (hardcoded, supports vision).
+Build: `pnpm --filter @workspace/claude-design run build` (copies public → dist/public).
 
-**Why:** None of this is obvious from a code scan, and getting it wrong (e.g. assuming model can be changed, or trying to persist session) wastes time.
+## Key patterns
+- `this.update(patch)` = setState + setTimeout persist. Does NOT accept a callback.
+- `this.setState(patch, cb)` when a callback is needed after state change.
+- `appRenderVals()` returns all template bindings. Every new state key + method needs an entry here.
+- `addXp(n)` now also sets `xpAnimKey` + `xpAnimVal` for the floating +⭐ animation; clears after 1.4s.
+- `playSound(type)` uses Web Audio API — types: `'correct'` (2-tone), `'complete'` (4-tone fanfare), `'star'` (3-tone sparkle). Gated by `soundOn` state.
+- Per-material progress keys: `missedBank`, `ptHistory`, `materialTopMethods`, `savedTopMethods` — saved/restored in `saveToLibrary` / `switchMaterial`.
+- `mathNoticeSeen` still in state but not the primary gate — `materialTopMethods === null` controls math popup.
+
+## Tabs (6 total)
+TODAY | STUDY | PROGRESS | PLAN | 👤 ME | ➕ ADD
+- "ME" tab (`profile`) holds: name/age edit, sound toggle, daily reminder email, replay tour, share.
+- Progress tab was decluttered — email/replay/share moved to ME tab.
+
+## Overlays (absolute-positioned, z-index order)
+- Tutorial: z-50
+- Math notice: z-22
+- Age prompt: z-24
+- PT Celebration: z-65 (score ≥ 80% after practice test)
+- Restart confirm: z-70

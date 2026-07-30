@@ -26,6 +26,7 @@
   @keyframes fadeUp { 0%{ transform:translateY(14px); opacity:0; } 100%{ transform:translateY(0); opacity:1; } }
   @keyframes shimmerBar { 0%{ background-position:0 0; } 100%{ background-position:40px 0; } }
   @keyframes confettiFall { 0%{ transform:translateY(-10px) rotate(0deg); opacity:1;} 100%{ transform:translateY(140px) rotate(360deg); opacity:0;} }
+  @keyframes xpFloat { 0%{ opacity:1; transform:translateY(0) scale(1); } 70%{ opacity:1; transform:translateY(-22px) scale(1.1); } 100%{ opacity:0; transform:translateY(-36px) scale(.85); } }
 </style>
 <script>
 /* ---- Claude API compatibility layer (for exports outside Claude Design, e.g. Replit) ----
@@ -452,7 +453,12 @@
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
           <div data-tutid="streak" style="display:flex;align-items:center;gap:3px;background:#FFF3DE;border:2px solid #201E2E;padding:4px 7px;font-size:11px;font-weight:900;color:#201E2E;">🔥{{ streak }}</div>
-          <div style="display:flex;align-items:center;gap:3px;background:#EDE7FF;border:2px solid #201E2E;padding:4px 7px;font-size:11px;font-weight:900;color:#201E2E;">⭐{{ xp }}</div>
+          <div style="position:relative;display:flex;align-items:center;gap:3px;background:#EDE7FF;border:2px solid #201E2E;padding:4px 7px;font-size:11px;font-weight:900;color:#201E2E;">⭐{{ xp }}
+            <sc-if value="{{ xpAnimShow }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;top:-4px;right:-4px;font-size:10px;font-weight:900;color:#7C5CFC;background:#EDE7FF;border:2px solid #7C5CFC;padding:1px 5px;pointer-events:none;white-space:nowrap;animation:xpFloat 1.3s ease forwards;">+⭐{{ xpAnimVal }}</div>
+            </sc-if>
+          </div>
+          <button onclick="{{ toggleSound }}" title="{{ soundOn ? 'Sound on — click to mute' : 'Sound off — click to enable' }}" style="font-family:'Nunito';font-weight:900;font-size:11px;color:#201E2E;background:#fff;border:2px solid #201E2E;padding:4px 9px;cursor:pointer;">{{ soundOn ? '🔊' : '🔇' }}</button>
           <sc-if value="{{ hasAccount }}" hint-placeholder-val="{{ false }}">
             <button onclick="{{ openAccountEdit }}" title="Edit reminder email" style="font-family:'Nunito';font-weight:900;font-size:11px;color:#201E2E;background:#F3FBF8;border:2px solid #2DD4A7;padding:4px 9px;cursor:pointer;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">📬 {{ accountContactShort }}</button>
           </sc-if>
@@ -599,27 +605,8 @@
             </sc-if>
           </div>
 
-          <!-- Streak reminder / about section -->
-          <div style="background:#FFF3DE;border:3px solid #FFC93C;box-shadow:4px 4px 0 #201E2E;padding:16px;display:flex;flex-direction:column;gap:10px;margin-top:8px;">
-            <div style="font-family:'Press Start 2P';font-size:10px;color:#201E2E;line-height:1.8;">🔥 DON'T LOSE YOUR STREAK</div>
-            <div style="font-size:12px;font-weight:700;color:#463f52;line-height:1.5;">Chop will send you a daily reminder so you never miss a day. Small habits, big results — consistency beats cramming every time.</div>
-            <sc-if value="{{ hasAccount }}" hint-placeholder-val="{{ false }}">
-              <div style="font-size:12px;font-weight:800;color:#1a9c77;">✅ Reminders set for {{ accountContact }}</div>
-              <div style="font-size:11px;font-weight:700;color:#8a8194;">Update your email below if needed.</div>
-            </sc-if>
-            <input type="email" value="{{ aboutEmailDraft }}" oninput="{{ setAboutEmailDraft }}" placeholder="you@school.edu" style="width:100%;box-sizing:border-box;font-family:'Nunito';font-weight:700;font-size:14px;padding:11px;border:3px solid #201E2E;background:#fff;color:#201E2E;outline:none;">
-            <button onclick="{{ saveAboutEmail }}" disabled="{{ cantSaveAboutEmail }}" style="font-family:'Nunito';font-weight:900;border:3px solid #201E2E;cursor:{{ aboutEmailBtnCursor }};font-size:13px;color:#fff;background:{{ aboutEmailBtnBg }};box-shadow:3px 3px 0 #201E2E;padding:12px;">{{ aboutEmailBtnLabel }}</button>
-          </div>
-
-          <!-- Replay tour -->
-          <button onclick="{{ replayTutorial }}" style="font-family:'Nunito';font-weight:900;font-size:12px;color:#463f52;background:#fff;border:2px solid #c9c2b8;padding:10px 16px;cursor:pointer;align-self:center;margin-top:4px;">🎓 REPLAY APP TOUR</button>
-
-          <!-- Share Stickpoint -->
-          <div style="background:#F3F0FF;border:3px solid #7C5CFC;padding:16px;display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center;margin-top:4px;">
-            <div style="font-size:11px;font-weight:900;color:#7C5CFC;letter-spacing:1px;">KNOW SOMEONE WHO SHOULD STUDY SMARTER?</div>
-            <div style="font-size:12px;font-weight:700;color:#463f52;line-height:1.5;">Send them Stickpoint — it's free to use.</div>
-            <button onclick="{{ shareStickpoint }}" style="font-family:'Nunito';font-weight:900;font-size:13px;color:#fff;background:#7C5CFC;border:3px solid #201E2E;box-shadow:3px 3px 0 #201E2E;padding:11px 20px;cursor:pointer;">{{ shareCopied ? '✅ LINK COPIED!' : '🔗 SHARE STICKPOINT' }}</button>
-          </div>
+          <!-- Link to profile for settings -->
+          <button onclick="{{ goTabProfile }}" style="font-family:'Nunito';font-weight:900;font-size:12px;color:#7C5CFC;background:#F3F0FF;border:2px solid #7C5CFC;padding:10px 16px;cursor:pointer;align-self:center;margin-top:8px;">👤 EMAIL REMINDERS &amp; SETTINGS →</button>
         </div>
       </sc-if>
 
@@ -1735,6 +1722,53 @@
         </div>
       </sc-if>
 
+      <!-- PROFILE TAB -->
+      <sc-if value="{{ tabProfile }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:14px;">
+          <div style="font-family:'Press Start 2P';font-size:12px;color:#201E2E;line-height:1.8;">MY PROFILE</div>
+
+          <!-- Name & age display -->
+          <div style="background:#fff;border:3px solid #201E2E;padding:14px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+            <div>
+              <div style="font-size:11px;font-weight:900;color:#8a8194;letter-spacing:1px;">YOUR NAME &amp; AGE</div>
+              <div style="font-size:15px;font-weight:900;color:#201E2E;margin-top:4px;">{{ name }}<sc-if value="{{ hasAge }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;font-weight:800;color:#8a8194;"> · {{ age }}</span></sc-if></div>
+            </div>
+            <button onclick="{{ startEditName }}" style="font-family:'Nunito';font-weight:900;font-size:11px;color:#201E2E;background:#fff;border:2px solid #201E2E;padding:7px 12px;cursor:pointer;">✏️ EDIT</button>
+          </div>
+
+          <!-- Sound toggle -->
+          <div style="background:#fff;border:3px solid #201E2E;padding:14px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+            <div>
+              <div style="font-size:13px;font-weight:900;color:#201E2E;">{{ soundOn ? '🔊' : '🔇' }} Study sounds</div>
+              <div style="font-size:11px;font-weight:700;color:#8a8194;margin-top:2px;">Chimes when you get answers right</div>
+            </div>
+            <button onclick="{{ toggleSound }}" style="font-family:'Nunito';font-weight:900;font-size:13px;color:{{ soundOn ? '#fff' : '#201E2E' }};background:{{ soundOn ? '#2DD4A7' : '#fff' }};border:3px solid #201E2E;box-shadow:3px 3px 0 #201E2E;padding:9px 16px;cursor:pointer;min-width:52px;text-align:center;">{{ soundOn ? 'ON' : 'OFF' }}</button>
+          </div>
+
+          <!-- Daily reminder email -->
+          <div style="background:#FFF3DE;border:3px solid #FFC93C;box-shadow:4px 4px 0 #201E2E;padding:16px;display:flex;flex-direction:column;gap:10px;">
+            <div style="font-family:'Press Start 2P';font-size:10px;color:#201E2E;line-height:1.8;">🔥 DAILY REMINDERS</div>
+            <div style="font-size:12px;font-weight:700;color:#463f52;line-height:1.5;">Chop will send you a daily reminder so you never miss a day. Small habits, big results.</div>
+            <sc-if value="{{ hasAccount }}" hint-placeholder-val="{{ false }}">
+              <div style="font-size:12px;font-weight:800;color:#1a9c77;">✅ Reminders set for {{ accountContact }}</div>
+              <div style="font-size:11px;font-weight:700;color:#8a8194;">Update your email below if needed.</div>
+            </sc-if>
+            <input type="email" value="{{ aboutEmailDraft }}" oninput="{{ setAboutEmailDraft }}" placeholder="you@school.edu" style="width:100%;box-sizing:border-box;font-family:'Nunito';font-weight:700;font-size:14px;padding:11px;border:3px solid #201E2E;background:#fff;color:#201E2E;outline:none;">
+            <button onclick="{{ saveAboutEmail }}" disabled="{{ cantSaveAboutEmail }}" style="font-family:'Nunito';font-weight:900;border:3px solid #201E2E;cursor:{{ aboutEmailBtnCursor }};font-size:13px;color:#fff;background:{{ aboutEmailBtnBg }};box-shadow:3px 3px 0 #201E2E;padding:12px;">{{ aboutEmailBtnLabel }}</button>
+          </div>
+
+          <!-- Replay tour -->
+          <button onclick="{{ replayTutorial }}" style="font-family:'Nunito';font-weight:900;font-size:12px;color:#463f52;background:#fff;border:2px solid #c9c2b8;padding:10px 16px;cursor:pointer;align-self:center;">🎓 REPLAY APP TOUR</button>
+
+          <!-- Share Stickpoint -->
+          <div style="background:#F3F0FF;border:3px solid #7C5CFC;padding:16px;display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center;">
+            <div style="font-size:11px;font-weight:900;color:#7C5CFC;letter-spacing:1px;">KNOW SOMEONE WHO SHOULD STUDY SMARTER?</div>
+            <div style="font-size:12px;font-weight:700;color:#463f52;line-height:1.5;">Send them Stickpoint — it's free to use.</div>
+            <button onclick="{{ shareStickpoint }}" style="font-family:'Nunito';font-weight:900;font-size:13px;color:#fff;background:#7C5CFC;border:3px solid #201E2E;box-shadow:3px 3px 0 #201E2E;padding:11px 20px;cursor:pointer;">{{ shareCopied ? '✅ LINK COPIED!' : '🔗 SHARE STICKPOINT' }}</button>
+          </div>
+        </div>
+      </sc-if>
+
       <!-- ADD MATERIAL TAB -->
       <sc-if value="{{ tabMaterial }}" hint-placeholder-val="{{ false }}">
         <div style="flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:14px;">
@@ -1838,6 +1872,7 @@
         <button onclick="{{ goTabStudy }}" style="flex:1;padding:11px 2px;border:none;cursor:pointer;background:{{ navStudyBg }};color:{{ navStudyColor }};font-family:'Nunito';font-weight:900;font-size:10px;">📖 STUDY</button>
         <button onclick="{{ goTabProgress }}" style="flex:1;padding:11px 2px;border:none;cursor:pointer;background:{{ navProgressBg }};color:{{ navProgressColor }};font-family:'Nunito';font-weight:900;font-size:10px;">📈 PROGRESS</button>
         <button onclick="{{ goTabCalendar }}" style="flex:1;padding:11px 2px;border:none;cursor:pointer;background:{{ navCalendarBg }};color:{{ navCalendarColor }};font-family:'Nunito';font-weight:900;font-size:10px;">📅 PLAN</button>
+        <button onclick="{{ goTabProfile }}" style="flex:1;padding:11px 2px;border:none;cursor:pointer;background:{{ navProfileBg }};color:{{ navProfileColor }};font-family:'Nunito';font-weight:900;font-size:10px;">👤 ME</button>
         <button onclick="{{ goTabMaterial }}" style="flex:1;padding:11px 2px;border:none;cursor:pointer;background:{{ navMaterialBg }};color:{{ navMaterialColor }};font-family:'Nunito';font-weight:900;font-size:10px;">➕ ADD</button>
       </div>
 
@@ -1926,6 +1961,7 @@ class Component extends DCLogic {
     ageDraft: '',
     ageEditDraft: '',
     restartOpen: false, shareCopied: false, ptCelebrateOpen: false, ptCelebrateScore: 0, ptCelebrateTotal: 0,
+    soundOn: true, xpAnimKey: 0, xpAnimVal: 0,
     editingName: false,
     nameEditDraft: '',
     topMethods: [],
@@ -2648,6 +2684,7 @@ class Component extends DCLogic {
   // Called when a study mode reaches its summary. Show the "Don't lose your streak"
   // reminder prompt once per calendar day, but only until the user saves an email.
   sessionComplete() {
+    this.playSound('complete');
     const n = (this.state.sessionsFinished || 0) + 1;
     const patch = { sessionsFinished: n };
     if (!this.state.account) {
@@ -2792,7 +2829,35 @@ class Component extends DCLogic {
     this.update({ studiedDates: dates, streak });
   }
 
-  addXp(n) { this.update({ xp: this.state.xp + n }); }
+  addXp(n) {
+    const key = Date.now();
+    this.update({ xp: this.state.xp + n, xpAnimKey: key, xpAnimVal: n });
+    setTimeout(() => { if (this.state.xpAnimKey === key) this.setState({ xpAnimKey: 0 }); }, 1400);
+  }
+
+  toggleSound = () => this.update({ soundOn: !this.state.soundOn });
+
+  playSound = (type) => {
+    if (!this.state.soundOn) return;
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const plans = type === 'complete'
+        ? [{f:523,t:0},{f:659,t:0.11},{f:784,t:0.22},{f:1047,t:0.34}]
+        : type === 'correct'
+        ? [{f:659,t:0},{f:880,t:0.1}]
+        : [{f:880,t:0},{f:1047,t:0.07},{f:1319,t:0.14}];
+      plans.forEach(({f,t}) => {
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.frequency.value = f;
+        o.type = type === 'complete' ? 'sine' : 'triangle';
+        g.gain.setValueAtTime(0.13, ctx.currentTime + t);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.28);
+        o.start(ctx.currentTime + t); o.stop(ctx.currentTime + t + 0.32);
+      });
+      setTimeout(() => ctx.close(), 2200);
+    } catch(e) {}
+  };
 
   ensureSession(id) {
     if (this.state.session && this.state.session[id]) {
@@ -2910,6 +2975,7 @@ class Component extends DCLogic {
     const finished = queue.length === 0;
     this.setSession(id, { queue, seenCount, counts, hardIdx, done: (sess.done || 0) + 1, flipped: false, finished });
     this.addXp(rating === 'easy' ? 2 : rating === 'medium' ? 3 : 4);
+    if (rating !== 'hard') this.playSound('correct');
     if (finished) { this.markStudiedToday(); this.sessionComplete(); }
   };
 
@@ -2986,6 +3052,7 @@ class Component extends DCLogic {
     this.setSession('self_explanation', { phase: 'feedback', result, firstTry, struggled });
     if (!result.correct) this.recordMissed([{ question: 'Explain: ' + (cur.key_idea || cur.chunk), answer: result.simpler || cur.chunk }], 'self-explanation');
     this.addXp(result.correct ? 5 : 2);
+    if (result.correct) this.playSound('correct');
     this.markStudiedToday();
   };
 
@@ -4880,9 +4947,11 @@ class Component extends DCLogic {
       methodChips, activeMethodLabel: activeInfo ? activeInfo.label : '',
       streak: s.streak, xp: s.xp,
       tabStudy: s.tab === 'study', tabCalendar: s.tab === 'calendar', tabMaterial: s.tab === 'material',
-      tabToday: s.tab === 'today', tabProgress: s.tab === 'progress',
+      tabToday: s.tab === 'today', tabProgress: s.tab === 'progress', tabProfile: s.tab === 'profile',
       goTabStudy: () => this.setTab('study'), goTabCalendar: () => this.setTab('calendar'), goTabMaterial: () => this.setTab('material'),
-      goTabToday: () => this.setTab('today'), goTabProgress: () => this.setTab('progress'),
+      goTabToday: () => this.setTab('today'), goTabProgress: () => this.setTab('progress'), goTabProfile: () => this.setTab('profile'),
+      soundOn: !!s.soundOn, toggleSound: this.toggleSound,
+      xpAnimShow: !!s.xpAnimKey, xpAnimVal: s.xpAnimVal || 0,
       readyToast: (() => { const rt = s.readyToast; return rt ? { show: true, label: rt.label, go: () => { this.dismissReadyToast(); this.chooseMethod(rt.id); }, dismiss: this.dismissReadyToast } : { show: false, label: '', go: () => {}, dismiss: () => {} }; })(),
       navTodayBg: s.tab === 'today' ? '#201E2E' : '#fff', navTodayColor: s.tab === 'today' ? '#fff' : '#201E2E',
       navProgressBg: s.tab === 'progress' ? '#201E2E' : '#fff', navProgressColor: s.tab === 'progress' ? '#fff' : '#201E2E',
@@ -5025,6 +5094,7 @@ class Component extends DCLogic {
       navStudyBg: s.tab === 'study' ? '#201E2E' : '#fff', navStudyColor: s.tab === 'study' ? '#fff' : '#201E2E',
       navCalendarBg: s.tab === 'calendar' ? '#201E2E' : '#fff', navCalendarColor: s.tab === 'calendar' ? '#fff' : '#201E2E',
       navMaterialBg: s.tab === 'material' ? '#201E2E' : '#fff', navMaterialColor: s.tab === 'material' ? '#fff' : '#201E2E',
+      navProfileBg: s.tab === 'profile' ? '#201E2E' : '#fff', navProfileColor: s.tab === 'profile' ? '#fff' : '#201E2E',
     };
   }
 }
