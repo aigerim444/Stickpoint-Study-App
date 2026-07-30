@@ -2685,10 +2685,9 @@ class Component extends DCLogic {
   // ---------- Per-material top-3 editing ----------
   _currentTop3() {
     const s = this.state;
-    const mod = this.mod;
-    return ((s.materialTopMethods != null
-      ? s.materialTopMethods
-      : (s.isMath ? mod.MATH_METHODS : s.topMethods)) || []).slice(0, 3);
+    // materialTopMethods = null means "use quiz defaults" — never override with MATH_METHODS unless
+    // the user explicitly accepted them via the math-detected popup (acceptMathMethods sets this).
+    return ((s.materialTopMethods != null ? s.materialTopMethods : s.topMethods) || []).slice(0, 3);
   }
   _saveTop3(newTop3) {
     const id = this.state.currentMaterialId;
@@ -3939,12 +3938,17 @@ class Component extends DCLogic {
   };
 
   closeMathNotice = () => {
-    // User chose to keep their quiz results — save quiz topMethods as the material override
-    // so the math auto-default never overrides their choice on this material.
+    // User chose to keep their quiz results.
+    // materialTopMethods is now explicitly set to quiz results so it's persisted per-material.
+    // Also set activeMethod to quiz #1 so the study view lands on the right method.
     const quizTop = (this.state.topMethods || []).slice(0, 3);
+    const newActive = quizTop[0] || this.state.activeMethod;
     const updatedLibrary = (this.state.library || []).map(x =>
       x.id === this.state.currentMaterialId ? Object.assign({}, x, { savedTopMethods: quizTop }) : x);
-    this.update({ mathNoticeOpen: false, mathNoticeSeen: true, materialTopMethods: quizTop, library: updatedLibrary });
+    this.setState({ mathNoticeOpen: false, mathNoticeSeen: true, materialTopMethods: quizTop, library: updatedLibrary, activeMethod: newActive }, () => {
+      setTimeout(() => this.persist(), 0);
+      if (newActive) this.ensureSession(newActive);
+    });
   };
   acceptMathMethods = () => {
     const ranked = this.mod.MATH_METHODS.slice();
@@ -4197,10 +4201,11 @@ class Component extends DCLogic {
       if (m.id === s.activeMethod) return true; // the mode you're in always has a chip back to it
       return s.isMath ? mod.MATH_METHODS.includes(m.id) : m.id !== 'problem_sets';
     });
-    // Per-material top methods: use saved override if set (null/undefined = use quiz defaults)
+    // Per-material top methods: quiz results are always the default.
+    // acceptMathMethods() is the only path that overrides this with MATH_METHODS.
     const effectiveTopMethods = s.materialTopMethods != null
       ? s.materialTopMethods
-      : (s.isMath ? mod.MATH_METHODS : (s.topMethods || []));
+      : (s.topMethods || []);
     const topIds = effectiveTopMethods.slice(0, 3);
     const topChips   = topIds.map(id => chipMethods.find(m => m.id === id)).filter(Boolean);
     const restChips  = chipMethods.filter(m => !topIds.includes(m.id));
@@ -4835,7 +4840,7 @@ class Component extends DCLogic {
         const validMethods = mod.METHODS.filter(m => s.isMath ? mod.MATH_METHODS.includes(m.id) : m.id !== 'problem_sets');
         const currentTop3 = ((s.materialTopMethods != null
           ? s.materialTopMethods
-          : (s.isMath ? mod.MATH_METHODS : (s.topMethods || []))) || []).slice(0, 3)
+          : (s.topMethods || [])) || []).slice(0, 3)
           .filter(id => validMethods.find(m => m.id === id));
         return {
           hasTop3: currentTop3.length > 0,
