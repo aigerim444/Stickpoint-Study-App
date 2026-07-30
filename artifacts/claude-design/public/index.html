@@ -404,7 +404,7 @@
             </div>
           </div>
           <sc-if value="{{ notEditingName }}" hint-placeholder-val="{{ true }}">
-            <div style="display:flex;align-items:center;gap:5px;">
+            <div data-tutid="name" style="display:flex;align-items:center;gap:5px;">
               <div style="font-family:'Nunito';font-weight:900;font-size:13px;color:#201E2E;">Hey, {{ name }}</div>
               <sc-if value="{{ hasAge }}" hint-placeholder-val="{{ false }}">
                 <div style="font-size:10px;font-weight:800;color:#8a8194;">· {{ age }}</div>
@@ -421,12 +421,12 @@
           </sc-if>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
-          <div style="display:flex;align-items:center;gap:3px;background:#FFF3DE;border:2px solid #201E2E;padding:4px 7px;font-size:11px;font-weight:900;color:#201E2E;">🔥{{ streak }}</div>
+          <div data-tutid="streak" style="display:flex;align-items:center;gap:3px;background:#FFF3DE;border:2px solid #201E2E;padding:4px 7px;font-size:11px;font-weight:900;color:#201E2E;">🔥{{ streak }}</div>
           <div style="display:flex;align-items:center;gap:3px;background:#EDE7FF;border:2px solid #201E2E;padding:4px 7px;font-size:11px;font-weight:900;color:#201E2E;">⭐{{ xp }}</div>
           <sc-if value="{{ hasAccount }}" hint-placeholder-val="{{ false }}">
             <button onclick="{{ openAccountEdit }}" title="Edit reminder email" style="font-family:'Nunito';font-weight:900;font-size:11px;color:#201E2E;background:#F3FBF8;border:2px solid #2DD4A7;padding:4px 9px;cursor:pointer;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">📬 {{ accountContactShort }}</button>
           </sc-if>
-          <button onclick="{{ openPiP }}" title="Open floating window" style="font-family:'Nunito';font-weight:900;font-size:11px;color:#201E2E;background:#fff;border:2px solid #201E2E;padding:4px 9px;cursor:pointer;">⧉</button>
+          <button data-tutid="pip" onclick="{{ openPiP }}" title="Open floating window" style="font-family:'Nunito';font-weight:900;font-size:11px;color:#201E2E;background:#fff;border:2px solid #201E2E;padding:4px 9px;cursor:pointer;">⧉</button>
           <button onclick="{{ openRestart }}" style="font-family:'Nunito';font-weight:900;font-size:11px;color:#fff;background:#FF5A5F;border:2px solid #201E2E;padding:4px 9px;cursor:pointer;">RESTART</button>
         </div>
       </div>
@@ -2642,16 +2642,13 @@ class Component extends DCLogic {
     // Step 5: chip row — card floats above the nav at the bottom
     { icon:'🔖', title:'STUDY METHODS', desc:'These chips switch between your study methods. Swipe to see all of them. Tap any chip to jump straight into that method.',
       hl:'top:63px;left:0;right:0;height:46px', cardAnchor:'bottom' },
-    // Steps 6–8: header elements — card floats just below the header
-    // ⧉ PiP: sits just left of RESTART. RESTART ≈ 80px wide, gap 6px → PiP right edge ≈ 92px from container right
+    // Steps 6–8: header elements — measured live from the DOM via data-tutid attributes
     { icon:'⧉', title:'FLOATING WINDOW', desc:'Tap ⧉ to open Stickpoint in a small pop-up window — study while keeping your notes, slides, or video open on the same screen.',
-      hl:'top:14px;right:92px;width:38px;height:30px', cardAnchor:'belowHeader' },
-    // ✏️ name+pencil: left side of header after the mini Chop icon (~46px from left)
+      tutid:'pip', cardAnchor:'belowHeader' },
     { icon:'✏️', title:'EDIT YOUR PROFILE', desc:'Tap the ✏️ pencil next to your name to update your name or age at any time. Chop uses your age to pitch explanations at the right level for you.',
-      hl:'top:6px;left:8px;width:56%;height:50px', cardAnchor:'belowHeader' },
-    // 🔥 streak badge: leftmost badge in the right group. From right: RESTART(80)+gap(6)+⧉(38)+gap(6)+⭐(52)+gap(6) = 188px → streak starts ~196px from right
+      tutid:'name', cardAnchor:'belowHeader' },
     { icon:'🔥', title:'YOUR STREAK', desc:'Study every day to build your streak. Even 10 minutes counts. Set a daily reminder email in Progress → Don\'t Lose Your Streak so Chop can nudge you.',
-      hl:'top:14px;right:196px;width:52px;height:30px', cardAnchor:'belowHeader' },
+      tutid:'streak', cardAnchor:'belowHeader' },
   ];
 
   appTourNext = () => {
@@ -4823,7 +4820,21 @@ class Component extends DCLogic {
         const idx = s.tutorialStep || 0;
         const total = STEPS.length;
         const isLast = idx === total - 1;
-        const hlParts = step.hl.split(';').reduce((o, p) => { const [k, v] = p.trim().split(':'); if (k && v) o[k.trim()] = v.trim(); return o; }, {});
+        // For header elements, measure the real DOM position instead of hardcoding
+        let hlStr = step.hl || '';
+        if (step.tutid) {
+          const el = document.querySelector('[data-tutid="' + step.tutid + '"]');
+          const container = document.querySelector('[data-screen-label="App"]');
+          if (el && container) {
+            const er = el.getBoundingClientRect();
+            const cr = container.getBoundingClientRect();
+            const pad = 5;
+            hlStr = 'top:' + Math.round(er.top - cr.top - pad) + 'px;left:' + Math.round(er.left - cr.left - pad) + 'px;width:' + Math.round(er.width + pad * 2) + 'px;height:' + Math.round(er.height + pad * 2) + 'px';
+          } else {
+            hlStr = 'top:10px;left:10px;width:60px;height:30px'; // fallback
+          }
+        }
+        const hlParts = hlStr.split(';').reduce((o, p) => { const [k, ...rest] = p.trim().split(':'); if (k && rest.length) o[k.trim()] = rest.join(':').trim(); return o; }, {});
         let spotStyle = 'position:absolute;z-index:51;pointer-events:none;border:3px solid #FFC93C;box-shadow:0 0 0 9999px rgba(32,30,46,0.82);';
         Object.entries(hlParts).forEach(([k, v]) => { spotStyle += k + ':' + v + ';'; });
         // Place card on the opposite side of the screen from the highlighted element
