@@ -237,6 +237,36 @@ export default function ProblemSets({ notes, name, age, onComplete, onBack }: Pr
     setPhase('pick');
   }, [update]);
 
+  // ── REGENERATE ────────────────────────────────────────────────────────────
+  const regenerate = useCallback(async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    // Bust the cache for these notes
+    try {
+      const key = `${PS_CACHE_VERSION}_${hashNotes(notes)}`;
+      await AsyncStorage.removeItem(key);
+    } catch {
+      // non-fatal
+    }
+    // Reset all session progress and go back to the gen loading screen
+    setSess({
+      skills: [], skillIdx: 0, stepsShown: 1, pIdx: 0,
+      work: '', result: null, attempts: {}, solved: {}, errorTypes: {},
+      gradeError: false, notMath: false, showHint: false,
+    });
+    setPhase('gen');
+    const res = await generateProblemSets(notes, name, age);
+    if (res === 'not_math') {
+      setSess((s) => ({ ...s, notMath: true }));
+      setPhase('gen_error');
+    } else if (!res) {
+      setPhase('gen_error');
+    } else {
+      await cacheSkills(notes, res.skills);
+      setSess((s) => ({ ...s, skills: res.skills }));
+      setPhase('pick');
+    }
+  }, [notes, name, age]);
+
   // ── SUMMARY ───────────────────────────────────────────────────────────────
   const totalSolved = Object.keys(sess.solved).length;
   const topErrors = Object.entries(sess.errorTypes)
@@ -311,6 +341,10 @@ export default function ProblemSets({ notes, name, age, onComplete, onBack }: Pr
         <Pressable onPress={onBack} style={styles.backLink}>
           <Feather name="arrow-left" size={14} color={colors.muted} />
           <Text style={[styles.backLinkText, { color: colors.muted }]}>back to methods</Text>
+        </Pressable>
+        <Pressable onPress={regenerate} style={styles.regenLink}>
+          <Feather name="refresh-cw" size={13} color={colors.muted} />
+          <Text style={[styles.backLinkText, { color: colors.muted }]}>regenerate questions</Text>
         </Pressable>
       </ScrollView>
     );
@@ -628,6 +662,7 @@ const styles = StyleSheet.create({
   btnText: { fontWeight: '900', fontSize: 15 },
   backLink: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'center', paddingTop: 4 },
   backLinkText: { fontSize: 12, fontWeight: '700' },
+  regenLink: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'center', paddingTop: 2 },
 });
 
 const figStyles = StyleSheet.create({
