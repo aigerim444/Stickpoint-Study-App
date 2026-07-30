@@ -234,12 +234,16 @@ export default function ProblemSets({ notes, name, age, onComplete, onBack }: Pr
   // ── GUARD SOLVE PHASE ─────────────────────────────────────────────────────
   // Android hardware back while the student has typed work → show the same
   // "Leave this problem?" confirmation used by the on-screen ← SKILLS button.
+  // iOS swipe-back (beforeRemove) is also blocked when work has been entered.
   // If no work has been entered yet, let the default back behaviour proceed.
   useEffect(() => {
     if (phase !== 'solve') return;
 
+    const hasWork = sess.work.trim().length > 0;
+
+    // Android: hardware back button
     const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
-      if (sess.work.trim().length > 0) {
+      if (hasWork) {
         Alert.alert(
           'Leave this problem?',
           'Your working will not be saved.',
@@ -257,10 +261,34 @@ export default function ProblemSets({ notes, name, age, onComplete, onBack }: Pr
       return false; // no work typed — allow default back
     });
 
+    // iOS (and any stack navigator): block swipe-back when work has been typed
+    let unsubscribe: (() => void) | undefined;
+    if (hasWork) {
+      unsubscribe = navigation.addListener('beforeRemove' as any, (e: any) => {
+        e.preventDefault();
+        Alert.alert(
+          'Leave this problem?',
+          'Your working will not be saved.',
+          [
+            { text: 'Stay', style: 'cancel' },
+            {
+              text: 'Leave',
+              style: 'destructive',
+              onPress: () => {
+                update({ work: '', result: null });
+                setPhase('pick');
+              },
+            },
+          ],
+        );
+      });
+    }
+
     return () => {
       backHandler.remove();
+      unsubscribe?.();
     };
-  }, [phase, sess.work, update]);
+  }, [phase, sess.work, navigation, update]);
 
   // ── PICK ──────────────────────────────────────────────────────────────────
   const pickSkill = useCallback((i: number) => {
