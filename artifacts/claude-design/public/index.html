@@ -962,13 +962,29 @@
               </sc-if>
               <!-- Draw mode -->
               <sc-if value="{{ psUI.isDrawMode }}" hint-placeholder-val="{{ false }}">
-                <div style="font-size:12px;font-weight:800;color:#201E2E;line-height:1.5;">Draw your work below. <span style="color:#FF6B4A;">Chop will read your handwriting</span> and check each step.</div>
-                <div style="position:relative;">
-                  <canvas data-ps-canvas width="480" height="260"
-                    onmousedown="{{ psUI.canvasDown }}" onmousemove="{{ psUI.canvasMove }}" onmouseup="{{ psUI.canvasUp }}" onmouseleave="{{ psUI.canvasUp }}"
-                    ontouchstart="{{ psUI.canvasDown }}" ontouchmove="{{ psUI.canvasMove }}" ontouchend="{{ psUI.canvasUp }}"
-                    style="width:100%;height:220px;border:3px solid #201E2E;background:#fff;cursor:crosshair;display:block;touch-action:none;"></canvas>
-                  <button onclick="{{ psUI.clearCanvas }}" style="position:absolute;top:8px;right:8px;font-family:'Nunito';font-weight:900;font-size:11px;color:#201E2E;background:#fff;border:2px solid #201E2E;padding:4px 8px;cursor:pointer;opacity:0.85;">🗑 CLEAR</button>
+                <div style="font-size:12px;font-weight:800;color:#201E2E;line-height:1.5;">Draw your work below. <span style="color:#FF6B4A;">Chop reads your handwriting</span> and checks each step.</div>
+                <!-- Pen / eraser toolbar -->
+                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                  <button onclick="{{ psUI.usePen }}" style="font-family:'Nunito';font-weight:900;font-size:11px;padding:5px 12px;border:2px solid #201E2E;background:{{ psUI.penBtnBg }};color:{{ psUI.penBtnColor }};cursor:pointer;">🖊 PEN</button>
+                  <button onclick="{{ psUI.useEraser }}" style="font-family:'Nunito';font-weight:900;font-size:11px;padding:5px 12px;border:2px solid #201E2E;background:{{ psUI.eraserBtnBg }};color:{{ psUI.eraserBtnColor }};cursor:pointer;">◻ ERASER</button>
+                  <sc-if value="{{ psUI.isEraserActive }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;gap:4px;align-items:center;margin-left:4px;">
+                      <div style="font-size:10px;font-weight:900;color:#8a8194;white-space:nowrap;">SIZE:</div>
+                      <button onclick="{{ psUI.eraserSm }}" style="font-family:'Nunito';font-weight:900;font-size:10px;width:26px;height:26px;border:2px solid #201E2E;background:{{ psUI.eraserSmBg }};color:{{ psUI.eraserSmColor }};cursor:pointer;">S</button>
+                      <button onclick="{{ psUI.eraserMd }}" style="font-family:'Nunito';font-weight:900;font-size:10px;width:30px;height:30px;border:2px solid #201E2E;background:{{ psUI.eraserMdBg }};color:{{ psUI.eraserMdColor }};cursor:pointer;">M</button>
+                      <button onclick="{{ psUI.eraserLg }}" style="font-family:'Nunito';font-weight:900;font-size:10px;width:34px;height:34px;border:2px solid #201E2E;background:{{ psUI.eraserLgBg }};color:{{ psUI.eraserLgColor }};cursor:pointer;">L</button>
+                    </div>
+                  </sc-if>
+                  <button onclick="{{ psUI.clearCanvas }}" style="font-family:'Nunito';font-weight:900;font-size:11px;padding:5px 10px;border:2px solid #201E2E;background:#fff;color:#201E2E;cursor:pointer;margin-left:auto;">🗑 CLEAR</button>
+                </div>
+                <canvas data-ps-canvas width="480" height="280"
+                  onmousedown="{{ psUI.canvasDown }}" onmousemove="{{ psUI.canvasMove }}" onmouseup="{{ psUI.canvasUp }}" onmouseleave="{{ psUI.canvasUp }}"
+                  ontouchstart="{{ psUI.canvasDown }}" ontouchmove="{{ psUI.canvasMove }}" ontouchend="{{ psUI.canvasUp }}"
+                  style="width:100%;height:220px;border:3px solid #201E2E;background:#fff;cursor:{{ psUI.canvasCursor }};display:block;touch-action:none;"></canvas>
+                <!-- Final answer input -->
+                <div style="display:flex;flex-direction:column;gap:4px;">
+                  <div style="font-size:11px;font-weight:900;color:#8a8194;letter-spacing:1px;">YOUR FINAL ANSWER</div>
+                  <input type="text" value="{{ psUI.drawAnswer }}" oninput="{{ psUI.setDrawAnswer }}" placeholder="e.g.  x = −2  or  x = −3" style="width:100%;box-sizing:border-box;font-family:'Courier New',monospace;font-weight:700;font-size:15px;padding:11px;border:3px solid #201E2E;background:#fff;color:#201E2E;outline:none;">
                 </div>
               </sc-if>
               <sc-if value="{{ psUI.gradeError }}" hint-placeholder-val="{{ false }}">
@@ -1745,6 +1761,33 @@
         <button onclick="{{ goTabMaterial }}" style="flex:1;padding:11px 2px;border:none;cursor:pointer;background:{{ navMaterialBg }};color:{{ navMaterialColor }};font-family:'Nunito';font-weight:900;font-size:10px;">➕ ADD</button>
       </div>
 
+      <!-- ══════════ TUTORIAL OVERLAY ══════════ -->
+      <sc-if value="{{ tutorialOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;inset:0;z-index:50;pointer-events:auto;" onclick="{{ tutStep.bgClick }}">
+          <!-- Spotlight box: box-shadow creates the dark overlay, the box itself shows through -->
+          <div style="{{ tutStep.spotStyle }}"></div>
+          <!-- Step counter dots -->
+          <div style="position:absolute;top:12px;left:50%;transform:translateX(-50%);display:flex;gap:5px;z-index:52;pointer-events:none;">
+            <sc-for list="{{ tutStep.dots }}" as="dot" hint-placeholder-count="9">
+              <div style="width:7px;height:7px;border-radius:50%;background:{{ dot.bg }};border:1px solid #fff;"></div>
+            </sc-for>
+          </div>
+          <!-- Description card -->
+          <div style="{{ tutStep.cardStyle }}" onclick="{{ tutStep.stopProp }}">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+              <div style="font-size:22px;">{{ tutStep.icon }}</div>
+              <div style="font-family:'Press Start 2P';font-size:10px;color:#201E2E;line-height:1.6;">{{ tutStep.title }}</div>
+              <div style="margin-left:auto;font-size:10px;font-weight:900;color:#8a8194;">{{ tutStep.counter }}</div>
+            </div>
+            <div style="font-size:12px;font-weight:700;color:#463f52;line-height:1.6;margin-bottom:12px;">{{ tutStep.desc }}</div>
+            <div style="display:flex;gap:8px;">
+              <button onclick="{{ tutorialNext }}" style="font-family:'Nunito';font-weight:900;flex:1;font-size:13px;color:#fff;background:#FF6B4A;border:3px solid #201E2E;box-shadow:3px 3px 0 #201E2E;padding:10px;cursor:pointer;">{{ tutStep.nextLabel }}</button>
+              <button onclick="{{ tutorialSkip }}" style="font-family:'Nunito';font-weight:900;font-size:12px;color:#8a8194;background:#fff;border:2px solid #c9c2b8;padding:10px 14px;cursor:pointer;">SKIP</button>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
       <!-- account / reminder prompt -->
       <sc-if value="{{ showAccount }}" hint-placeholder-val="{{ false }}">
         <div style="position:absolute;inset:0;background:rgba(32,30,46,.55);display:flex;align-items:center;justify-content:center;padding:24px;z-index:20;">
@@ -1788,6 +1831,11 @@ class Component extends DCLogic {
     sessionsFinished: 0,
     lastStreakPromptDate: null,
     psInputMode: 'type',
+    psDrawTool: 'pen',
+    psEraserSize: 15,
+    tutorialSeen: false,
+    tutorialOpen: false,
+    tutorialStep: 0,
     photoStatusText: 'No photo chosen yet',
     quizIdx: 0, // 0..5 across QUIZ_QUESTIONS
     quizAnswers: [],
@@ -1917,6 +1965,7 @@ class Component extends DCLogic {
       library: s.library, currentMaterialId: s.currentMaterialId, isMath: s.isMath,
       missedBank: s.missedBank, account: s.account, accountPrompted: s.accountPrompted,
       sessionsFinished: s.sessionsFinished, tab: s.tab, lastStreakPromptDate: s.lastStreakPromptDate,
+      tutorialSeen: s.tutorialSeen,
     };
     try { localStorage.setItem('stickpoint_v1', JSON.stringify(toSave)); } catch (e) {}
   }
@@ -2469,6 +2518,8 @@ class Component extends DCLogic {
   startStudying = () => {
     this.ensureSession(this.state.pendingMethod);
     this.update({ screen: 'app', tab: 'study', activeMethod: this.state.pendingMethod });
+    // Show tutorial the very first time a user reaches the app
+    if (!this.state.tutorialSeen) setTimeout(() => this.setState({ tutorialOpen: true, tutorialStep: 0 }), 400);
     // Show math popup for first-time users coming through methodTutorial
     if (this.state.isMath && !this.state.mathNoticeSeen) setTimeout(() => this.setState({ mathNoticeOpen: true }), 80);
   };
@@ -2540,6 +2591,34 @@ class Component extends DCLogic {
   openPiP = () => {
     window.open(window.location.href, 'stickpoint-pip', 'width=440,height=720,menubar=no,toolbar=no,location=no,status=no,resizable=yes');
   };
+
+  static TUTORIAL_STEPS = [
+    { icon:'🎯', title:'TODAY', desc:'Your daily plan lives here — see your next study step, your streak count, and any items due for review. Open this first every session.', hl:'bottom:0;left:0%;width:20%;height:52px', cardTop:'22%' },
+    { icon:'📖', title:'STUDY', desc:'Jump into your personalised study methods. The first chip is ranked #1 for how your brain learns — based on your quiz answers.', hl:'bottom:0;left:20%;width:20%;height:52px', cardTop:'22%' },
+    { icon:'📈', title:'PROGRESS', desc:'See mastered vs shaky concepts, your practice test scores, and set up daily reminder emails to keep your streak alive.', hl:'bottom:0;left:40%;width:20%;height:52px', cardTop:'22%' },
+    { icon:'📅', title:'PLAN', desc:'Set your test date and see your study history on the calendar. Chop shows how many days you have left to prepare.', hl:'bottom:0;left:60%;width:20%;height:52px', cardTop:'22%' },
+    { icon:'➕', title:'ADD MATERIAL', desc:'Paste notes, upload a PDF, or snap a photo to add new material. Your previous study sets are saved and you can switch between them any time.', hl:'bottom:0;left:80%;width:20%;height:52px', cardTop:'22%' },
+    { icon:'🔖', title:'STUDY METHODS', desc:'These chips switch between your study methods. Swipe to see all of them. Tap any chip to jump straight into that method.', hl:'top:58px;left:0;right:0;height:46px', cardTop:'52%' },
+    { icon:'⧉', title:'FLOATING WINDOW', desc:'Tap ⧉ to open Stickpoint in a small pop-up window — study while keeping your notes, slides, or video open on the same screen.', hl:'top:6px;right:2px;width:52px;height:46px', cardTop:'52%' },
+    { icon:'✏️', title:'EDIT YOUR PROFILE', desc:'Tap the ✏️ pencil next to your name to update your name or age at any time. Chop uses your age to pitch explanations at the right level for you.', hl:'top:6px;left:0;width:54%;height:46px', cardTop:'52%' },
+    { icon:'🔥', title:'YOUR STREAK', desc:'Study every day to build your streak. Even 10 minutes counts. Set a daily reminder email in Progress → Don\'t Lose Your Streak so Chop can nudge you.', hl:'top:6px;right:58px;width:82px;height:46px', cardTop:'52%' },
+  ];
+
+  tutorialNext = () => {
+    const next = (this.state.tutorialStep || 0) + 1;
+    if (next >= Component.TUTORIAL_STEPS.length) {
+      this.update({ tutorialOpen: false, tutorialSeen: true });
+    } else {
+      this.setState({ tutorialStep: next });
+    }
+  };
+  tutorialSkip = () => this.update({ tutorialOpen: false, tutorialSeen: true });
+
+  // Add source material as grading context to improve fact-checking accuracy
+  materialCtx(maxChars = 1400) {
+    const m = (this.state.material || '').trim().slice(0, maxChars);
+    return m ? '\n\nSource material (grade against this, not general knowledge):\n"""\n' + m + '\n"""' : '';
+  }
 
   markStudiedToday() {
     const today = this.todayStr();
@@ -2730,7 +2809,7 @@ class Component extends DCLogic {
     this.setSession('self_explanation', { phase: 'evaluating', gradeError: false });
     const prompt = 'A student is reading their notes one chunk at a time and explaining each chunk in their own words.\n\nOriginal chunk from the notes:\n"""' + cur.chunk + '"""\n\n' +
       'The student\'s explanation:\n"""' + sess.text + '"""\n\n' +
-      'Evaluate whether the student\'s explanation captures the meaning of the chunk correctly. They are moving fast, one line at a time, so keep feedback to ONE short sentence a student can read at a glance. A rough but essentially right paraphrase counts as correct. Return ONLY JSON: {"correct": true or false, "feedback": "ONE short sentence, what they got or what they missed", "simpler_version": "a one sentence plain English version of the original chunk"}';
+      'Evaluate whether the student\'s explanation captures the meaning of the chunk correctly. Grade strictly based on the original chunk above — if the student says something that contradicts it, mark it wrong. Keep feedback to ONE short sentence a student can read at a glance. A rough but essentially right paraphrase counts as correct. Return ONLY JSON: {"correct": true or false, "feedback": "ONE short sentence, what they got or what they missed", "simpler_version": "a one sentence plain English version of the original chunk"}';
     const raw = await this.callAI(prompt, 'You evaluate whether a student\'s paraphrase captures the meaning of a text chunk. Be encouraging but honest. Respond with ONLY valid JSON, no markdown fences, no extra text. Never use em dashes in any text you return.');
     let result = null;
     if (raw) {
@@ -2963,6 +3042,12 @@ class Component extends DCLogic {
   psSymbol = (ch) => this.setSession('problem_sets', { work: (this.state.session.problem_sets.work || '') + ch });
   psSwitchToType = () => this.setState({ psInputMode: 'type' });
   psSwitchToDraw = () => this.setState({ psInputMode: 'draw' });
+  psUsePen    = () => this.setState({ psDrawTool: 'pen' });
+  psUseEraser = () => this.setState({ psDrawTool: 'eraser' });
+  psEraserSm  = () => this.setState({ psEraserSize: 10 });
+  psEraserMd  = () => this.setState({ psEraserSize: 22 });
+  psEraserLg  = () => this.setState({ psEraserSize: 38 });
+  psSetDrawAnswer = (e) => this.setSession('problem_sets', { drawAnswer: e.target.value });
   psClearCanvas = () => {
     const canvas = document.querySelector('[data-ps-canvas]');
     if (!canvas) return;
@@ -2982,9 +3067,18 @@ class Component extends DCLogic {
     const pos = this._psGetPos(e, canvas);
     this._psLastX = pos.x; this._psLastY = pos.y;
     const ctx = canvas.getContext('2d');
-    ctx.beginPath(); ctx.arc(pos.x, pos.y, 1.5, 0, Math.PI * 2);
-    ctx.fillStyle = '#201E2E'; ctx.fill();
-    this.setSession('problem_sets', { hasDrawing: true });
+    const tool = this.state.psDrawTool || 'pen';
+    const eSize = this.state.psEraserSize || 15;
+    if (tool === 'eraser') {
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.beginPath(); ctx.arc(pos.x, pos.y, eSize / 2, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0,0,0,1)'; ctx.fill();
+    } else {
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.beginPath(); ctx.arc(pos.x, pos.y, 1.5, 0, Math.PI * 2);
+      ctx.fillStyle = '#201E2E'; ctx.fill();
+      this.setSession('problem_sets', { hasDrawing: true });
+    }
   };
   psCanvasMove = (e) => {
     e.preventDefault();
@@ -2992,12 +3086,24 @@ class Component extends DCLogic {
     const canvas = e.target;
     const pos = this._psGetPos(e, canvas);
     const ctx = canvas.getContext('2d');
+    const tool = this.state.psDrawTool || 'pen';
+    const eSize = this.state.psEraserSize || 15;
     ctx.beginPath(); ctx.moveTo(this._psLastX, this._psLastY); ctx.lineTo(pos.x, pos.y);
-    ctx.strokeStyle = '#201E2E'; ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-    ctx.stroke();
+    if (tool === 'eraser') {
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.strokeStyle = 'rgba(0,0,0,1)'; ctx.lineWidth = eSize;
+    } else {
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.strokeStyle = '#201E2E'; ctx.lineWidth = 2.5;
+    }
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke();
     this._psLastX = pos.x; this._psLastY = pos.y;
   };
-  psCanvasUp = (e) => { this._psDrawing = false; };
+  psCanvasUp = (e) => {
+    this._psDrawing = false;
+    const canvas = document.querySelector('[data-ps-canvas]');
+    if (canvas) canvas.getContext('2d').globalCompositeOperation = 'source-over';
+  };
 
   psSubmitDraw = async () => {
     const sess = this.state.session.problem_sets;
@@ -3011,7 +3117,9 @@ class Component extends DCLogic {
     const prob = skill.practice[sess.pIdx];
     this.setSession('problem_sets', { phase: 'grading', gradeError: false });
     try {
-      const prompt = 'A student is solving this ' + skill.skill + ' problem:\n"""' + prob.problem + '"""\nThe correct final answer is: "' + prob.answer + '".\n\nThe student drew their working on the attached image. Read their handwritten work step by step. Check it LINE BY LINE. Find the FIRST line that contains a mathematical error. Name the error with a short reusable label (e.g. "sign error", "wrong operation", "arithmetic slip"). If the handwriting is unclear say so in explanation.\nReturn ONLY JSON: {"first_error_line": 1-based line number or null if all correct, "error_type": "short label or empty string", "explanation": "one or two sentences about what went wrong and what to do instead", "correct_line": "what that line should say, or empty string", "reached_answer": true if final answer matches}';
+      const drawAnswer = (sess.drawAnswer || '').trim();
+    const answerNote = drawAnswer ? '\nThe student also wrote their final answer as: "' + drawAnswer + '".' : '';
+    const prompt = 'A student is solving this ' + skill.skill + ' problem:\n"""' + prob.problem + '"""\nThe correct final answer is: "' + prob.answer + '".' + answerNote + '\n\nThe student drew their working on the attached image. Read their handwritten work step by step. Check it LINE BY LINE. Find the FIRST line that contains a mathematical error. Name the error with a short reusable label (e.g. "sign error", "wrong operation", "arithmetic slip"). If the handwriting is unclear say so in explanation.\nReturn ONLY JSON: {"first_error_line": 1-based line number or null if all correct, "error_type": "short label or empty string", "explanation": "one or two sentences about what went wrong and what to do instead", "correct_line": "what that line should say, or empty string", "reached_answer": true if final answer matches}';
       const raw = await window.claude.complete({
         messages: [{ role: 'user', content: [
           { type: 'image', source: { type: 'base64', media_type: 'image/png', data: base64 } },
@@ -3129,7 +3237,9 @@ class Component extends DCLogic {
     const prompt = 'A student is doing the Feynman technique. The concept is: "' + item.concept + '". The correct definition is: "' + item.definition + '".\n\n' +
       (secondPass ? 'This is their SECOND attempt, after being told the gap in their first. Their first attempt was:\n"""' + (sess.firstText || '') + '"""\n\nTheir new explanation:\n' : 'They explained it from memory, as if teaching a younger student who has never heard of it:\n') +
       '"""' + sess.text + '"""\n\n' +
-      'Evaluate the explanation. Return ONLY JSON: {"score": 1-5, "got_right": "what they explained correctly, one or two sentences", "missed": "what was missing or wrong, one or two sentences, or empty string if nothing", "gap": "the single biggest thing missing, phrased as a short instruction to the student such as: why it actually happens, not just what it is, never reveal the answer itself", "jargon": [{"term": "a word or phrase they used that they probably could not define themselves, or leave the array empty", "plain": "a plain-English replacement"}], "simpler_version": "a one sentence ideal explanation of this concept in plain English"}';
+      'Evaluate the explanation. If the student says anything that contradicts the source material below, mark it as incorrect even if it seems plausible in general.\n' +
+      'Return ONLY JSON: {"score": 1-5, "got_right": "what they explained correctly, one or two sentences", "missed": "what was missing or wrong, one or two sentences, or empty string if nothing", "gap": "the single biggest thing missing, phrased as a short instruction to the student such as: why it actually happens, not just what it is, never reveal the answer itself", "jargon": [{"term": "a word or phrase they used that they probably could not define themselves, or leave the array empty", "plain": "a plain-English replacement"}], "simpler_version": "a one sentence ideal explanation of this concept in plain English"}' +
+      this.materialCtx();
     const p = this.parseJson(await this.callAI(prompt, 'You grade Feynman-technique explanations warmly but honestly. Respond with ONLY valid JSON, no markdown fences, no extra text. Never use em dashes in any text you return.'));
     let result = null;
     if (p && typeof p.score === 'number') result = {
@@ -3228,7 +3338,8 @@ class Component extends DCLogic {
     const item = sess.items[sess.idx];
     this.setSession('elaborative_interrogation', { phase: 'gradingWhy', gradeError: false });
     const prompt = 'The fact is: "' + item.fact + '". The question was: "' + item.why_question + '". The model answer is: "' + item.model_answer + '".\n\nThe student answered:\n"""' + sess.whyText + '"""\n\n' +
-      'Evaluate whether the student\'s reasoning is correct, partially correct, or incorrect. Return ONLY JSON: {"verdict": "correct"|"partially_correct"|"incorrect", "feedback": "one or two sentences on what they got right, what they missed, and why the correct answer makes logical sense"}';
+      'Evaluate whether the student\'s reasoning is correct, partially correct, or incorrect. Grade against the model answer above and the source material below — do not accept answers that contradict them even if plausible in general. Return ONLY JSON: {"verdict": "correct"|"partially_correct"|"incorrect", "feedback": "one or two sentences on what they got right, what they missed, and why the correct answer makes logical sense"}' +
+      this.materialCtx(1000);
     const p = this.parseJson(await this.callAI(prompt, 'You grade a student\'s reasoning fairly. Respond with ONLY valid JSON, no markdown fences, no extra text. Never use em dashes in any text you return.'));
     let result = null;
     if (p && ['correct', 'partially_correct', 'incorrect'].includes(p.verdict)) result = { verdict: p.verdict, feedback: String(p.feedback || '') };
@@ -4128,9 +4239,27 @@ class Component extends DCLogic {
         drawBtnBg: (s.psInputMode || 'type') === 'draw' ? '#201E2E' : '#fff',
         drawBtnColor: (s.psInputMode || 'type') === 'draw' ? '#fff' : '#201E2E',
         switchToType: this.psSwitchToType, switchToDraw: this.psSwitchToDraw,
+        // Pen / eraser toolbar
+        isEraserActive: (s.psDrawTool || 'pen') === 'eraser',
+        penBtnBg: (s.psDrawTool || 'pen') === 'pen' ? '#201E2E' : '#fff',
+        penBtnColor: (s.psDrawTool || 'pen') === 'pen' ? '#fff' : '#201E2E',
+        eraserBtnBg: (s.psDrawTool || 'pen') === 'eraser' ? '#463f52' : '#fff',
+        eraserBtnColor: (s.psDrawTool || 'pen') === 'eraser' ? '#fff' : '#201E2E',
+        eraserSmBg: (s.psEraserSize || 15) === 10 ? '#463f52' : '#fff',
+        eraserSmColor: (s.psEraserSize || 15) === 10 ? '#fff' : '#201E2E',
+        eraserMdBg: (s.psEraserSize || 15) === 22 ? '#463f52' : '#fff',
+        eraserMdColor: (s.psEraserSize || 15) === 22 ? '#fff' : '#201E2E',
+        eraserLgBg: (s.psEraserSize || 15) === 38 ? '#463f52' : '#fff',
+        eraserLgColor: (s.psEraserSize || 15) === 38 ? '#fff' : '#201E2E',
+        canvasCursor: (s.psDrawTool || 'pen') === 'eraser' ? 'cell' : 'crosshair',
+        usePen: this.psUsePen, useEraser: this.psUseEraser,
+        eraserSm: this.psEraserSm, eraserMd: this.psEraserMd, eraserLg: this.psEraserLg,
+        drawAnswer: psSess.drawAnswer || '', setDrawAnswer: this.psSetDrawAnswer,
         canvasDown: this.psCanvasDown, canvasMove: this.psCanvasMove, canvasUp: this.psCanvasUp,
         clearCanvas: this.psClearCanvas,
-        cantSubmit: (s.psInputMode || 'type') === 'draw' ? !psSess.hasDrawing : !(psSess.work || '').trim(),
+        cantSubmit: (s.psInputMode || 'type') === 'draw'
+          ? (!psSess.hasDrawing && !(psSess.drawAnswer || '').trim())
+          : !(psSess.work || '').trim(),
         submit: this.psSubmit, stuck: this.psStuck,
         gradeError: !!psSess.gradeError,
         verdictHeadStyle: { display: 'flex', alignItems: 'center', gap: '12px', padding: '14px',
@@ -4540,6 +4669,26 @@ class Component extends DCLogic {
       cantSaveAskedAge: !(parseInt(s.ageDraft, 10) >= 5 && parseInt(s.ageDraft, 10) <= 99),
       askAgeBtnBg: parseInt(s.ageDraft, 10) >= 5 && parseInt(s.ageDraft, 10) <= 99 ? '#FF6B4A' : '#c9c2b8',
       askAgeBtnCursor: parseInt(s.ageDraft, 10) >= 5 && parseInt(s.ageDraft, 10) <= 99 ? 'pointer' : 'default',
+      tutorialOpen: !!s.tutorialOpen, tutorialNext: this.tutorialNext, tutorialSkip: this.tutorialSkip,
+      tutStep: (() => {
+        const STEPS = Component.TUTORIAL_STEPS;
+        const step = STEPS[s.tutorialStep || 0] || STEPS[0];
+        const idx = s.tutorialStep || 0;
+        const total = STEPS.length;
+        const isLast = idx === total - 1;
+        const hlParts = step.hl.split(';').reduce((o, p) => { const [k, v] = p.trim().split(':'); if (k && v) o[k.trim()] = v.trim(); return o; }, {});
+        let spotStyle = 'position:absolute;z-index:51;pointer-events:none;border:3px solid #FFC93C;box-shadow:0 0 0 9999px rgba(32,30,46,0.82);';
+        Object.entries(hlParts).forEach(([k, v]) => { spotStyle += k + ':' + v + ';'; });
+        const cardStyle = 'position:absolute;left:50%;transform:translateX(-50%);' + step.cardTop + ';width:min(290px,88%);background:#FFFCF6;border:3px solid #201E2E;box-shadow:6px 6px 0 #201E2E;padding:18px;display:flex;flex-direction:column;gap:8px;z-index:52;pointer-events:auto;box-sizing:border-box;';
+        const dots = STEPS.map((_, i) => ({ bg: i === idx ? '#FF6B4A' : i < idx ? '#2DD4A7' : 'rgba(255,255,255,0.35)' }));
+        return {
+          ...step, spotStyle, cardStyle, dots,
+          counter: (idx + 1) + ' / ' + total,
+          nextLabel: isLast ? 'GOT IT ✓' : 'NEXT →',
+          bgClick: () => {},
+          stopProp: (e) => { if (e) e.stopPropagation(); },
+        };
+      })(),
       mathNoticeOpen: !!s.mathNoticeOpen, closeMathNotice: this.closeMathNotice, acceptMathMethods: this.acceptMathMethods,
       mathMethodRows: mod.MATH_METHODS.slice(0, 3).map((id, i) => {
         const m = mod.METHODS.find(x => x.id === id) || { label: id, whyWorks: '' };

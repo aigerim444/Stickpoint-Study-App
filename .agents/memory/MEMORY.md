@@ -1,3 +1,5 @@
 - [Stickpoint build+deploy flow](stickpoint-deploy.md) — must `pnpm --filter @workspace/claude-design run build` then redeploy after every change to index.html
 - [Stickpoint architecture](stickpoint-arch.md) — single-file frontend; API server proxies to claude-sonnet-4-5 (hardcoded, supports vision); all app logic in index.html
 - [Stickpoint scope bug pattern](stickpoint-scope.md) — vars defined in renderVals() are not visible in appRenderVals(); each method has its own scope
+- [Stickpoint PS canvas eraser](stickpoint-ps-eraser.md) — eraser uses destination-out composite op; psCanvasUp resets to source-over; psDrawTool/psEraserSize in top-level state
+- [Stickpoint tutorial overlay](stickpoint-tutorial.md) — TUTORIAL_STEPS static prop on Component; spotlight via box-shadow 9999px; triggered once in startStudying() when !tutorialSeen; tutorialSeen persisted
