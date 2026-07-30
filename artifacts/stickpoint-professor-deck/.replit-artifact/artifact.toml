@@ -1,0 +1,27 @@
+kind = "slides"
+previewPath = "/stickpoint-professor-deck/"
+title = "Stickpoint — Professor Fact-Check Deck"
+version = "1.0.0"
+id = "artifacts/stickpoint-professor-deck"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/stickpoint-professor-deck/" ]
+localPort = 21768
+
+[services.development]
+run = "pnpm --filter @workspace/stickpoint-professor-deck run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/stickpoint-professor-deck", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/stickpoint-professor-deck/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21768"
+BASE_PATH = "/stickpoint-professor-deck/"

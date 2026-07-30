@@ -1,0 +1,110 @@
+[
+  {
+    "id": "d4e5f6a7-b8c9-4000-8001-100000000001",
+    "position": 1,
+    "filepath": "src/pages/slides/Slide01Title.tsx",
+    "title": "Stickpoint",
+    "description": "Title slide — app overview for academic review",
+    "speakerNotes": "",
+    "kind": "jsx"
+  },
+  {
+    "id": "d4e5f6a7-b8c9-4000-8001-100000000002",
+    "position": 2,
+    "filepath": "src/pages/slides/Slide02Quiz.tsx",
+    "title": "How students are matched",
+    "description": "The 6-question onboarding quiz and scoring logic",
+    "speakerNotes": "",
+    "kind": "jsx"
+  },
+  {
+    "id": "d4e5f6a7-b8c9-4000-8001-100000000003",
+    "position": 3,
+    "filepath": "src/pages/slides/Slide03ActiveRecall.tsx",
+    "title": "Active Recall",
+    "description": "Roediger & Karpicke (2006) — testing effect",
+    "speakerNotes": "",
+    "kind": "jsx"
+  },
+  {
+    "id": "d4e5f6a7-b8c9-4000-8001-100000000004",
+    "position": 4,
+    "filepath": "src/pages/slides/Slide04Blurting.tsx",
+    "title": "Blurting",
+    "description": "Slamecka & Graf (1978) — generation effect",
+    "speakerNotes": "",
+    "kind": "jsx"
+  },
+  {
+    "id": "d4e5f6a7-b8c9-4000-8001-100000000005",
+    "position": 5,
+    "filepath": "src/pages/slides/Slide05Feynman.tsx",
+    "title": "Feynman Technique",
+    "description": "Craik & Lockhart (1972) — deep processing",
+    "speakerNotes": "",
+    "kind": "jsx"
+  },
+  {
+    "id": "d4e5f6a7-b8c9-4000-8001-100000000006",
+    "position": 6,
+    "filepath": "src/pages/slides/Slide06PracticeTesting.tsx",
+    "title": "Practice Testing",
+    "description": "Dunlosky et al. (2013) — #1 highest-utility method",
+    "speakerNotes": "",
+    "kind": "jsx"
+  },
+  {
+    "id": "d4e5f6a7-b8c9-4000-8001-100000000007",
+    "position": 7,
+    "filepath": "src/pages/slides/Slide07SelfExplanation.tsx",
+    "title": "Self-Explanation",
+    "description": "Chi et al. (1994) — self-explanation effect",
+    "speakerNotes": "",
+    "kind": "jsx"
+  },
+  {
+    "id": "d4e5f6a7-b8c9-4000-8001-100000000008",
+    "position": 8,
+    "filepath": "src/pages/slides/Slide08ElaborativeInterrogation.tsx",
+    "title": "Elaborative Interrogation",
+    "description": "Woloshyn et al. (1992) — causal reasoning",
+    "speakerNotes": "",
+    "kind": "jsx"
+  },
+  {
+    "id": "d4e5f6a7-b8c9-4000-8001-100000000009",
+    "position": 9,
+    "filepath": "src/pages/slides/Slide09Pomodoro.tsx",
+    "title": "Pomodoro Timer",
+    "description": "Oken et al. (2006) — attention restoration",
+    "speakerNotes": "",
+    "kind": "jsx"
+  },
+  {
+    "id": "d4e5f6a7-b8c9-4000-8001-100000000010",
+    "position": 10,
+    "filepath": "src/pages/slides/Slide10ProblemSets.tsx",
+    "title": "Problem Sets",
+    "description": "Sweller & Cooper (1985) — worked-example effect",
+    "speakerNotes": "",
+    "kind": "jsx"
+  },
+  {
+    "id": "d4e5f6a7-b8c9-4000-8001-100000000011",
+    "position": 11,
+    "filepath": "src/pages/slides/Slide11Algorithm.tsx",
+    "title": "The recommendation algorithm",
+    "description": "How quiz scores and subject area map to method recommendations",
+    "speakerNotes": "",
+    "kind": "jsx"
+  },
+  {
+    "id": "d4e5f6a7-b8c9-4000-8001-100000000012",
+    "position": 12,
+    "filepath": "src/pages/slides/Slide12Closing.tsx",
+    "title": "Questions and fact-checking",
+    "description": "Closing slide with contact information",
+    "speakerNotes": "",
+    "kind": "jsx"
+  }
+]
