@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator, Pressable, ScrollView,
+  ActivityIndicator, Alert, Pressable, ScrollView,
   StyleSheet, Text, TextInput, View,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -284,7 +284,7 @@ export default function ProblemSets({ notes, name, age, onComplete, onBack }: Pr
   }, [update]);
 
   // ── REGENERATE ────────────────────────────────────────────────────────────
-  const regenerate = useCallback(async () => {
+  const doRegenerate = useCallback(async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     // Bust the skill cache and progress cache for these notes
     try {
@@ -315,6 +315,17 @@ export default function ProblemSets({ notes, name, age, onComplete, onBack }: Pr
       setPhase('pick');
     }
   }, [notes, name, age]);
+
+  const regenerate = useCallback(() => {
+    Alert.alert(
+      'Regenerate questions?',
+      'This will clear your current progress and fetch fresh questions. Continue?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Regenerate', style: 'destructive', onPress: doRegenerate },
+      ],
+    );
+  }, [doRegenerate]);
 
   // ── SUMMARY ───────────────────────────────────────────────────────────────
   const totalSolved = Object.keys(sess.solved).length;
