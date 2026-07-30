@@ -3,6 +3,7 @@ import {
   ActivityIndicator, Pressable, ScrollView,
   StyleSheet, Text, TextInput, View,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useColors } from '@/hooks/useColors';
@@ -11,6 +12,40 @@ import {
   PsSkill, PsFigure, PsGradeResult,
 } from '@/lib/api';
 import { Card } from '@/lib/content';
+
+const PS_CACHE_VERSION = 'ps_v1';
+
+/** djb2 hash — fast, no dependencies, good enough for a cache key */
+function hashNotes(s: string): string {
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) {
+    h = ((h << 5) + h) ^ s.charCodeAt(i);
+    h >>>= 0; // keep unsigned 32-bit
+  }
+  return h.toString(36);
+}
+
+async function loadCachedSkills(notes: string): Promise<PsSkill[] | null> {
+  try {
+    const key = `${PS_CACHE_VERSION}_${hashNotes(notes)}`;
+    const raw = await AsyncStorage.getItem(key);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed as PsSkill[];
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+async function cacheSkills(notes: string, skills: PsSkill[]): Promise<void> {
+  try {
+    const key = `${PS_CACHE_VERSION}_${hashNotes(notes)}`;
+    await AsyncStorage.setItem(key, JSON.stringify(skills));
+  } catch {
+    // cache write failure is non-fatal
+  }
+}
 
 interface Props {
   notes: string;
@@ -96,11 +131,19 @@ export default function ProblemSets({ notes, name, age, onComplete, onBack }: Pr
   });
   const generatedRef = useRef(false);
 
-  // Generate on mount
+  // Generate on mount — check cache first
   useEffect(() => {
     if (generatedRef.current) return;
     generatedRef.current = true;
     (async () => {
+      // Try cache before hitting the API
+      const cached = await loadCachedSkills(notes);
+      if (cached && cached.length > 0) {
+        setSess((s) => ({ ...s, skills: cached }));
+        setPhase('pick');
+        return;
+      }
+
       const res = await generateProblemSets(notes, name, age);
       if (res === 'not_math') {
         setSess((s) => ({ ...s, notMath: true }));
@@ -108,6 +151,7 @@ export default function ProblemSets({ notes, name, age, onComplete, onBack }: Pr
       } else if (!res) {
         setPhase('gen_error');
       } else {
+        await cacheSkills(notes, res.skills);
         setSess((s) => ({ ...s, skills: res.skills }));
         setPhase('pick');
       }

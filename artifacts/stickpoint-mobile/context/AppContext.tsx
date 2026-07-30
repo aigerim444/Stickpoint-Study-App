@@ -405,10 +405,9 @@ export function useApp(): AppContextValue {
   return ctx;
 }
 
-// problem_sets is not yet implemented on mobile — only these 7 methods are available
 const MOBILE_METHODS = [
   'active_recall', 'blurting', 'feynman', 'practice_testing',
-  'self_explanation', 'elaborative_interrogation', 'pomodoro',
+  'self_explanation', 'elaborative_interrogation', 'pomodoro', 'problem_sets',
 ];
 
 export function useEffectiveMethods(state: AppState): string[] {
