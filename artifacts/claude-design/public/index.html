@@ -1815,8 +1815,8 @@
             </div>
             <div style="font-size:12px;font-weight:700;color:#463f52;line-height:1.6;margin-bottom:12px;">{{ tutStep.desc }}</div>
             <div style="display:flex;gap:8px;">
-              <button onclick="{{ tutorialNext }}" style="font-family:'Nunito';font-weight:900;flex:1;font-size:13px;color:#fff;background:#FF6B4A;border:3px solid #201E2E;box-shadow:3px 3px 0 #201E2E;padding:10px;cursor:pointer;">{{ tutStep.nextLabel }}</button>
-              <button onclick="{{ tutorialSkip }}" style="font-family:'Nunito';font-weight:900;font-size:12px;color:#8a8194;background:#fff;border:2px solid #c9c2b8;padding:10px 14px;cursor:pointer;">SKIP</button>
+              <button onclick="{{ appTourNext }}" style="font-family:'Nunito';font-weight:900;flex:1;font-size:13px;color:#fff;background:#FF6B4A;border:3px solid #201E2E;box-shadow:3px 3px 0 #201E2E;padding:10px;cursor:pointer;">{{ tutStep.nextLabel }}</button>
+              <button onclick="{{ appTourSkip }}" style="font-family:'Nunito';font-weight:900;font-size:12px;color:#8a8194;background:#fff;border:2px solid #c9c2b8;padding:10px 14px;cursor:pointer;">SKIP</button>
             </div>
           </div>
         </div>
@@ -2554,7 +2554,7 @@ class Component extends DCLogic {
     this.ensureSession(this.state.pendingMethod);
     this.update({ screen: 'app', tab: 'study', activeMethod: this.state.pendingMethod });
     // Show tutorial the very first time a user reaches the app
-    if (!this.state.tutorialSeen) setTimeout(() => this.setState({ tutorialOpen: true, tutorialStep: 0 }), 400);
+    if (!this.state.tutorialSeen) setTimeout(() => this.update({ tutorialOpen: true, tutorialStep: 0 }), 400);
     // Show math popup for first-time users coming through methodTutorial
     if (this.state.isMath && !this.state.mathNoticeSeen) setTimeout(() => this.setState({ mathNoticeOpen: true }), 80);
   };
@@ -2639,7 +2639,7 @@ class Component extends DCLogic {
     { icon:'🔥', title:'YOUR STREAK', desc:'Study every day to build your streak. Even 10 minutes counts. Set a daily reminder email in Progress → Don\'t Lose Your Streak so Chop can nudge you.', hl:'top:6px;right:58px;width:82px;height:46px', cardTop:'52%' },
   ];
 
-  tutorialNext = () => {
+  appTourNext = () => {
     const next = (this.state.tutorialStep || 0) + 1;
     if (next >= Component.TUTORIAL_STEPS.length) {
       this.update({ tutorialOpen: false, tutorialSeen: true });
@@ -2647,13 +2647,49 @@ class Component extends DCLogic {
       this.setState({ tutorialStep: next });
     }
   };
-  tutorialSkip = () => this.update({ tutorialOpen: false, tutorialSeen: true });
+  appTourSkip = () => this.update({ tutorialOpen: false, tutorialSeen: true });
 
   // Add source material as grading context to improve fact-checking accuracy
   materialCtx(maxChars = 1400) {
     const m = (this.state.material || '').trim().slice(0, maxChars);
     return m ? '\n\nSource material (grade against this, not general knowledge):\n"""\n' + m + '\n"""' : '';
   }
+
+  // ---------- Per-material top-3 editing ----------
+  _currentTop3() {
+    const s = this.state;
+    const mod = this.mod;
+    return ((s.materialTopMethods != null
+      ? s.materialTopMethods
+      : (s.isMath ? mod.MATH_METHODS : s.topMethods)) || []).slice(0, 3);
+  }
+  _saveTop3(newTop3) {
+    const id = this.state.currentMaterialId;
+    const library = (this.state.library || []).map(x => x.id === id ? Object.assign({}, x, { savedTopMethods: newTop3 }) : x);
+    this.update({ materialTopMethods: newTop3, library });
+  }
+  addToTop3 = (methodId) => {
+    const cur = this._currentTop3();
+    if (cur.includes(methodId) || cur.length >= 3) return;
+    this._saveTop3([...cur, methodId]);
+  };
+  removeFromTop3 = (methodId) => {
+    this._saveTop3(this._currentTop3().filter(id => id !== methodId));
+  };
+  moveTop3Up = (methodId) => {
+    const cur = [...this._currentTop3()];
+    const idx = cur.indexOf(methodId);
+    if (idx <= 0) return;
+    [cur[idx - 1], cur[idx]] = [cur[idx], cur[idx - 1]];
+    this._saveTop3(cur);
+  };
+  moveTop3Down = (methodId) => {
+    const cur = [...this._currentTop3()];
+    const idx = cur.indexOf(methodId);
+    if (idx < 0 || idx >= cur.length - 1) return;
+    [cur[idx], cur[idx + 1]] = [cur[idx + 1], cur[idx]];
+    this._saveTop3(cur);
+  };
 
   markStudiedToday() {
     const today = this.todayStr();
@@ -4081,9 +4117,9 @@ class Component extends DCLogic {
       if (m.id === s.activeMethod) return true; // the mode you're in always has a chip back to it
       return s.isMath ? mod.MATH_METHODS.includes(m.id) : m.id !== 'problem_sets';
     });
-    // Per-material top methods: use saved override if set, else quiz ranking (or math defaults for math material)
-    const effectiveTopMethods = s.materialTopMethods !== null
-      ? (s.materialTopMethods || [])
+    // Per-material top methods: use saved override if set (null/undefined = use quiz defaults)
+    const effectiveTopMethods = s.materialTopMethods != null
+      ? s.materialTopMethods
       : (s.isMath ? mod.MATH_METHODS : (s.topMethods || []));
     const topIds = effectiveTopMethods.slice(0, 3);
     const topChips   = topIds.map(id => chipMethods.find(m => m.id === id)).filter(Boolean);
@@ -4715,9 +4751,9 @@ class Component extends DCLogic {
       startDrill: this.startDrill,
       top3UI: (() => {
         const validMethods = mod.METHODS.filter(m => s.isMath ? mod.MATH_METHODS.includes(m.id) : m.id !== 'problem_sets');
-        const currentTop3 = (s.materialTopMethods !== null
-          ? (s.materialTopMethods || [])
-          : (s.isMath ? mod.MATH_METHODS : (s.topMethods || []))).slice(0, 3)
+        const currentTop3 = ((s.materialTopMethods != null
+          ? s.materialTopMethods
+          : (s.isMath ? mod.MATH_METHODS : (s.topMethods || []))) || []).slice(0, 3)
           .filter(id => validMethods.find(m => m.id === id));
         return {
           hasTop3: currentTop3.length > 0,
@@ -4765,7 +4801,7 @@ class Component extends DCLogic {
       cantSaveAskedAge: !(parseInt(s.ageDraft, 10) >= 5 && parseInt(s.ageDraft, 10) <= 99),
       askAgeBtnBg: parseInt(s.ageDraft, 10) >= 5 && parseInt(s.ageDraft, 10) <= 99 ? '#FF6B4A' : '#c9c2b8',
       askAgeBtnCursor: parseInt(s.ageDraft, 10) >= 5 && parseInt(s.ageDraft, 10) <= 99 ? 'pointer' : 'default',
-      tutorialOpen: !!s.tutorialOpen, tutorialNext: this.tutorialNext, tutorialSkip: this.tutorialSkip,
+      tutorialOpen: !!s.tutorialOpen, appTourNext: this.appTourNext, appTourSkip: this.appTourSkip,
       tutStep: (() => {
         const STEPS = Component.TUTORIAL_STEPS;
         const step = STEPS[s.tutorialStep || 0] || STEPS[0];
