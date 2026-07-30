@@ -583,6 +583,13 @@
 
           <!-- Replay tour -->
           <button onclick="{{ replayTutorial }}" style="font-family:'Nunito';font-weight:900;font-size:12px;color:#463f52;background:#fff;border:2px solid #c9c2b8;padding:10px 16px;cursor:pointer;align-self:center;margin-top:4px;">🎓 REPLAY APP TOUR</button>
+
+          <!-- Share Stickpoint -->
+          <div style="background:#F3F0FF;border:3px solid #7C5CFC;padding:16px;display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center;margin-top:4px;">
+            <div style="font-size:11px;font-weight:900;color:#7C5CFC;letter-spacing:1px;">KNOW SOMEONE WHO SHOULD STUDY SMARTER?</div>
+            <div style="font-size:12px;font-weight:700;color:#463f52;line-height:1.5;">Send them Stickpoint — it's free to use.</div>
+            <button onclick="{{ shareStickpoint }}" style="font-family:'Nunito';font-weight:900;font-size:13px;color:#fff;background:#7C5CFC;border:3px solid #201E2E;box-shadow:3px 3px 0 #201E2E;padding:11px 20px;cursor:pointer;">{{ shareCopied ? '✅ LINK COPIED!' : '🔗 SHARE STICKPOINT' }}</button>
+          </div>
         </div>
       </sc-if>
 
@@ -1888,7 +1895,7 @@ class Component extends DCLogic {
     age: null,
     ageDraft: '',
     ageEditDraft: '',
-    restartOpen: false,
+    restartOpen: false, shareCopied: false,
     editingName: false,
     nameEditDraft: '',
     topMethods: [],
@@ -2677,6 +2684,28 @@ class Component extends DCLogic {
     if (this.state.isMath && this.state.materialTopMethods === null) setTimeout(() => this.setState({ mathNoticeOpen: true }), 350);
   };
   replayTutorial = () => this.setState({ tutorialOpen: true, tutorialStep: 0 });
+
+  shareStickpoint = () => {
+    const url = 'https://stickpoint-study-app.replit.app';
+    const text = 'I\'ve been using Stickpoint to study smarter — it finds the study method that actually works for your brain. Try it free!';
+    if (navigator.share) {
+      navigator.share({ title: 'Stickpoint', text, url }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(url).then(() => {
+        this.setState({ shareCopied: true });
+        setTimeout(() => this.setState({ shareCopied: false }), 2200);
+      }).catch(() => {
+        // last-resort fallback for browsers that block clipboard without interaction
+        const el = document.createElement('textarea');
+        el.value = url; el.style.position = 'fixed'; el.style.opacity = '0';
+        document.body.appendChild(el); el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+        this.setState({ shareCopied: true });
+        setTimeout(() => this.setState({ shareCopied: false }), 2200);
+      });
+    }
+  };
 
   // Add source material as grading context to improve fact-checking accuracy
   materialCtx(maxChars = 1400) {
@@ -4897,6 +4926,7 @@ class Component extends DCLogic {
       askAgeBtnBg: parseInt(s.ageDraft, 10) >= 5 && parseInt(s.ageDraft, 10) <= 99 ? '#FF6B4A' : '#c9c2b8',
       askAgeBtnCursor: parseInt(s.ageDraft, 10) >= 5 && parseInt(s.ageDraft, 10) <= 99 ? 'pointer' : 'default',
       tutorialOpen: !!s.tutorialOpen, appTourNext: this.appTourNext, appTourSkip: this.appTourSkip, replayTutorial: this.replayTutorial,
+      shareStickpoint: this.shareStickpoint, shareCopied: !!s.shareCopied,
       tutStep: (() => {
         const STEPS = Component.TUTORIAL_STEPS;
         const step = STEPS[s.tutorialStep || 0] || STEPS[0];
