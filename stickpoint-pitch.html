@@ -1,524 +1,916 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Stickpoint — Product Overview</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap');
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stickpoint — Product Overview</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap");
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
 
-  body {
-    font-family: 'Nunito', sans-serif;
-    background: #FFFCF6;
-    color: #201E2E;
-    line-height: 1.6;
-  }
+      body {
+        font-family: "Nunito", sans-serif;
+        background: #fffcf6;
+        color: #201e2e;
+        line-height: 1.6;
+      }
 
-  .page { max-width: 860px; margin: 0 auto; padding: 48px 32px 80px; }
+      .page {
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 48px 32px 80px;
+      }
 
-  /* ── Header ── */
-  .header {
-    display: flex; flex-direction: column; align-items: center;
-    gap: 10px; text-align: center; padding: 48px 0 40px;
-    border-bottom: 4px solid #201E2E;
-  }
-  .logo-icon { font-size: 52px; }
-  .wordmark {
-    font-family: 'Nunito', monospace; font-weight: 900; font-size: 42px;
-    letter-spacing: 4px; color: #201E2E;
-    border: 4px solid #201E2E; padding: 6px 22px;
-    box-shadow: 6px 6px 0 #201E2E;
-  }
-  .tagline {
-    font-size: 18px; font-weight: 800; color: #7C5CFC; margin-top: 6px;
-  }
-  .sub-tagline {
-    font-size: 14px; font-weight: 700; color: #463f52;
-    max-width: 540px; line-height: 1.6;
-  }
+      /* ── Header ── */
+      .header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        text-align: center;
+        padding: 48px 0 40px;
+        border-bottom: 4px solid #201e2e;
+      }
+      .logo-icon {
+        font-size: 52px;
+      }
+      .wordmark {
+        font-family: "Nunito", monospace;
+        font-weight: 900;
+        font-size: 42px;
+        letter-spacing: 4px;
+        color: #201e2e;
+        border: 4px solid #201e2e;
+        padding: 6px 22px;
+        box-shadow: 6px 6px 0 #201e2e;
+      }
+      .tagline {
+        font-size: 18px;
+        font-weight: 800;
+        color: #7c5cfc;
+        margin-top: 6px;
+      }
+      .sub-tagline {
+        font-size: 14px;
+        font-weight: 700;
+        color: #463f52;
+        max-width: 540px;
+        line-height: 1.6;
+      }
 
-  /* ── Section titles ── */
-  .section { margin-top: 52px; }
-  .section-label {
-    font-size: 10px; font-weight: 900; letter-spacing: 2px;
-    color: #FF6B4A; text-transform: uppercase; margin-bottom: 6px;
-  }
-  .section-title {
-    font-size: 26px; font-weight: 900; color: #201E2E;
-    border-left: 5px solid #7C5CFC; padding-left: 14px;
-    line-height: 1.3; margin-bottom: 18px;
-  }
-  .section-body {
-    font-size: 14px; font-weight: 700; color: #463f52;
-    line-height: 1.75; max-width: 720px;
-  }
+      /* ── Section titles ── */
+      .section {
+        margin-top: 52px;
+      }
+      .section-label {
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 2px;
+        color: #ff6b4a;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+      }
+      .section-title {
+        font-size: 26px;
+        font-weight: 900;
+        color: #201e2e;
+        border-left: 5px solid #7c5cfc;
+        padding-left: 14px;
+        line-height: 1.3;
+        margin-bottom: 18px;
+      }
+      .section-body {
+        font-size: 14px;
+        font-weight: 700;
+        color: #463f52;
+        line-height: 1.75;
+        max-width: 720px;
+      }
 
-  /* ── Problem / Solution boxes ── */
-  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
-  .box {
-    border: 3px solid #201E2E; padding: 20px;
-    display: flex; flex-direction: column; gap: 10px;
-  }
-  .box-label {
-    font-size: 9px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase;
-  }
-  .box-title { font-size: 16px; font-weight: 900; color: #201E2E; }
-  .box-body { font-size: 13px; font-weight: 700; color: #463f52; line-height: 1.65; }
-  .box.problem { background: #FFF4F4; border-color: #FF5A5F; }
-  .box.problem .box-label { color: #c92c30; }
-  .box.solution { background: #F3FBF8; border-color: #2DD4A7; }
-  .box.solution .box-label { color: #1a9c77; }
+      /* ── Problem / Solution boxes ── */
+      .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-top: 20px;
+      }
+      .box {
+        border: 3px solid #201e2e;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .box-label {
+        font-size: 9px;
+        font-weight: 900;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+      }
+      .box-title {
+        font-size: 16px;
+        font-weight: 900;
+        color: #201e2e;
+      }
+      .box-body {
+        font-size: 13px;
+        font-weight: 700;
+        color: #463f52;
+        line-height: 1.65;
+      }
+      .box.problem {
+        background: #fff4f4;
+        border-color: #ff5a5f;
+      }
+      .box.problem .box-label {
+        color: #c92c30;
+      }
+      .box.solution {
+        background: #f3fbf8;
+        border-color: #2dd4a7;
+      }
+      .box.solution .box-label {
+        color: #1a9c77;
+      }
 
-  /* ── Feature grid ── */
-  .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 20px; }
-  .feature-card {
-    border: 3px solid #201E2E; padding: 16px;
-    display: flex; flex-direction: column; gap: 6px;
-    background: #fff;
-  }
-  .feature-icon { font-size: 22px; }
-  .feature-name { font-size: 13px; font-weight: 900; color: #201E2E; }
-  .feature-desc { font-size: 12px; font-weight: 700; color: #463f52; line-height: 1.6; }
+      /* ── Feature grid ── */
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        margin-top: 20px;
+      }
+      .feature-card {
+        border: 3px solid #201e2e;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        background: #fff;
+      }
+      .feature-icon {
+        font-size: 22px;
+      }
+      .feature-name {
+        font-size: 13px;
+        font-weight: 900;
+        color: #201e2e;
+      }
+      .feature-desc {
+        font-size: 12px;
+        font-weight: 700;
+        color: #463f52;
+        line-height: 1.6;
+      }
 
-  /* ── Method list ── */
-  .method-list { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
-  .method-row {
-    display: flex; gap: 14px; align-items: flex-start;
-    border: 3px solid #201E2E; padding: 14px; background: #fff;
-  }
-  .method-num {
-    flex: none; width: 28px; height: 28px; display: flex; align-items: center;
-    justify-content: center; background: #7C5CFC; color: #fff;
-    font-weight: 900; font-size: 12px; border: 2px solid #201E2E;
-  }
-  .method-info { display: flex; flex-direction: column; gap: 3px; }
-  .method-name { font-size: 14px; font-weight: 900; color: #201E2E; }
-  .method-why { font-size: 12px; font-weight: 700; color: #463f52; line-height: 1.6; }
-  .method-math { font-size: 10px; font-weight: 900; color: #FF6B4A; letter-spacing: 1px; }
+      /* ── Method list ── */
+      .method-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 18px;
+      }
+      .method-row {
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+        border: 3px solid #201e2e;
+        padding: 14px;
+        background: #fff;
+      }
+      .method-num {
+        flex: none;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #7c5cfc;
+        color: #fff;
+        font-weight: 900;
+        font-size: 12px;
+        border: 2px solid #201e2e;
+      }
+      .method-info {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+      .method-name {
+        font-size: 14px;
+        font-weight: 900;
+        color: #201e2e;
+      }
+      .method-why {
+        font-size: 12px;
+        font-weight: 700;
+        color: #463f52;
+        line-height: 1.6;
+      }
+      .method-math {
+        font-size: 10px;
+        font-weight: 900;
+        color: #ff6b4a;
+        letter-spacing: 1px;
+      }
 
-  /* ── Competitor table ── */
-  .comp-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-  .comp-table th, .comp-table td {
-    border: 2px solid #201E2E; padding: 10px 13px;
-    font-size: 12px; font-weight: 700; text-align: left;
-  }
-  .comp-table th { background: #201E2E; color: #fff; font-weight: 900; font-size: 11px; letter-spacing: 0.5px; }
-  .comp-table tr:nth-child(even) td { background: #F6F1E5; }
-  .yes { color: #1a9c77; font-weight: 900; }
-  .no  { color: #c92c30; font-weight: 900; }
-  .partial { color: #b8860b; font-weight: 900; }
+      /* ── Competitor table ── */
+      .comp-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      .comp-table th,
+      .comp-table td {
+        border: 2px solid #201e2e;
+        padding: 10px 13px;
+        font-size: 12px;
+        font-weight: 700;
+        text-align: left;
+      }
+      .comp-table th {
+        background: #201e2e;
+        color: #fff;
+        font-weight: 900;
+        font-size: 11px;
+        letter-spacing: 0.5px;
+      }
+      .comp-table tr:nth-child(even) td {
+        background: #f6f1e5;
+      }
+      .yes {
+        color: #1a9c77;
+        font-weight: 900;
+      }
+      .no {
+        color: #c92c30;
+        font-weight: 900;
+      }
+      .partial {
+        color: #b8860b;
+        font-weight: 900;
+      }
 
-  /* ── Pull quotes ── */
-  .quote-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 20px; }
-  .quote-card {
-    background: #201E2E; color: #fff; padding: 16px;
-    border: 3px solid #201E2E; display: flex; flex-direction: column; gap: 8px;
-  }
-  .quote-text { font-size: 13px; font-weight: 800; line-height: 1.6; color: #fff; }
-  .quote-src  { font-size: 10px; font-weight: 900; color: #7C5CFC; letter-spacing: 1px; }
+      /* ── Pull quotes ── */
+      .quote-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 12px;
+        margin-top: 20px;
+      }
+      .quote-card {
+        background: #201e2e;
+        color: #fff;
+        padding: 16px;
+        border: 3px solid #201e2e;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .quote-text {
+        font-size: 13px;
+        font-weight: 800;
+        line-height: 1.6;
+        color: #fff;
+      }
+      .quote-src {
+        font-size: 10px;
+        font-weight: 900;
+        color: #7c5cfc;
+        letter-spacing: 1px;
+      }
 
-  /* ── CTA strip ── */
-  .cta-strip {
-    margin-top: 52px; background: #7C5CFC; border: 4px solid #201E2E;
-    box-shadow: 6px 6px 0 #201E2E; padding: 28px 32px;
-    display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center;
-  }
-  .cta-title { font-size: 22px; font-weight: 900; color: #fff; }
-  .cta-sub   { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85); max-width: 500px; line-height: 1.6; }
+      /* ── CTA strip ── */
+      .cta-strip {
+        margin-top: 52px;
+        background: #7c5cfc;
+        border: 4px solid #201e2e;
+        box-shadow: 6px 6px 0 #201e2e;
+        padding: 28px 32px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        text-align: center;
+      }
+      .cta-title {
+        font-size: 22px;
+        font-weight: 900;
+        color: #fff;
+      }
+      .cta-sub {
+        font-size: 13px;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.85);
+        max-width: 500px;
+        line-height: 1.6;
+      }
 
-  /* ── Pill tags ── */
-  .pill {
-    display: inline-block; background: #FF6B4A; color: #fff;
-    font-size: 9px; font-weight: 900; letter-spacing: 1px;
-    padding: 3px 8px; border: 2px solid #201E2E; margin-left: 6px;
-    vertical-align: middle;
-  }
-  .pill.math { background: #FFC93C; color: #201E2E; }
+      /* ── Pill tags ── */
+      .pill {
+        display: inline-block;
+        background: #ff6b4a;
+        color: #fff;
+        font-size: 9px;
+        font-weight: 900;
+        letter-spacing: 1px;
+        padding: 3px 8px;
+        border: 2px solid #201e2e;
+        margin-left: 6px;
+        vertical-align: middle;
+      }
+      .pill.math {
+        background: #ffc93c;
+        color: #201e2e;
+      }
 
-  /* ── Divider ── */
-  hr { border: none; border-top: 3px solid #201E2E; margin: 48px 0; }
+      /* ── Divider ── */
+      hr {
+        border: none;
+        border-top: 3px solid #201e2e;
+        margin: 48px 0;
+      }
 
-  @media (max-width: 640px) {
-    .two-col, .feature-grid, .quote-row { grid-template-columns: 1fr; }
-    .wordmark { font-size: 28px; }
-    .section-title { font-size: 20px; }
-    .page { padding: 24px 16px 60px; }
-  }
+      @media (max-width: 640px) {
+        .two-col,
+        .feature-grid,
+        .quote-row {
+          grid-template-columns: 1fr;
+        }
+        .wordmark {
+          font-size: 28px;
+        }
+        .section-title {
+          font-size: 20px;
+        }
+        .page {
+          padding: 24px 16px 60px;
+        }
+      }
 
-  @media print {
-    body { background: #fff; }
-    .page { padding: 20px; }
-    .wordmark { box-shadow: none; border: 3px solid #201E2E; }
-    .cta-strip { box-shadow: none; }
-  }
-</style>
-</head>
-<body>
-<div class="page">
-
-  <!-- Header -->
-  <div class="header">
-    <div class="logo-icon">🏹</div>
-    <div class="wordmark">STICKPOINT</div>
-    <div class="tagline">Find the study method that actually works for YOUR brain.</div>
-    <div class="sub-tagline">An AI-powered study companion that matches students to the right learning strategy — then coaches them through it, one session at a time.</div>
-  </div>
-
-  <!-- The Problem -->
-  <div class="section">
-    <div class="section-label">The Problem</div>
-    <div class="section-title">Students study hard. They just study wrong.</div>
-    <p class="section-body">
-      Research consistently shows that most students default to re-reading and highlighting — two of the least effective study strategies known to science. The result: hours invested, little retained, and the crushing feeling of walking out of an exam having forgotten everything. The problem isn't effort. It's method.
-    </p>
-    <div class="two-col" style="margin-top: 22px;">
-      <div class="box problem">
-        <div class="box-label">❌ The old way</div>
-        <div class="box-title">One-size-fits-all studying</div>
-        <div class="box-body">Flashcards for everyone. Re-read the chapter. Highlight in five colours. Generic YouTube videos. Students waste hours on strategies that don't match their material, subject, or brain.</div>
+      @media print {
+        body {
+          background: #fff;
+        }
+        .page {
+          padding: 20px;
+        }
+        .wordmark {
+          box-shadow: none;
+          border: 3px solid #201e2e;
+        }
+        .cta-strip {
+          box-shadow: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <!-- Header -->
+      <div class="header">
+        <div class="logo-icon">🏹</div>
+        <div class="wordmark">STICKPOINT</div>
+        <div class="tagline">
+          Find the study method that actually works for YOUR brain.
+        </div>
+        <div class="sub-tagline">
+          An AI-powered study companion that matches students to the right
+          learning strategy — then coaches them through it, one session at a
+          time.
+        </div>
       </div>
-      <div class="box solution">
-        <div class="box-label">✅ The Stickpoint way</div>
-        <div class="box-title">Personalized, coached, adaptive</div>
-        <div class="box-body">A short quiz surfaces the right methods for how each student's brain processes information. Paste your notes — Stickpoint builds an entire study session around you. Instantly.</div>
+
+      <!-- The Problem -->
+      <div class="section">
+        <div class="section-label">The Problem</div>
+        <div class="section-title">
+          Students study hard. They just study wrong.
+        </div>
+        <p class="section-body">
+          Research consistently shows that most students default to re-reading
+          and highlighting — two of the least effective study strategies known
+          to science. The result: hours invested, little retained, and the
+          crushing feeling of walking out of an exam having forgotten
+          everything. The problem isn't effort. It's method.
+        </p>
+        <div class="two-col" style="margin-top: 22px">
+          <div class="box problem">
+            <div class="box-label">❌ The old way</div>
+            <div class="box-title">One-size-fits-all studying</div>
+            <div class="box-body">
+              Flashcards for everyone. Re-read the chapter. Highlight in five
+              colours. Generic YouTube videos. Students waste hours on
+              strategies that don't match their material, subject, or brain.
+            </div>
+          </div>
+          <div class="box solution">
+            <div class="box-label">✅ The Stickpoint way</div>
+            <div class="box-title">Personalized, coached, adaptive</div>
+            <div class="box-body">
+              A short quiz surfaces the right methods for how each student's
+              brain processes information. Paste your notes — Stickpoint builds
+              an entire study session around you. Instantly.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- How it works -->
+      <div class="section">
+        <div class="section-label">How It Works</div>
+        <div class="section-title">Three steps to studying smarter</div>
+        <div class="feature-grid" style="grid-template-columns: repeat(3, 1fr)">
+          <div class="feature-card" style="border-color: #ff6b4a">
+            <div class="feature-icon">📋</div>
+            <div class="feature-name">1. Take the quiz</div>
+            <div class="feature-desc">
+              Answer a few questions about how you learn. Stickpoint scores nine
+              research-backed methods and ranks the top three for your brain and
+              subject.
+            </div>
+          </div>
+          <div class="feature-card" style="border-color: #7c5cfc">
+            <div class="feature-icon">📄</div>
+            <div class="feature-name">2. Paste your notes</div>
+            <div class="feature-desc">
+              Drop in a PDF, paste lecture notes, or type anything. Chop (your
+              AI study coach) analyses the content and builds a full,
+              personalised study set in seconds.
+            </div>
+          </div>
+          <div class="feature-card" style="border-color: #2dd4a7">
+            <div class="feature-icon">🎯</div>
+            <div class="feature-name">3. Study your way</div>
+            <div class="feature-desc">
+              Work through AI-coached sessions. Chop grades your answers,
+              explains your mistakes, tracks your progress, and nudges you on
+              what to do next.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <hr />
+
+      <!-- Nine Study Methods -->
+      <div class="section">
+        <div class="section-label">Core Features — Study Methods</div>
+        <div class="section-title">
+          9 science-backed methods. All AI-coached.
+        </div>
+        <p class="section-body" style="margin-bottom: 4px">
+          Every method is powered by Claude AI — generating content, grading
+          responses, and giving feedback in real time. Each one targets a
+          different mechanism of memory consolidation.
+        </p>
+
+        <div class="method-list">
+          <div class="method-row">
+            <div class="method-num">1</div>
+            <div class="method-info">
+              <div class="method-name">
+                Practice Testing <span class="pill">AI GRADED</span>
+              </div>
+              <div class="method-why">
+                AI generates a full practice exam from your notes — short
+                answer, multiple choice, and true/false. Answers are graded by
+                AI with abbreviation and equivalent-phrasing recognition. Wrong
+                answers get explanations. If Chop marks you wrong unfairly, an
+                "I am correct" override button lets you dispute it and update
+                your score.
+              </div>
+            </div>
+          </div>
+          <div class="method-row">
+            <div class="method-num">2</div>
+            <div class="method-info">
+              <div class="method-name">
+                Feynman Technique <span class="pill">AI GRADED</span>
+              </div>
+              <div class="method-why">
+                Explain the concept as if teaching a 12-year-old. Chop checks
+                whether you actually understood it — not just whether you wrote
+                something. A strict scoring rubric rejects off-topic answers and
+                confident-sounding nonsense, forcing real understanding.
+              </div>
+            </div>
+          </div>
+          <div class="method-row">
+            <div class="method-num">3</div>
+            <div class="method-info">
+              <div class="method-name">
+                Elaborative Interrogation <span class="pill">AI GRADED</span>
+              </div>
+              <div class="method-why">
+                For each fact in your notes, Chop generates a why/how question
+                and a connection question — both strictly grounded in your
+                actual notes. You answer, then get an ideal model answer and a
+                visual reasoning chain showing cause → mechanism → effect.
+              </div>
+            </div>
+          </div>
+          <div class="method-row">
+            <div class="method-num">4</div>
+            <div class="method-info">
+              <div class="method-name">
+                Problem Sets <span class="pill math">MATH</span>
+                <span class="pill">AI GRADED</span>
+              </div>
+              <div class="method-why">
+                Detects math automatically and generates worked examples broken
+                into step-by-step solutions. After studying the worked example,
+                the student practices similar problems. Chop grades the work and
+                identifies error types so weak areas are clear.
+              </div>
+            </div>
+          </div>
+          <div class="method-row">
+            <div class="method-num">5</div>
+            <div class="method-info">
+              <div class="method-name">Concrete Examples</div>
+              <div class="method-why">
+                For abstract concepts, students generate a real-world example
+                and Chop evaluates whether it actually demonstrates the concept
+                — not just whether it mentions the right words. Reinforces
+                application over recognition.
+              </div>
+            </div>
+          </div>
+          <div class="method-row">
+            <div class="method-num">6</div>
+            <div class="method-info">
+              <div class="method-name">Blurting</div>
+              <div class="method-why">
+                Classic brain-dump technique: Chop presents a topic, student
+                writes everything they know from memory. Chop scores recall
+                percentage and highlights what was missed. Students can see
+                exactly which topics are weak.
+              </div>
+            </div>
+          </div>
+          <div class="method-row">
+            <div class="method-num">7</div>
+            <div class="method-info">
+              <div class="method-name">Self-Explanation</div>
+              <div class="method-why">
+                Notes are split into digestible chunks. After reading each
+                chunk, students explain it in their own words. Chop identifies
+                gaps between what they wrote and what the passage actually said.
+              </div>
+            </div>
+          </div>
+          <div class="method-row">
+            <div class="method-num">8</div>
+            <div class="method-info">
+              <div class="method-name">Active Recall (Flashcards)</div>
+              <div class="method-why">
+                AI-generated flashcard deck with hard/medium/easy self-rating.
+                Cards you find hard resurface more frequently. Built into the
+                app — no third-party flashcard platform needed.
+              </div>
+            </div>
+          </div>
+          <div class="method-row">
+            <div class="method-num">9</div>
+            <div class="method-info">
+              <div class="method-name">Pomodoro Focus Timer</div>
+              <div class="method-why">
+                AI chunks the notes into focused reading segments timed to
+                Pomodoro intervals. Includes focus-quality ratings and "what was
+                hardest?" reflection prompts after each session.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <hr />
+
+      <!-- Platform features -->
+      <div class="section">
+        <div class="section-label">Platform Features</div>
+        <div class="section-title">
+          Everything built for the student's workflow
+        </div>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="feature-icon">🧠</div>
+            <div class="feature-name">Personalised Top 3</div>
+            <div class="feature-desc">
+              The quiz ranks all 9 methods and pins the student's best three at
+              the top of the app. They can reorder or swap them at any time.
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🧮</div>
+            <div class="feature-name">Math Detection</div>
+            <div class="feature-desc">
+              AI scans notes for math content and offers to switch the top 3 to
+              math-optimised methods (Problem Sets, Practice Testing, Feynman).
+              Students can accept or keep their quiz results.
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">📚</div>
+            <div class="feature-name">Material Library</div>
+            <div class="feature-desc">
+              Up to 12 saved note sets. Switch between Chapter 3 and Chapter 7
+              without losing progress on either. Each material has its own
+              session, missed bank, and test history.
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🔁</div>
+            <div class="feature-name">Missed Items Drill</div>
+            <div class="feature-desc">
+              Every concept the student struggles with goes into a missed bank.
+              The drill button surfaces them for targeted retrieval practice —
+              shown as a real count, never zero when items exist.
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">📊</div>
+            <div class="feature-name">Progress Tab</div>
+            <div class="feature-desc">
+              Mastered vs. shaky concept counts, full practice test history with
+              scores and dates, missed items list, method badges, and a smart
+              "next step" recommendation.
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🗓️</div>
+            <div class="feature-name">Test Date Countdown</div>
+            <div class="feature-desc">
+              Set a test date and see a live countdown. The Today tab reorders
+              suggested actions to front-load high-yield study as the exam
+              approaches.
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🔥</div>
+            <div class="feature-name">Streak & XP</div>
+            <div class="feature-desc">
+              Daily study streaks and XP rewards keep motivation high without
+              gimmicks. Method badges are earned by trying each study mode.
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🎓</div>
+            <div class="feature-name">Chop — AI Coach</div>
+            <div class="feature-desc">
+              A stick-figure character who gives grading feedback, explains
+              wrong answers, and adapts language to the student's age (set at
+              signup).
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🗺️</div>
+            <div class="feature-name">App Tour</div>
+            <div class="feature-desc">
+              Interactive tutorial overlay on first launch. Spotlight-style UI
+              walks through every section. Can be replayed any time from the
+              Progress tab.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <hr />
+
+      <!-- Competitive comparison -->
+      <div class="section">
+        <div class="section-label">Competitive Landscape</div>
+        <div class="section-title">
+          What Stickpoint does that nobody else does
+        </div>
+
+        <table class="comp-table">
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>Stickpoint</th>
+              <th>Anki / Quizlet</th>
+              <th>Khan Academy</th>
+              <th>ChatGPT / Gemini</th>
+              <th>StudySmarter</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Personalised method matching via quiz</td>
+              <td class="yes">✅ Yes</td>
+              <td class="no">❌ No</td>
+              <td class="no">❌ No</td>
+              <td class="no">❌ No</td>
+              <td class="no">❌ No</td>
+            </tr>
+            <tr>
+              <td>9 distinct study methods in one app</td>
+              <td class="yes">✅ Yes</td>
+              <td class="no">❌ 1–2</td>
+              <td class="partial">⚠️ 2–3</td>
+              <td class="partial">⚠️ Unstructured</td>
+              <td class="partial">⚠️ 3–4</td>
+            </tr>
+            <tr>
+              <td>AI generates study content from your notes</td>
+              <td class="yes">✅ Yes</td>
+              <td class="no">❌ Manual</td>
+              <td class="no">❌ Fixed curriculum</td>
+              <td class="partial">⚠️ Manual prompting</td>
+              <td class="partial">⚠️ Partial</td>
+            </tr>
+            <tr>
+              <td>AI grades open-ended written answers</td>
+              <td class="yes">✅ Yes</td>
+              <td class="no">❌ Self-grade only</td>
+              <td class="partial">⚠️ Limited</td>
+              <td class="partial">⚠️ Chat only</td>
+              <td class="no">❌ No</td>
+            </tr>
+            <tr>
+              <td>Math detection & specialised methods</td>
+              <td class="yes">✅ Yes</td>
+              <td class="no">❌ No</td>
+              <td class="yes">✅ Yes (fixed)</td>
+              <td class="partial">⚠️ Manual</td>
+              <td class="no">❌ No</td>
+            </tr>
+            <tr>
+              <td>Per-material progress & missed bank</td>
+              <td class="yes">✅ Yes</td>
+              <td class="partial">⚠️ Basic</td>
+              <td class="partial">⚠️ Fixed content</td>
+              <td class="no">❌ No memory</td>
+              <td class="partial">⚠️ Partial</td>
+            </tr>
+            <tr>
+              <td>Works with any subject / any notes</td>
+              <td class="yes">✅ Yes</td>
+              <td class="yes">✅ Yes</td>
+              <td class="no">❌ Fixed curriculum</td>
+              <td class="yes">✅ Yes</td>
+              <td class="yes">✅ Yes</td>
+            </tr>
+            <tr>
+              <td>Structured coaching (not open chat)</td>
+              <td class="yes">✅ Yes</td>
+              <td class="no">❌ No AI</td>
+              <td class="partial">⚠️ Scripted</td>
+              <td class="no">❌ Free-form only</td>
+              <td class="no">❌ No</td>
+            </tr>
+            <tr>
+              <td>Designed for high school &amp; college students</td>
+              <td class="yes">✅ Yes</td>
+              <td class="yes">✅ Yes</td>
+              <td class="partial">⚠️ K–12 focus</td>
+              <td class="partial">⚠️ General</td>
+              <td class="yes">✅ Yes</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Research backing -->
+      <div class="section">
+        <div class="section-label">Research Backing</div>
+        <div class="section-title">Built on cognitive science, not habit</div>
+        <div class="quote-row">
+          <div class="quote-card">
+            <div class="quote-text">
+              "Practice testing is one of the most effective learning strategies
+              available, yet remains dramatically underused by students."
+            </div>
+            <div class="quote-src">
+              Dunlosky et al., 2013 — Psychological Science
+            </div>
+          </div>
+          <div class="quote-card">
+            <div class="quote-text">
+              "Elaborative interrogation significantly improves recall of
+              factual material compared to simply re-reading."
+            </div>
+            <div class="quote-src">
+              Pressley et al., — Review of Educational Research
+            </div>
+          </div>
+          <div class="quote-card">
+            <div class="quote-text">
+              "The Feynman Technique forces students to identify gaps in their
+              understanding — the exact mechanism that drives durable learning."
+            </div>
+            <div class="quote-src">
+              Cognitive Load Theory research literature
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <hr />
+
+      <!-- Who it's for -->
+      <div class="section">
+        <div class="section-label">Target Audience</div>
+        <div class="section-title">
+          Built for students who actually want to learn
+        </div>
+        <div class="two-col">
+          <div class="box" style="background: #fff">
+            <div class="box-label" style="color: #7c5cfc">PRIMARY USERS</div>
+            <div class="box-title">High school &amp; college students</div>
+            <div class="box-body">
+              • Preparing for exams (AP, SAT, finals, boards)<br />
+              • Studying any subject from their own notes<br />
+              • Frustrated by passive re-reading<br />
+              • Want structure without a tutor
+            </div>
+          </div>
+          <div class="box" style="background: #fff">
+            <div class="box-label" style="color: #ff6b4a">USE CASES</div>
+            <div class="box-title">Any notes, any subject</div>
+            <div class="box-body">
+              • History, biology, chemistry, economics<br />
+              • Math &amp; physics (auto-detected, specialist mode)<br />
+              • Law, medicine, professional certifications<br />
+              • Language learning and vocabulary
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Key differentiators -->
+      <div class="section">
+        <div class="section-label">Why Stickpoint Wins</div>
+        <div class="section-title">Four unfair advantages</div>
+        <div class="feature-grid" style="grid-template-columns: 1fr 1fr">
+          <div
+            class="feature-card"
+            style="border-color: #ff6b4a; border-width: 3px"
+          >
+            <div class="feature-icon">🎯</div>
+            <div class="feature-name">Method-first, not content-first</div>
+            <div class="feature-desc">
+              Every other tool says "here is content — now learn it." Stickpoint
+              says "here is how YOUR brain learns best — now let's apply that to
+              your content." The quiz-first approach is unique in the market.
+            </div>
+          </div>
+          <div
+            class="feature-card"
+            style="border-color: #7c5cfc; border-width: 3px"
+          >
+            <div class="feature-icon">🤖</div>
+            <div class="feature-name">Structured AI, not open chat</div>
+            <div class="feature-desc">
+              ChatGPT is a blank page. Stickpoint gives students a structured
+              session with a clear start, middle, and end — AI coaching built
+              into a proven learning framework, not just a chat window.
+            </div>
+          </div>
+          <div
+            class="feature-card"
+            style="border-color: #2dd4a7; border-width: 3px"
+          >
+            <div class="feature-icon">📈</div>
+            <div class="feature-name">Accountability by design</div>
+            <div class="feature-desc">
+              Missed items bank, test date countdown, streak tracking, and a
+              daily "next step" recommendation mean students always know what to
+              do — and whether they did it.
+            </div>
+          </div>
+          <div
+            class="feature-card"
+            style="border-color: #ffc93c; border-width: 3px"
+          >
+            <div class="feature-icon">⚡</div>
+            <div class="feature-name">Zero setup time</div>
+            <div class="feature-desc">
+              Take the quiz (3 minutes). Paste your notes. Start studying. No
+              manual flashcard creation, no tagging, no deck organisation.
+              Stickpoint does all the prep so students can spend time actually
+              learning.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div class="cta-strip">
+        <div class="cta-title">Stickpoint — Study smarter, not harder.</div>
+        <div class="cta-sub">
+          The only study tool that finds the right method for each student, then
+          coaches them through it with AI — across any subject, any notes, any
+          exam.
+        </div>
       </div>
     </div>
-  </div>
-
-  <!-- How it works -->
-  <div class="section">
-    <div class="section-label">How It Works</div>
-    <div class="section-title">Three steps to studying smarter</div>
-    <div class="feature-grid" style="grid-template-columns: repeat(3, 1fr);">
-      <div class="feature-card" style="border-color: #FF6B4A;">
-        <div class="feature-icon">📋</div>
-        <div class="feature-name">1. Take the quiz</div>
-        <div class="feature-desc">Answer a few questions about how you learn. Stickpoint scores nine research-backed methods and ranks the top three for your brain and subject.</div>
-      </div>
-      <div class="feature-card" style="border-color: #7C5CFC;">
-        <div class="feature-icon">📄</div>
-        <div class="feature-name">2. Paste your notes</div>
-        <div class="feature-desc">Drop in a PDF, paste lecture notes, or type anything. Chop (your AI study coach) analyses the content and builds a full, personalised study set in seconds.</div>
-      </div>
-      <div class="feature-card" style="border-color: #2DD4A7;">
-        <div class="feature-icon">🎯</div>
-        <div class="feature-name">3. Study your way</div>
-        <div class="feature-desc">Work through AI-coached sessions. Chop grades your answers, explains your mistakes, tracks your progress, and nudges you on what to do next.</div>
-      </div>
-    </div>
-  </div>
-
-  <hr>
-
-  <!-- Nine Study Methods -->
-  <div class="section">
-    <div class="section-label">Core Features — Study Methods</div>
-    <div class="section-title">9 science-backed methods. All AI-coached.</div>
-    <p class="section-body" style="margin-bottom: 4px;">Every method is powered by Claude AI — generating content, grading responses, and giving feedback in real time. Each one targets a different mechanism of memory consolidation.</p>
-
-    <div class="method-list">
-      <div class="method-row">
-        <div class="method-num">1</div>
-        <div class="method-info">
-          <div class="method-name">Practice Testing <span class="pill">AI GRADED</span></div>
-          <div class="method-why">AI generates a full practice exam from your notes — short answer, multiple choice, and true/false. Answers are graded by AI with abbreviation and equivalent-phrasing recognition. Wrong answers get explanations. If Chop marks you wrong unfairly, an "I am correct" override button lets you dispute it and update your score.</div>
-        </div>
-      </div>
-      <div class="method-row">
-        <div class="method-num">2</div>
-        <div class="method-info">
-          <div class="method-name">Feynman Technique <span class="pill">AI GRADED</span></div>
-          <div class="method-why">Explain the concept as if teaching a 12-year-old. Chop checks whether you actually understood it — not just whether you wrote something. A strict scoring rubric rejects off-topic answers and confident-sounding nonsense, forcing real understanding.</div>
-        </div>
-      </div>
-      <div class="method-row">
-        <div class="method-num">3</div>
-        <div class="method-info">
-          <div class="method-name">Elaborative Interrogation <span class="pill">AI GRADED</span></div>
-          <div class="method-why">For each fact in your notes, Chop generates a why/how question and a connection question — both strictly grounded in your actual notes. You answer, then get an ideal model answer and a visual reasoning chain showing cause → mechanism → effect.</div>
-        </div>
-      </div>
-      <div class="method-row">
-        <div class="method-num">4</div>
-        <div class="method-info">
-          <div class="method-name">Problem Sets <span class="pill math">MATH</span> <span class="pill">AI GRADED</span></div>
-          <div class="method-why">Detects math automatically and generates worked examples broken into step-by-step solutions. After studying the worked example, the student practices similar problems. Chop grades the work and identifies error types so weak areas are clear.</div>
-        </div>
-      </div>
-      <div class="method-row">
-        <div class="method-num">5</div>
-        <div class="method-info">
-          <div class="method-name">Concrete Examples</div>
-          <div class="method-why">For abstract concepts, students generate a real-world example and Chop evaluates whether it actually demonstrates the concept — not just whether it mentions the right words. Reinforces application over recognition.</div>
-        </div>
-      </div>
-      <div class="method-row">
-        <div class="method-num">6</div>
-        <div class="method-info">
-          <div class="method-name">Blurting</div>
-          <div class="method-why">Classic brain-dump technique: Chop presents a topic, student writes everything they know from memory. Chop scores recall percentage and highlights what was missed. Students can see exactly which topics are weak.</div>
-        </div>
-      </div>
-      <div class="method-row">
-        <div class="method-num">7</div>
-        <div class="method-info">
-          <div class="method-name">Self-Explanation</div>
-          <div class="method-why">Notes are split into digestible chunks. After reading each chunk, students explain it in their own words. Chop identifies gaps between what they wrote and what the passage actually said.</div>
-        </div>
-      </div>
-      <div class="method-row">
-        <div class="method-num">8</div>
-        <div class="method-info">
-          <div class="method-name">Active Recall (Flashcards)</div>
-          <div class="method-why">AI-generated flashcard deck with hard/medium/easy self-rating. Cards you find hard resurface more frequently. Built into the app — no third-party flashcard platform needed.</div>
-        </div>
-      </div>
-      <div class="method-row">
-        <div class="method-num">9</div>
-        <div class="method-info">
-          <div class="method-name">Pomodoro Focus Timer</div>
-          <div class="method-why">AI chunks the notes into focused reading segments timed to Pomodoro intervals. Includes focus-quality ratings and "what was hardest?" reflection prompts after each session.</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <hr>
-
-  <!-- Platform features -->
-  <div class="section">
-    <div class="section-label">Platform Features</div>
-    <div class="section-title">Everything built for the student's workflow</div>
-    <div class="feature-grid">
-      <div class="feature-card">
-        <div class="feature-icon">🧠</div>
-        <div class="feature-name">Personalised Top 3</div>
-        <div class="feature-desc">The quiz ranks all 9 methods and pins the student's best three at the top of the app. They can reorder or swap them at any time.</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🧮</div>
-        <div class="feature-name">Math Detection</div>
-        <div class="feature-desc">AI scans notes for math content and offers to switch the top 3 to math-optimised methods (Problem Sets, Practice Testing, Feynman). Students can accept or keep their quiz results.</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">📚</div>
-        <div class="feature-name">Material Library</div>
-        <div class="feature-desc">Up to 12 saved note sets. Switch between Chapter 3 and Chapter 7 without losing progress on either. Each material has its own session, missed bank, and test history.</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🔁</div>
-        <div class="feature-name">Missed Items Drill</div>
-        <div class="feature-desc">Every concept the student struggles with goes into a missed bank. The drill button surfaces them for targeted retrieval practice — shown as a real count, never zero when items exist.</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">📊</div>
-        <div class="feature-name">Progress Tab</div>
-        <div class="feature-desc">Mastered vs. shaky concept counts, full practice test history with scores and dates, missed items list, method badges, and a smart "next step" recommendation.</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🗓️</div>
-        <div class="feature-name">Test Date Countdown</div>
-        <div class="feature-desc">Set a test date and see a live countdown. The Today tab reorders suggested actions to front-load high-yield study as the exam approaches.</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🔥</div>
-        <div class="feature-name">Streak & XP</div>
-        <div class="feature-desc">Daily study streaks and XP rewards keep motivation high without gimmicks. Method badges are earned by trying each study mode.</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🎓</div>
-        <div class="feature-name">Chop — AI Coach</div>
-        <div class="feature-desc">A stick-figure character who gives grading feedback, explains wrong answers, and adapts language to the student's age (set at signup).</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🗺️</div>
-        <div class="feature-name">App Tour</div>
-        <div class="feature-desc">Interactive tutorial overlay on first launch. Spotlight-style UI walks through every section. Can be replayed any time from the Progress tab.</div>
-      </div>
-    </div>
-  </div>
-
-  <hr>
-
-  <!-- Competitive comparison -->
-  <div class="section">
-    <div class="section-label">Competitive Landscape</div>
-    <div class="section-title">What Stickpoint does that nobody else does</div>
-
-    <table class="comp-table">
-      <thead>
-        <tr>
-          <th>Feature</th>
-          <th>Stickpoint</th>
-          <th>Anki / Quizlet</th>
-          <th>Khan Academy</th>
-          <th>ChatGPT / Gemini</th>
-          <th>StudySmarter</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Personalised method matching via quiz</td>
-          <td class="yes">✅ Yes</td>
-          <td class="no">❌ No</td>
-          <td class="no">❌ No</td>
-          <td class="no">❌ No</td>
-          <td class="no">❌ No</td>
-        </tr>
-        <tr>
-          <td>9 distinct study methods in one app</td>
-          <td class="yes">✅ Yes</td>
-          <td class="no">❌ 1–2</td>
-          <td class="partial">⚠️ 2–3</td>
-          <td class="partial">⚠️ Unstructured</td>
-          <td class="partial">⚠️ 3–4</td>
-        </tr>
-        <tr>
-          <td>AI generates study content from your notes</td>
-          <td class="yes">✅ Yes</td>
-          <td class="no">❌ Manual</td>
-          <td class="no">❌ Fixed curriculum</td>
-          <td class="partial">⚠️ Manual prompting</td>
-          <td class="partial">⚠️ Partial</td>
-        </tr>
-        <tr>
-          <td>AI grades open-ended written answers</td>
-          <td class="yes">✅ Yes</td>
-          <td class="no">❌ Self-grade only</td>
-          <td class="partial">⚠️ Limited</td>
-          <td class="partial">⚠️ Chat only</td>
-          <td class="no">❌ No</td>
-        </tr>
-        <tr>
-          <td>Math detection & specialised methods</td>
-          <td class="yes">✅ Yes</td>
-          <td class="no">❌ No</td>
-          <td class="yes">✅ Yes (fixed)</td>
-          <td class="partial">⚠️ Manual</td>
-          <td class="no">❌ No</td>
-        </tr>
-        <tr>
-          <td>Per-material progress & missed bank</td>
-          <td class="yes">✅ Yes</td>
-          <td class="partial">⚠️ Basic</td>
-          <td class="partial">⚠️ Fixed content</td>
-          <td class="no">❌ No memory</td>
-          <td class="partial">⚠️ Partial</td>
-        </tr>
-        <tr>
-          <td>Works with any subject / any notes</td>
-          <td class="yes">✅ Yes</td>
-          <td class="yes">✅ Yes</td>
-          <td class="no">❌ Fixed curriculum</td>
-          <td class="yes">✅ Yes</td>
-          <td class="yes">✅ Yes</td>
-        </tr>
-        <tr>
-          <td>Structured coaching (not open chat)</td>
-          <td class="yes">✅ Yes</td>
-          <td class="no">❌ No AI</td>
-          <td class="partial">⚠️ Scripted</td>
-          <td class="no">❌ Free-form only</td>
-          <td class="no">❌ No</td>
-        </tr>
-        <tr>
-          <td>Designed for high school &amp; college students</td>
-          <td class="yes">✅ Yes</td>
-          <td class="yes">✅ Yes</td>
-          <td class="partial">⚠️ K–12 focus</td>
-          <td class="partial">⚠️ General</td>
-          <td class="yes">✅ Yes</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- Research backing -->
-  <div class="section">
-    <div class="section-label">Research Backing</div>
-    <div class="section-title">Built on cognitive science, not habit</div>
-    <div class="quote-row">
-      <div class="quote-card">
-        <div class="quote-text">"Practice testing is one of the most effective learning strategies available, yet remains dramatically underused by students."</div>
-        <div class="quote-src">Dunlosky et al., 2013 — Psychological Science</div>
-      </div>
-      <div class="quote-card">
-        <div class="quote-text">"Elaborative interrogation significantly improves recall of factual material compared to simply re-reading."</div>
-        <div class="quote-src">Pressley et al., — Review of Educational Research</div>
-      </div>
-      <div class="quote-card">
-        <div class="quote-text">"The Feynman Technique forces students to identify gaps in their understanding — the exact mechanism that drives durable learning."</div>
-        <div class="quote-src">Cognitive Load Theory research literature</div>
-      </div>
-    </div>
-  </div>
-
-  <hr>
-
-  <!-- Who it's for -->
-  <div class="section">
-    <div class="section-label">Target Audience</div>
-    <div class="section-title">Built for students who actually want to learn</div>
-    <div class="two-col">
-      <div class="box" style="background: #fff;">
-        <div class="box-label" style="color: #7C5CFC;">PRIMARY USERS</div>
-        <div class="box-title">High school &amp; college students</div>
-        <div class="box-body">
-          • Preparing for exams (AP, SAT, finals, boards)<br>
-          • Studying any subject from their own notes<br>
-          • Frustrated by passive re-reading<br>
-          • Want structure without a tutor
-        </div>
-      </div>
-      <div class="box" style="background: #fff;">
-        <div class="box-label" style="color: #FF6B4A;">USE CASES</div>
-        <div class="box-title">Any notes, any subject</div>
-        <div class="box-body">
-          • History, biology, chemistry, economics<br>
-          • Math &amp; physics (auto-detected, specialist mode)<br>
-          • Law, medicine, professional certifications<br>
-          • Language learning and vocabulary
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Key differentiators -->
-  <div class="section">
-    <div class="section-label">Why Stickpoint Wins</div>
-    <div class="section-title">Four unfair advantages</div>
-    <div class="feature-grid" style="grid-template-columns: 1fr 1fr;">
-      <div class="feature-card" style="border-color: #FF6B4A; border-width: 3px;">
-        <div class="feature-icon">🎯</div>
-        <div class="feature-name">Method-first, not content-first</div>
-        <div class="feature-desc">Every other tool says "here is content — now learn it." Stickpoint says "here is how YOUR brain learns best — now let's apply that to your content." The quiz-first approach is unique in the market.</div>
-      </div>
-      <div class="feature-card" style="border-color: #7C5CFC; border-width: 3px;">
-        <div class="feature-icon">🤖</div>
-        <div class="feature-name">Structured AI, not open chat</div>
-        <div class="feature-desc">ChatGPT is a blank page. Stickpoint gives students a structured session with a clear start, middle, and end — AI coaching built into a proven learning framework, not just a chat window.</div>
-      </div>
-      <div class="feature-card" style="border-color: #2DD4A7; border-width: 3px;">
-        <div class="feature-icon">📈</div>
-        <div class="feature-name">Accountability by design</div>
-        <div class="feature-desc">Missed items bank, test date countdown, streak tracking, and a daily "next step" recommendation mean students always know what to do — and whether they did it.</div>
-      </div>
-      <div class="feature-card" style="border-color: #FFC93C; border-width: 3px;">
-        <div class="feature-icon">⚡</div>
-        <div class="feature-name">Zero setup time</div>
-        <div class="feature-desc">Take the quiz (3 minutes). Paste your notes. Start studying. No manual flashcard creation, no tagging, no deck organisation. Stickpoint does all the prep so students can spend time actually learning.</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- CTA -->
-  <div class="cta-strip">
-    <div class="cta-title">Stickpoint — Study smarter, not harder.</div>
-    <div class="cta-sub">The only study tool that finds the right method for each student, then coaches them through it with AI — across any subject, any notes, any exam.</div>
-  </div>
-
-</div>
-</body>
+  </body>
 </html>
