@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
   charCount: { fontSize: 12, fontWeight: '700', textAlign: 'right' },
   btn: {
     borderWidth: 3, padding: 16, alignItems: 'center',
-    ...Platform.select({ ios: { shadowColor: '#201E2E', shadowOffset: { width: 5, height: 5 }, shadowOpacity: 1, shadowRadius: 0 }, android: { elevation: 4 } }),
+    boxShadow: '5px 5px 0px #201E2E',
   },
   btnText: { fontWeight: '900', fontSize: 15 },
   skipLink: { alignSelf: 'center', paddingVertical: 4 },

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useColors } from '@/hooks/useColors';
@@ -185,14 +185,14 @@ const styles = StyleSheet.create({
   phaseLabel: { fontWeight: '900', fontSize: 12, letterSpacing: 1.5 },
   timerContainer: {
     borderWidth: 3, padding: 32, alignItems: 'center', gap: 16, width: '100%',
-    ...Platform.select({ ios: { shadowOffset: { width: 5, height: 5 }, shadowOpacity: 1, shadowRadius: 0 }, android: { elevation: 4 } }),
+    boxShadow: '5px 5px 0px #201E2E',
   },
   timerText: { fontSize: 56, fontWeight: '900', fontVariant: ['tabular-nums'] },
   timerTrack: { width: '100%', height: 10, borderWidth: 2, borderColor: '#201E2E', overflow: 'hidden' },
   timerFill: { height: '100%' },
   controls: { flexDirection: 'row', gap: 14, alignItems: 'center' },
   playBtn: { borderWidth: 3, width: 60, height: 60, alignItems: 'center', justifyContent: 'center',
-    ...Platform.select({ ios: { shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0 }, android: { elevation: 3 } }),
+    boxShadow: '4px 4px 0px #201E2E',
   },
   skipBtn: { borderWidth: 3, width: 50, height: 50, alignItems: 'center', justifyContent: 'center' },
   noteCard: { width: '100%', borderWidth: 3, padding: 16, gap: 8 },
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
   completeBody: { fontWeight: '700', fontSize: 14, lineHeight: 22, textAlign: 'center' },
   btn: {
     width: '100%', borderWidth: 3, padding: 15, alignItems: 'center',
-    ...Platform.select({ ios: { shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0 }, android: { elevation: 3 } }),
+    boxShadow: '4px 4px 0px #201E2E',
   },
   btnText: { fontWeight: '900', fontSize: 15 },
   backLink: { flexDirection: 'row', alignItems: 'center', gap: 6 },

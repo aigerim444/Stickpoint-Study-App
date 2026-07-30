@@ -73,7 +73,6 @@ export default function ChopCharacter({ size = 1, color = '#201E2E', animation =
         height: 4 * s,
         borderRadius: 2 * s,
         backgroundColor: color,
-        transformOrigin: 'right center',
         transform: [{ rotate: '-35deg' }],
       }} />
       {/* Right leg */}
@@ -85,7 +84,6 @@ export default function ChopCharacter({ size = 1, color = '#201E2E', animation =
         height: 4 * s,
         borderRadius: 2 * s,
         backgroundColor: color,
-        transformOrigin: 'left center',
         transform: [{ rotate: '35deg' }],
       }} />
     </View>

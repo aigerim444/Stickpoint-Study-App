@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  Platform, Pressable, ScrollView, StyleSheet, Text, View,
+  Pressable, ScrollView, StyleSheet, Text, View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -125,12 +125,12 @@ const styles = StyleSheet.create({
   progressFill: { height: '100%' },
   subjectCard: {
     borderWidth: 3, padding: 16,
-    ...Platform.select({ ios: { shadowColor: '#201E2E', shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0 }, android: { elevation: 3 } }),
+    boxShadow: '4px 4px 0px #201E2E',
   },
   subjectText: { fontWeight: '800', fontSize: 15 },
   optCard: {
     borderWidth: 3, padding: 14, flexDirection: 'row', gap: 12, alignItems: 'center',
-    ...Platform.select({ ios: { shadowColor: '#201E2E', shadowOffset: { width: 3, height: 3 }, shadowOpacity: 1, shadowRadius: 0 }, android: { elevation: 2 } }),
+    boxShadow: '3px 3px 0px #201E2E',
   },
   optBullet: { width: 22, height: 22, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   checkmark: { color: '#fff', fontWeight: '900', fontSize: 12 },

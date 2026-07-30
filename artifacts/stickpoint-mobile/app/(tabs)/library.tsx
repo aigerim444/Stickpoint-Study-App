@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  Alert, Platform, Pressable, ScrollView, StyleSheet, Text,
+  Alert, Pressable, ScrollView, StyleSheet, Text,
   TextInput, View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -96,7 +96,7 @@ export default function LibraryTab() {
               {
                 borderColor: isCurrent ? c.primary : c.dark,
                 backgroundColor: isCurrent ? c.purpleLight : c.card,
-                shadowColor: isCurrent ? c.primary : c.dark,
+                boxShadow: isCurrent ? `3px 3px 0px ${c.primary}` : `3px 3px 0px ${c.dark}`,
               },
             ]}>
             {/* Title row */}
@@ -181,12 +181,12 @@ const styles = StyleSheet.create({
   addBtn: {
     borderWidth: 3, flexDirection: 'row', alignItems: 'center', gap: 4,
     paddingHorizontal: 14, paddingVertical: 8,
-    ...Platform.select({ ios: { shadowColor: '#201E2E', shadowOffset: { width: 3, height: 3 }, shadowOpacity: 1, shadowRadius: 0 }, android: { elevation: 3 } }),
+    boxShadow: '3px 3px 0px #201E2E',
   },
   addBtnText: { fontWeight: '900', fontSize: 13 },
   entryCard: {
     borderWidth: 3, padding: 14, gap: 10,
-    ...Platform.select({ ios: { shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0 }, android: { elevation: 3 } }),
+    boxShadow: '4px 4px 0px #201E2E',
   },
   entryHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, justifyContent: 'space-between' },
   entryName: { fontWeight: '900', fontSize: 15, flex: 1 },
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
   emptyTitle: { fontWeight: '900', fontSize: 16 },
   emptyBody: { fontWeight: '700', fontSize: 13, lineHeight: 20, textAlign: 'center' },
   emptyBtn: { borderWidth: 3, paddingHorizontal: 20, paddingVertical: 12, marginTop: 4,
-    ...Platform.select({ ios: { shadowColor: '#201E2E', shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0 }, android: { elevation: 3 } }),
+    boxShadow: '4px 4px 0px #201E2E',
   },
   emptyBtnText: { fontWeight: '900', fontSize: 14 },
 });

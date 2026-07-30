@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useApp } from '@/context/AppContext';
@@ -173,7 +173,7 @@ export default function ProgressTab() {
 
 function StatBox({ label, value, color }: { label: string; value: string; color: string }) {
   return (
-    <View style={[styles.statBox, { borderColor: c.dark, shadowColor: color }]}>
+    <View style={[styles.statBox, { borderColor: c.dark, boxShadow: `4px 4px 0px ${color}` }]}>
       <Text style={[styles.statValue, { color }]}>{value}</Text>
       <Text style={[styles.statLabel, { color: c.muted }]}>{label}</Text>
     </View>
@@ -187,13 +187,13 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', gap: 10 },
   statBox: {
     flex: 1, borderWidth: 3, padding: 14, alignItems: 'center', gap: 2,
-    ...Platform.select({ ios: { shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0 }, android: { elevation: 3 } }),
+    boxShadow: '4px 4px 0px #201E2E',
   },
   statValue: { fontWeight: '900', fontSize: 24 },
   statLabel: { fontWeight: '800', fontSize: 9, letterSpacing: 1.5 },
   card: {
     borderWidth: 3, padding: 16, gap: 12,
-    ...Platform.select({ ios: { shadowColor: '#201E2E', shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0 }, android: { elevation: 3 } }),
+    boxShadow: '4px 4px 0px #201E2E',
   },
   ptRow: { flexDirection: 'row', justifyContent: 'space-around' },
   ptStat: { alignItems: 'center', gap: 2 },

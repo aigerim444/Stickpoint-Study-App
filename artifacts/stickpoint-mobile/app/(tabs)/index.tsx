@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import {
-  Platform, Pressable, ScrollView, StyleSheet, Text, View,
+  Pressable, ScrollView, StyleSheet, Text, View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
   sectionLabel: { fontWeight: '900', fontSize: 10, letterSpacing: 1.5, marginTop: 4 },
   methodCard: {
     borderWidth: 3, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12,
-    ...Platform.select({ ios: { shadowColor: '#201E2E', shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0 }, android: { elevation: 3 } }),
+    boxShadow: '4px 4px 0px #201E2E',
   },
   methodIcon: { width: 44, height: 44, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   methodLabel: { fontWeight: '900', fontSize: 14 },

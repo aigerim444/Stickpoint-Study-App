@@ -102,13 +102,13 @@ const styles = StyleSheet.create({
   chopRow: { marginBottom: 4 },
   logoBox: {
     borderWidth: 3, paddingHorizontal: 20, paddingVertical: 8,
-    ...Platform.select({ ios: { shadowColor: '#201E2E', shadowOffset: { width: 5, height: 5 }, shadowOpacity: 1, shadowRadius: 0 }, android: { elevation: 4 } }),
+    boxShadow: '5px 5px 0px #201E2E',
   },
   logoText: { fontWeight: '900', fontSize: 22, letterSpacing: 4 },
   tagline: { fontWeight: '700', fontSize: 14, textAlign: 'center' },
   card: {
     borderWidth: 3, padding: 20, gap: 16,
-    ...Platform.select({ ios: { shadowColor: '#201E2E', shadowOffset: { width: 5, height: 5 }, shadowOpacity: 1, shadowRadius: 0 }, android: { elevation: 4 } }),
+    boxShadow: '5px 5px 0px #201E2E',
   },
   cardTitle: { fontWeight: '900', fontSize: 13, letterSpacing: 2 },
   cardBody: { fontWeight: '700', fontSize: 14, lineHeight: 22 },
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
   error: { fontWeight: '800', fontSize: 13 },
   btn: {
     borderWidth: 3, padding: 16, alignItems: 'center',
-    ...Platform.select({ ios: { shadowColor: '#201E2E', shadowOffset: { width: 5, height: 5 }, shadowOpacity: 1, shadowRadius: 0 }, android: { elevation: 4 } }),
+    boxShadow: '5px 5px 0px #201E2E',
   },
   btnText: { fontWeight: '900', fontSize: 16 },
 });

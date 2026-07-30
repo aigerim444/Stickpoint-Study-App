@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  ActivityIndicator, Platform, Pressable, ScrollView,
+  ActivityIndicator, Pressable, ScrollView,
   StyleSheet, Text, TextInput, View,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
   label: { fontWeight: '800', fontSize: 13, letterSpacing: 1 },
   progress: { fontSize: 11, fontWeight: '800', letterSpacing: 0.5 },
   card: { borderWidth: 3, padding: 20, gap: 8,
-    ...Platform.select({ ios: { shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0 }, android: { elevation: 3 } }),
+    boxShadow: '4px 4px 0px #201E2E',
   },
   heading: { fontSize: 16, fontWeight: '900', letterSpacing: 1 },
   body: { fontSize: 14, fontWeight: '700', lineHeight: 22 },
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
   infoBody: { fontSize: 13, fontWeight: '700', lineHeight: 20 },
   btn: {
     borderWidth: 3, padding: 15, alignItems: 'center',
-    ...Platform.select({ ios: { shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0 }, android: { elevation: 3 } }),
+    boxShadow: '4px 4px 0px #201E2E',
   },
   btnText: { fontWeight: '900', fontSize: 15 },
   backLink: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'center', paddingTop: 4 },

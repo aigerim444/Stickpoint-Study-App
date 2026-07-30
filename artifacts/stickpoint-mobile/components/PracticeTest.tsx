@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import {
-  Platform, Pressable, ScrollView, StyleSheet, Text, View,
+  Pressable, ScrollView, StyleSheet, Text, View,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
   progressBar: { height: 10, borderWidth: 2, borderColor: '#201E2E', overflow: 'hidden' },
   progressFill: { height: '100%' },
   questionCard: { borderWidth: 3, padding: 20,
-    ...Platform.select({ ios: { shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0 }, android: { elevation: 3 } }),
+    boxShadow: '4px 4px 0px #201E2E',
   },
   qText: { fontSize: 17, fontWeight: '800', lineHeight: 26 },
   option: { borderWidth: 3, padding: 14, flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
   optionText: { flex: 1, fontSize: 14, fontWeight: '700', lineHeight: 22 },
   scoreCard: {
     borderWidth: 3, padding: 24, alignItems: 'center', gap: 2,
-    ...Platform.select({ ios: { shadowOffset: { width: 5, height: 5 }, shadowOpacity: 1, shadowRadius: 0 }, android: { elevation: 4 } }),
+    boxShadow: '5px 5px 0px #201E2E',
   },
   scoreNum: { fontWeight: '900', fontSize: 36 },
   scorePct: { fontWeight: '900', fontSize: 16 },
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
   reviewRight: { fontWeight: '800', fontSize: 12, lineHeight: 18 },
   btn: {
     borderWidth: 3, padding: 15, alignItems: 'center',
-    ...Platform.select({ ios: { shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0 }, android: { elevation: 3 } }),
+    boxShadow: '4px 4px 0px #201E2E',
   },
   btnText: { fontWeight: '900', fontSize: 15 },
   backLink: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'center', paddingTop: 4 },

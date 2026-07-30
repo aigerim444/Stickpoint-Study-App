@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useColors } from '@/hooks/useColors';
@@ -57,7 +57,7 @@ export default function Blurting({ topic, notes, name, age, onComplete, onBack }
     return (
       <ScrollView contentContainerStyle={[styles.container, { paddingBottom: 40 }]}>
         {/* Score */}
-        <View style={[styles.scoreCard, { borderColor: scorePct >= 70 ? colors.green : scorePct >= 40 ? colors.yellow : colors.red, shadowColor: colors.dark }]}>
+        <View style={[styles.scoreCard, { borderColor: scorePct >= 70 ? colors.green : scorePct >= 40 ? colors.yellow : colors.red }]}>
           <Text style={[styles.scoreNum, { color: colors.dark }]}>{scorePct}%</Text>
           <Text style={[styles.scoreSub, { color: colors.muted }]}>ATTEMPT {attempt}</Text>
         </View>
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
   charCount: { fontSize: 11, fontWeight: '700', textAlign: 'right' },
   btn: {
     borderWidth: 3, padding: 15, alignItems: 'center',
-    ...Platform.select({ ios: { shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0 }, android: { elevation: 3 } }),
+    boxShadow: '4px 4px 0px #201E2E',
   },
   btnRow: { flexDirection: 'row', gap: 10 },
   btnText: { fontWeight: '900', fontSize: 15 },
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
   backLinkText: { fontSize: 12, fontWeight: '700' },
   scoreCard: {
     borderWidth: 3, padding: 24, alignItems: 'center', gap: 4,
-    ...Platform.select({ ios: { shadowOffset: { width: 5, height: 5 }, shadowOpacity: 1, shadowRadius: 0 }, android: { elevation: 4 } }),
+    boxShadow: '5px 5px 0px #201E2E',
   },
   scoreNum: { fontWeight: '900', fontSize: 48 },
   scoreSub: { fontWeight: '800', fontSize: 11, letterSpacing: 1 },

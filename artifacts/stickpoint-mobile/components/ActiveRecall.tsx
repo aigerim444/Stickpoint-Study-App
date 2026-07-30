@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { Animated, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useColors } from '@/hooks/useColors';
@@ -68,7 +68,7 @@ export default function ActiveRecall({ cards, onComplete, onBack }: Props) {
   if (done) {
     return (
       <ScrollView contentContainerStyle={[styles.container, { paddingBottom: 40 }]}>
-        <View style={[styles.card, { borderColor: colors.green, shadowColor: colors.green }]}>
+        <View style={[styles.card, { borderColor: colors.green, boxShadow: `5px 5px 0px ${colors.green}` }]}>
           <Text style={[styles.sessionComplete]}>SESSION COMPLETE!</Text>
           <View style={styles.countRow}>
             <View style={[styles.countBadge, { backgroundColor: colors.greenLight, borderColor: colors.green }]}>
@@ -121,7 +121,7 @@ export default function ActiveRecall({ cards, onComplete, onBack }: Props) {
       </View>
 
       {/* Card */}
-      <Pressable onPress={flip} style={[styles.flashCard, { borderColor: colors.dark, shadowColor: colors.primary }]}>
+      <Pressable onPress={flip} style={[styles.flashCard, { borderColor: colors.dark, boxShadow: `5px 5px 0px ${colors.primary}` }]}>
         <Text style={[styles.question, { color: colors.dark }]}>{current?.card.question}</Text>
         <Animated.View style={{ opacity: answerOpacity }}>
           {flipped && (
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
   flashCard: {
     minHeight: 180, borderWidth: 3, borderRadius: 0,
     padding: 24, alignItems: 'center', justifyContent: 'center', gap: 16,
-    ...Platform.select({ ios: { shadowOffset: { width: 5, height: 5 }, shadowOpacity: 1, shadowRadius: 0 }, android: { elevation: 4 } }),
+    boxShadow: '5px 5px 0px #201E2E',
   },
   question: { fontSize: 17, fontWeight: '800', textAlign: 'center', lineHeight: 26 },
   answer: { fontSize: 17, fontWeight: '900', textAlign: 'center', lineHeight: 26 },
@@ -184,13 +184,13 @@ const styles = StyleSheet.create({
   rateBtn: { flex: 1, borderWidth: 3, padding: 13, alignItems: 'center' },
   rateBtnText: { fontWeight: '900', fontSize: 13, color: '#fff' },
   btn: { borderWidth: 3, padding: 15, alignItems: 'center',
-    ...Platform.select({ ios: { shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0 }, android: { elevation: 3 } }),
+    boxShadow: '4px 4px 0px #201E2E',
   },
   btnText: { fontWeight: '900', fontSize: 15 },
   backLink: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'center', paddingTop: 4 },
   backLinkText: { fontSize: 12, fontWeight: '700' },
   card: { borderWidth: 3, padding: 20, alignItems: 'center', gap: 14,
-    ...Platform.select({ ios: { shadowOffset: { width: 5, height: 5 }, shadowOpacity: 1, shadowRadius: 0 }, android: { elevation: 4 } }),
+    boxShadow: '5px 5px 0px #201E2E',
   },
   sessionComplete: { fontFamily: 'NunitoBlack', fontSize: 15, fontWeight: '900', color: '#201E2E', letterSpacing: 1 },
   countRow: { flexDirection: 'row', gap: 8 },
