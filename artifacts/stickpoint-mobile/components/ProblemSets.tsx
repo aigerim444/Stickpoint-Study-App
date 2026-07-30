@@ -290,9 +290,20 @@ export default function ProblemSets({ notes, name, age, onComplete, onBack }: Pr
       );
       return;
     }
+    if (phase === 'worked' && sess.stepsShown > 1) {
+      Alert.alert(
+        'Leave the worked example?',
+        '',
+        [
+          { text: 'Stay', style: 'cancel' },
+          { text: 'Leave', style: 'destructive', onPress: () => { update({ stepsShown: 1 }); setPhase('pick'); } },
+        ],
+      );
+      return;
+    }
     update({ work: '', result: null });
     setPhase('pick');
-  }, [phase, sess.work, update]);
+  }, [phase, sess.work, sess.stepsShown, update]);
 
   // ── REGENERATE ────────────────────────────────────────────────────────────
   const doRegenerate = useCallback(async () => {
@@ -466,7 +477,22 @@ export default function ProblemSets({ notes, name, age, onComplete, onBack }: Pr
           </Pressable>
         )}
 
-        <Pressable onPress={onBack} style={styles.backLink}>
+        <Pressable
+          onPress={() => {
+            if (sess.stepsShown > 1) {
+              Alert.alert(
+                'Leave the worked example?',
+                '',
+                [
+                  { text: 'Stay', style: 'cancel' },
+                  { text: 'Leave', style: 'destructive', onPress: onBack },
+                ],
+              );
+            } else {
+              onBack();
+            }
+          }}
+          style={styles.backLink}>
           <Feather name="arrow-left" size={14} color={colors.muted} />
           <Text style={[styles.backLinkText, { color: colors.muted }]}>back to methods</Text>
         </Pressable>
