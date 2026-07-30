@@ -34,6 +34,7 @@ interface SessionState {
   errorTypes: Record<string, number>;
   gradeError: boolean;
   notMath: boolean;
+  showHint: boolean;
 }
 
 function Figure({ fig }: { fig: PsFigure }) {
@@ -91,7 +92,7 @@ export default function ProblemSets({ notes, name, age, onComplete, onBack }: Pr
   const [sess, setSess] = useState<SessionState>({
     skills: [], skillIdx: 0, stepsShown: 1, pIdx: 0,
     work: '', result: null, attempts: {}, solved: {}, errorTypes: {},
-    gradeError: false, notMath: false,
+    gradeError: false, notMath: false, showHint: false,
   });
   const generatedRef = useRef(false);
 
@@ -131,7 +132,7 @@ export default function ProblemSets({ notes, name, age, onComplete, onBack }: Pr
   }, [sess.stepsShown, update]);
 
   const startPractice = useCallback(() => {
-    update({ pIdx: 0, work: '', result: null, gradeError: false });
+    update({ pIdx: 0, work: '', result: null, gradeError: false, showHint: false });
     setPhase('solve');
   }, [update]);
 
@@ -166,7 +167,7 @@ export default function ProblemSets({ notes, name, age, onComplete, onBack }: Pr
   const fixIt = useCallback(() => {
     const r = sess.result;
     const kept = r?.errLine ? r.lines.slice(0, r.errLine - 1) : [];
-    update({ work: kept.length ? kept.join('\n') + '\n' : '', result: null, gradeError: false });
+    update({ work: kept.length ? kept.join('\n') + '\n' : '', result: null, gradeError: false, showHint: false });
     setPhase('solve');
   }, [sess.result, update]);
 
@@ -183,7 +184,7 @@ export default function ProblemSets({ notes, name, age, onComplete, onBack }: Pr
       onComplete(hard);
       return;
     }
-    update({ pIdx: sess.pIdx + 1, work: '', result: null, gradeError: false });
+    update({ pIdx: sess.pIdx + 1, work: '', result: null, gradeError: false, showHint: false });
     setPhase('solve');
   }, [sess, update, onComplete]);
 
@@ -374,6 +375,20 @@ export default function ProblemSets({ notes, name, age, onComplete, onBack }: Pr
           autoCapitalize="none"
         />
 
+        {!sess.showHint && prob.hint ? (
+          <Pressable
+            onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); update({ showHint: true }); }}
+            style={[styles.hintBtn, { borderColor: colors.yellow }]}>
+            <Feather name="life-buoy" size={14} color={colors.dark} />
+            <Text style={[styles.hintBtnText, { color: colors.dark }]}>STUCK? GET A HINT</Text>
+          </Pressable>
+        ) : sess.showHint && prob.hint ? (
+          <View style={[styles.hintCard, { borderColor: colors.yellow, backgroundColor: '#FFF3DE' }]}>
+            <Text style={[styles.miniLabel, { color: colors.dark }]}>💡 HINT</Text>
+            <Text style={[styles.hintText, { color: colors.dark }]}>{prob.hint}</Text>
+          </View>
+        ) : null}
+
         {sess.gradeError && (
           <Text style={[styles.errorNote, { color: colors.red }]}>
             Couldn't check that. Check your connection and try again.
@@ -544,6 +559,10 @@ const styles = StyleSheet.create({
     borderWidth: 3, padding: 14, fontSize: 15, fontWeight: '600', minHeight: 160,
     lineHeight: 24, fontFamily: 'monospace',
   },
+  hintBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 2, paddingHorizontal: 14, paddingVertical: 10, alignSelf: 'flex-start' },
+  hintBtnText: { fontWeight: '900', fontSize: 12, letterSpacing: 0.5 },
+  hintCard: { borderWidth: 3, padding: 14, gap: 6 },
+  hintText: { fontSize: 13, fontWeight: '700', lineHeight: 20 },
   errorNote: { fontSize: 12, fontWeight: '700' },
   resultIcon: { fontSize: 14, fontWeight: '900', letterSpacing: 1 },
   errorTypeBadge: { alignSelf: 'flex-start', borderWidth: 2, paddingHorizontal: 8, paddingVertical: 3 },
