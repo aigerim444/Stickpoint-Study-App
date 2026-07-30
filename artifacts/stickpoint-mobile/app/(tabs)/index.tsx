@@ -14,6 +14,7 @@ import PracticeTest from '@/components/PracticeTest';
 import Pomodoro from '@/components/Pomodoro';
 import SelfExplanation from '@/components/SelfExplanation';
 import ElaborativeInterrogation from '@/components/ElaborativeInterrogation';
+import ProblemSets from '@/components/ProblemSets';
 import ChopCharacter from '@/components/ChopCharacter';
 import colors from '@/constants/colors';
 
@@ -157,6 +158,22 @@ export default function StudyTab() {
             name={state.name}
             age={state.age}
             onComplete={() => endSession()}
+            onBack={goBack}
+          />
+        </View>
+      );
+    }
+    if (activeSession === 'problem_sets') {
+      return (
+        <View style={{ flex: 1, backgroundColor: c.background }}>
+          <View style={[styles.sessionHeader, { paddingTop: insets.top + 8 }]}>
+            <Text style={styles.sessionTitle}>PROBLEM SETS</Text>
+          </View>
+          <ProblemSets
+            notes={state.material}
+            name={state.name}
+            age={state.age}
+            onComplete={(hard) => endSession(hard)}
             onBack={goBack}
           />
         </View>

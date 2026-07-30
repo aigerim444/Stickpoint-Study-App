@@ -237,6 +237,162 @@ export async function gradeSelfExplain(
   }
 }
 
+// ─── Problem Sets ────────────────────────────────────────────────────────────
+
+export interface PsStep {
+  step: string;
+  why: string;
+}
+
+export interface PsFigure {
+  type: 'table' | 'chart' | 'diagram';
+  headers?: string[];
+  rows?: string[][];
+  bars?: { label: string; value: number }[];
+  art?: string;
+  caption?: string;
+}
+
+export interface PsSkill {
+  skill: string;
+  worked: {
+    problem: string;
+    figure?: PsFigure | null;
+    steps: PsStep[];
+  };
+  practice: {
+    problem: string;
+    answer: string;
+    hint: string;
+    figure?: PsFigure | null;
+  }[];
+}
+
+export interface PsGenerateResult {
+  skills: PsSkill[];
+}
+
+function cleanPsFigure(f: unknown): PsFigure | null {
+  if (!f || typeof f !== 'object') return null;
+  const fig = f as Record<string, unknown>;
+  const caption = typeof fig.caption === 'string' ? fig.caption : '';
+  if (fig.type === 'table' && Array.isArray(fig.headers) && Array.isArray(fig.rows))
+    return { type: 'table', headers: (fig.headers as unknown[]).map(String), rows: (fig.rows as unknown[]).filter(Array.isArray).map((r) => (r as unknown[]).map(String)), caption };
+  if (fig.type === 'chart' && Array.isArray(fig.bars)) {
+    const bars = (fig.bars as unknown[]).filter((b): b is { label: unknown; value: number } => !!b && typeof (b as Record<string,unknown>).value === 'number');
+    return bars.length ? { type: 'chart', bars: bars.map((b) => ({ label: String(b.label), value: b.value })), caption } : null;
+  }
+  if (fig.type === 'diagram' && typeof fig.art === 'string' && fig.art.trim())
+    return { type: 'diagram', art: fig.art, caption };
+  return null;
+}
+
+export async function generateProblemSets(
+  material: string,
+  name: string,
+  age: number | null,
+): Promise<PsGenerateResult | null | 'not_math'> {
+  const trimmed = material.trim().slice(0, 6000);
+  const prompt =
+    `Here is a student's study material:\n\n"""${trimmed}"""\n\n` +
+    `This student is studying MATH or a problem-based science. Do not make vocabulary cards. Instead identify the 3 to 6 PROBLEM TYPES (procedural skills) this material requires, things a student has to DO, like "solve a quadratic by factoring" or "differentiate a product".\n` +
+    `For each skill give: one fully worked example broken into 3 to 6 steps, where every step has the algebra/working AND a short plain-English reason for that step; then 3 practice problems of increasing difficulty with their final answers and a one-line hint each.\n` +
+    `Write all mathematics as plain text a student could type (x^2, sqrt(x), (a+b)/c, integral, pi), no LaTeX, no markdown.\n` +
+    `If the material genuinely contains no problems to solve (it is pure prose or vocabulary), return exactly {"not_math": true} instead.\n` +
+    `Otherwise return ONLY JSON: {"skills": [{"skill": "short name of the procedure", "worked": {"problem": "the example problem", "steps": [{"step": "the working for this line", "why": "why you do this, one short sentence"}]}, "practice": [{"problem": "a problem of this type", "answer": "the final answer", "hint": "a one line nudge, no answer"}]}]}`;
+
+  const system =
+    `You are a maths tutor who builds worked examples and graded practice from a student's own material. Respond with ONLY valid JSON, no markdown fences, no extra text. Never use em dashes.` +
+    ageDirective(name, age);
+
+  const text = await callClaude({ messages: [{ role: 'user', content: prompt }], system, max_tokens: 8000 });
+  if (!text) return null;
+
+  try {
+    const match = text.match(/\{[\s\S]*\}/);
+    if (!match) return null;
+    const parsed = JSON.parse(match[0]);
+    if (parsed.not_math) return 'not_math';
+    if (!Array.isArray(parsed.skills)) return null;
+    const skills: PsSkill[] = parsed.skills
+      .filter((s: unknown) => {
+        if (!s || typeof s !== 'object') return false;
+        const sk = s as Record<string, unknown>;
+        return sk.skill && sk.worked && Array.isArray((sk.worked as Record<string,unknown>).steps) && Array.isArray(sk.practice);
+      })
+      .slice(0, 6)
+      .map((s: Record<string, unknown>) => {
+        const w = s.worked as Record<string, unknown>;
+        return {
+          skill: String(s.skill),
+          worked: {
+            problem: String(w.problem || ''),
+            figure: cleanPsFigure(w.figure),
+            steps: (w.steps as Record<string,unknown>[]).map((st) => ({ step: String(st.step || ''), why: String(st.why || '') })),
+          },
+          practice: (s.practice as Record<string,unknown>[]).map((p) => ({
+            problem: String(p.problem || ''),
+            answer: String(p.answer || ''),
+            hint: String(p.hint || ''),
+            figure: cleanPsFigure(p.figure),
+          })),
+        };
+      });
+    return skills.length ? { skills } : null;
+  } catch {
+    return null;
+  }
+}
+
+export interface PsGradeResult {
+  errLine: number | null;
+  errorType: string;
+  explanation: string;
+  correctLine: string;
+  reached: boolean;
+  lines: string[];
+}
+
+export async function gradeProblemStep(
+  skillName: string,
+  problem: string,
+  correctAnswer: string,
+  workLines: string[],
+  name: string,
+  age: number | null,
+): Promise<PsGradeResult | null> {
+  const numbered = workLines.map((l, i) => `${i + 1}. ${l}`).join('\n');
+  const prompt =
+    `A student is solving this ${skillName} problem:\n"""${problem}"""\nThe correct final answer is: "${correctAnswer}".\n\n` +
+    `Here is their working, one step per numbered line:\n${numbered}\n\n` +
+    `Check the working LINE BY LINE. Find the FIRST line that contains a mathematical error, everything before it is correct. Mathematically equivalent forms are correct (2/4 equals 1/2, x=-2 or x=-3 equals x=-3 or x=-2). Skipping several steps at once is fine as long as the result is right.\n` +
+    `Name the error using a short reusable label describing the KIND of mistake, for example "sign error", "dropped a term", "wrong order of operations", "arithmetic slip", "used the wrong rule".\n` +
+    `Return ONLY JSON: {"first_error_line": the 1-based line number of the first wrong line or null if all correct, "error_type": "short reusable label or empty string if none", "explanation": "one or two sentences about what went wrong and what to do instead", "correct_line": "what that line should say or empty string", "reached_answer": true if their final line matches the correct answer}`;
+
+  const system =
+    `You are a maths tutor marking a student's working line by line. Find the FIRST error and explain it without solving the rest for them. Respond with ONLY valid JSON, no markdown fences, no extra text. Never use em dashes.` +
+    ageDirective(name, age);
+
+  const text = await callClaude({ messages: [{ role: 'user', content: prompt }], system, max_tokens: 600 });
+  if (!text) return null;
+  try {
+    const match = text.match(/\{[\s\S]*\}/);
+    if (!match) return null;
+    const p = JSON.parse(match[0]);
+    if (typeof p.first_error_line !== 'number' && p.first_error_line !== null) return null;
+    return {
+      errLine: typeof p.first_error_line === 'number' ? p.first_error_line : null,
+      errorType: String(p.error_type || ''),
+      explanation: String(p.explanation || ''),
+      correctLine: String(p.correct_line || ''),
+      reached: !!p.reached_answer,
+      lines: workLines,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function gradePracticeTestSA(
   question: string,
   correctAnswer: string,
