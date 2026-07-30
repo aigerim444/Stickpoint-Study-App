@@ -1,0 +1,27 @@
+kind = "video"
+previewPath = "/stickpoint-video/"
+title = "Stickpoint Promo Video"
+version = "1.0.0"
+id = "artifacts/stickpoint-video"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/stickpoint-video/" ]
+localPort = 18249
+
+[services.development]
+run = "pnpm --filter @workspace/stickpoint-video run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/stickpoint-video", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/stickpoint-video/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18249"
+BASE_PATH = "/stickpoint-video/"

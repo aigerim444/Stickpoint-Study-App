@@ -1,0 +1,71 @@
+@import 'tailwindcss';
+
+:root {
+  --color-primary: #FF6B4A;
+  --color-secondary: #FF5A5F;
+  --color-accent: #7C5CFC;
+
+  --color-bg-light: #FBE8D3;
+  --color-bg-dark: #FBE8D3;
+  --color-bg-muted: #FBE8D3;
+
+  --color-text-primary: #201E2E;
+  --color-text-secondary: #201E2E;
+  --color-text-muted: #201E2E;
+  --color-text-inverse: #FBE8D3;
+
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #FF5A5F;
+  --color-ink: #201E2E;
+
+  --font-display: 'Press Start 2P', cursive;
+  --font-body: 'Nunito', sans-serif;
+  --font-mono: 'Press Start 2P', cursive;
+}
+
+@theme inline {
+  --color-primary: var(--color-primary);
+  --color-secondary: var(--color-secondary);
+  --color-accent: var(--color-accent);
+  --color-bg-light: var(--color-bg-light);
+  --color-bg-dark: var(--color-bg-dark);
+  --color-bg-muted: var(--color-bg-muted);
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-muted: var(--color-text-muted);
+  --color-text-inverse: var(--color-text-inverse);
+  --color-ink: var(--color-ink);
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-mono: var(--font-mono);
+}
+
+body {
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--color-bg-light);
+  color: var(--color-text-primary);
+}
+
+.brutal-border {
+  border: 4px solid var(--color-ink);
+}
+
+.brutal-shadow {
+  box-shadow: 4px 4px 0 var(--color-ink);
+}
+
+.brutal-shadow-lg {
+  box-shadow: 8px 8px 0 var(--color-ink);
+}
+
+.brutal-shadow-xl {
+  box-shadow: 12px 12px 0 var(--color-ink);
+}
+
+.text-stroke {
+  -webkit-text-stroke: 2px var(--color-ink);
+  color: white;
+}
