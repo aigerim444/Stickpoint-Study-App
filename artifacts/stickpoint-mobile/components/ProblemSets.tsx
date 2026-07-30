@@ -279,9 +279,20 @@ export default function ProblemSets({ notes, name, age, onComplete, onBack }: Pr
   }, [sess, update, onComplete]);
 
   const backToSkills = useCallback(() => {
+    if (phase === 'solve' && sess.work.trim().length > 0) {
+      Alert.alert(
+        'Leave this problem?',
+        'Your working will not be saved.',
+        [
+          { text: 'Stay', style: 'cancel' },
+          { text: 'Leave', style: 'destructive', onPress: () => { update({ work: '', result: null }); setPhase('pick'); } },
+        ],
+      );
+      return;
+    }
     update({ work: '', result: null });
     setPhase('pick');
-  }, [update]);
+  }, [phase, sess.work, update]);
 
   // ── REGENERATE ────────────────────────────────────────────────────────────
   const doRegenerate = useCallback(async () => {
@@ -540,7 +551,22 @@ export default function ProblemSets({ notes, name, age, onComplete, onBack }: Pr
           <Text style={[styles.btnText, { color: canSubmit ? '#fff' : colors.muted }]}>SUBMIT WORKING</Text>
         </Pressable>
 
-        <Pressable onPress={onBack} style={styles.backLink}>
+        <Pressable
+          onPress={() => {
+            if (sess.work.trim().length > 0) {
+              Alert.alert(
+                'Leave this problem?',
+                'Your working will not be saved.',
+                [
+                  { text: 'Stay', style: 'cancel' },
+                  { text: 'Leave', style: 'destructive', onPress: onBack },
+                ],
+              );
+            } else {
+              onBack();
+            }
+          }}
+          style={styles.backLink}>
           <Feather name="arrow-left" size={14} color={colors.muted} />
           <Text style={[styles.backLinkText, { color: colors.muted }]}>back to methods</Text>
         </Pressable>
