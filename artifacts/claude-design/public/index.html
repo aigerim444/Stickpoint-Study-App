@@ -1757,9 +1757,9 @@
             <!-- header -->
             <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
               <div style="font-size:32px;">🧮</div>
-              <div style="font-family:'Press Start 2P';font-size:11px;color:#FF6B4A;letter-spacing:0.5px;text-align:center;line-height:1.7;">MATH DETECTED</div>
-              <div style="font-family:'Nunito';font-weight:900;font-size:17px;color:#201E2E;line-height:1.35;text-align:center;">It looks like you're studying math!</div>
-              <div style="font-size:12px;font-weight:700;color:#463f52;line-height:1.6;text-align:center;">Math is about practising moves, not memorising facts. These three methods are specifically built for it — here's why each one works:</div>
+              <div style="font-family:'Press Start 2P';font-size:11px;color:#FF6B4A;letter-spacing:0.5px;text-align:center;line-height:1.7;">I DETECT SOME MATH</div>
+              <div style="font-family:'Nunito';font-weight:900;font-size:17px;color:#201E2E;line-height:1.35;text-align:center;">I detect there's some math in your notes!</div>
+              <div style="font-size:12px;font-weight:700;color:#463f52;line-height:1.6;text-align:center;">Math is about practising moves, not memorising facts. These three methods are built for it — want to switch your top 3?</div>
             </div>
 
             <!-- recommended methods -->
@@ -2545,7 +2545,8 @@ class Component extends DCLogic {
       // session object and short-circuit, leaving the previous material's cards on screen.
       setTimeout(() => {
         this.ensureSession(activeMethod);
-        if ((parsed.is_math || parsed.isMath) && !this.state.mathNoticeSeen) this.setState({ mathNoticeOpen: true });
+        // Show for every new math material (materialTopMethods is null until the user makes a choice)
+        if (parsed.is_math || parsed.isMath) this.setState({ mathNoticeOpen: true });
       }, 0);
       return;
     }
@@ -2564,7 +2565,7 @@ class Component extends DCLogic {
     // Tutorial takes priority — show math popup only AFTER tutorial completes
     if (!this.state.tutorialSeen) {
       setTimeout(() => this.update({ tutorialOpen: true, tutorialStep: 0 }), 400);
-    } else if (this.state.isMath && !this.state.mathNoticeSeen) {
+    } else if (this.state.isMath && this.state.materialTopMethods === null) {
       setTimeout(() => this.setState({ mathNoticeOpen: true }), 400);
     }
   };
@@ -2665,14 +2666,14 @@ class Component extends DCLogic {
     const next = (this.state.tutorialStep || 0) + 1;
     if (next >= Component.TUTORIAL_STEPS.length) {
       this.update({ tutorialOpen: false, tutorialSeen: true });
-      if (this.state.isMath && !this.state.mathNoticeSeen) setTimeout(() => this.setState({ mathNoticeOpen: true }), 350);
+      if (this.state.isMath && this.state.materialTopMethods === null) setTimeout(() => this.setState({ mathNoticeOpen: true }), 350);
     } else {
       this.setState({ tutorialStep: next });
     }
   };
   appTourSkip = () => {
     this.update({ tutorialOpen: false, tutorialSeen: true });
-    if (this.state.isMath && !this.state.mathNoticeSeen) setTimeout(() => this.setState({ mathNoticeOpen: true }), 350);
+    if (this.state.isMath && this.state.materialTopMethods === null) setTimeout(() => this.setState({ mathNoticeOpen: true }), 350);
   };
   replayTutorial = () => this.setState({ tutorialOpen: true, tutorialStep: 0 });
 
