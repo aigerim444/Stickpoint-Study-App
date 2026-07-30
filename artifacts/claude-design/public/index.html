@@ -1720,6 +1720,7 @@
                     <div style="font-size:9px;font-weight:900;letter-spacing:1px;color:{{ row.badgeColor }};">{{ row.badge }}</div>
                   </div>
                   <button onclick="{{ row.rename }}" style="font-family:'Nunito';font-weight:900;border:3px solid #201E2E;flex:none;font-size:12px;color:#201E2E;background:#fff;padding:8px 10px;cursor:pointer;">✏️</button>
+                  <button onclick="{{ row.delete }}" style="font-family:'Nunito';font-weight:900;border:3px solid #FF5A5F;flex:none;font-size:12px;color:#FF5A5F;background:#fff;padding:8px 10px;cursor:pointer;">🗑️</button>
                 </sc-if>
                 <sc-if value="{{ row.renaming }}" hint-placeholder-val="{{ false }}">
                   <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;">
@@ -2972,7 +2973,13 @@ class Component extends DCLogic {
       editingName: false, nameEditDraft: '',
       missedBank: [], account: null, accountPrompted: false, accountDraft: '', sessionsFinished: 0,
       showAccount: false, photoStatusText: 'No photo chosen yet',
+      library: [], currentMaterialId: null, materialTopMethods: null,
     });
+  };
+
+  deleteMaterial = (id) => {
+    const library = (this.state.library || []).filter(x => x.id !== id);
+    this.update({ library });
   };
   startEditName = () => this.setState({ editingName: true, nameEditDraft: this.state.name, ageEditDraft: this.state.age == null ? '' : String(this.state.age) });
   onNameEditInput = (e) => this.setState({ nameEditDraft: e.target.value });
@@ -4942,6 +4949,7 @@ class Component extends DCLogic {
           rowStyle: { display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', background: current ? '#F3FBF8' : '#fff', border: '3px solid ' + (current ? '#2DD4A7' : '#201E2E') },
           open: () => this.switchMaterial(x.id),
           rename: () => this.startRename(x.id),
+          delete: () => this.deleteMaterial(x.id),
         };
       }),
       renameDraft: s.renameDraft || '', onRenameInput: this.onRenameInput,
