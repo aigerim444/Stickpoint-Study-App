@@ -535,6 +535,40 @@
             </sc-for>
           </div>
 
+          <!-- TOP 3 STUDY METHODS editor -->
+          <div style="margin-top:6px;display:flex;flex-direction:column;gap:10px;">
+            <div style="font-family:'Press Start 2P';font-size:10px;color:#201E2E;line-height:1.8;">⭐ YOUR TOP 3 METHODS</div>
+            <div style="font-size:12px;font-weight:700;color:#8a8194;line-height:1.5;">These appear first in your method chips. Reorder or swap them to match what's working best for you — separate for each study set.</div>
+            <!-- Ranked slots -->
+            <sc-if value="{{ top3UI.hasTop3 }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;flex-direction:column;gap:6px;">
+                <sc-for list="{{ top3UI.slots }}" as="slot" hint-placeholder-count="3">
+                  <div style="display:flex;align-items:center;gap:8px;background:#fff;border:3px solid #201E2E;padding:10px 12px;">
+                    <div style="font-family:'Press Start 2P';font-size:9px;color:#FF6B4A;flex:none;width:22px;">#{{ slot.rank }}</div>
+                    <div style="flex:1;font-size:12px;font-weight:800;color:#201E2E;line-height:1.3;">{{ slot.label }}</div>
+                    <div style="display:flex;gap:4px;flex:none;">
+                      <button onclick="{{ slot.moveUp }}" disabled="{{ slot.cantUp }}" style="font-family:'Nunito';font-weight:900;font-size:14px;width:30px;height:30px;border:2px solid #201E2E;background:#fff;cursor:{{ slot.upCursor }};opacity:{{ slot.cantUp ? 0.3 : 1 }};">↑</button>
+                      <button onclick="{{ slot.moveDown }}" disabled="{{ slot.cantDown }}" style="font-family:'Nunito';font-weight:900;font-size:14px;width:30px;height:30px;border:2px solid #201E2E;background:#fff;cursor:{{ slot.downCursor }};opacity:{{ slot.cantDown ? 0.3 : 1 }};">↓</button>
+                      <button onclick="{{ slot.remove }}" style="font-family:'Nunito';font-weight:900;font-size:13px;width:30px;height:30px;border:2px solid #FF5A5F;background:#fff;color:#FF5A5F;cursor:pointer;">✕</button>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+            <!-- Available methods to add -->
+            <sc-if value="{{ top3UI.canAdd }}" hint-placeholder-val="{{ false }}">
+              <div style="font-size:10px;font-weight:900;color:#8a8194;letter-spacing:1px;">TAP TO ADD TO TOP 3:</div>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                <sc-for list="{{ top3UI.available }}" as="av" hint-placeholder-count="6">
+                  <button onclick="{{ av.add }}" style="font-family:'Nunito';font-weight:900;font-size:11px;padding:7px 12px;border:2px solid #201E2E;background:#fff;color:#201E2E;cursor:pointer;">+ {{ av.label }}</button>
+                </sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{ top3UI.isFull }}" hint-placeholder-val="{{ false }}">
+              <div style="font-size:11px;font-weight:700;color:#8a8194;line-height:1.5;">Remove a method above to swap it for a different one.</div>
+            </sc-if>
+          </div>
+
           <!-- Streak reminder / about section -->
           <div style="background:#FFF3DE;border:3px solid #FFC93C;box-shadow:4px 4px 0 #201E2E;padding:16px;display:flex;flex-direction:column;gap:10px;margin-top:8px;">
             <div style="font-family:'Press Start 2P';font-size:10px;color:#201E2E;line-height:1.8;">🔥 DON'T LOSE YOUR STREAK</div>
@@ -1836,6 +1870,7 @@ class Component extends DCLogic {
     tutorialSeen: false,
     tutorialOpen: false,
     tutorialStep: 0,
+    materialTopMethods: null, // per-material top-3 override (null = use quiz defaults)
     photoStatusText: 'No photo chosen yet',
     quizIdx: 0, // 0..5 across QUIZ_QUESTIONS
     quizAnswers: [],
@@ -1965,7 +2000,7 @@ class Component extends DCLogic {
       library: s.library, currentMaterialId: s.currentMaterialId, isMath: s.isMath,
       missedBank: s.missedBank, account: s.account, accountPrompted: s.accountPrompted,
       sessionsFinished: s.sessionsFinished, tab: s.tab, lastStreakPromptDate: s.lastStreakPromptDate,
-      tutorialSeen: s.tutorialSeen,
+      tutorialSeen: s.tutorialSeen, materialTopMethods: s.materialTopMethods,
     };
     try { localStorage.setItem('stickpoint_v1', JSON.stringify(toSave)); } catch (e) {}
   }
@@ -3730,32 +3765,59 @@ class Component extends DCLogic {
   // ---------- Material library ----------
   saveToLibrary(parsed) {
     const id = 'm' + Date.now();
-    const entry = { id, name: parsed.topic || 'Untitled notes', material: this.state.material, concepts: parsed.cards, topic: parsed.topic, isMath: !!(parsed.is_math || parsed.isMath), savedAt: Date.now() };
-    const library = (this.state.library || []).filter(x => x.material !== entry.material).concat(entry).slice(-12);
-    this.update({ library, currentMaterialId: id });
+    // Save current material's progress to its outgoing library entry before switching
+    const currentId = this.state.currentMaterialId;
+    let library = this.state.library || [];
+    if (currentId) {
+      library = library.map(x => x.id === currentId
+        ? Object.assign({}, x, {
+            savedSession: this.state.session || {},
+            savedActiveMethod: this.state.activeMethod,
+            savedMissedBank: this.state.missedBank || [],
+            savedPtHistory: this.state.ptHistory || [],
+            savedTopMethods: this.state.materialTopMethods,
+          })
+        : x);
+    }
+    // New entry starts with clean progress
+    const entry = { id, name: parsed.topic || 'Untitled notes', material: this.state.material, concepts: parsed.cards, topic: parsed.topic, isMath: !!(parsed.is_math || parsed.isMath), savedAt: Date.now(), savedSession: {}, savedActiveMethod: null, savedMissedBank: [], savedPtHistory: [], savedTopMethods: null };
+    library = library.filter(x => x.material !== entry.material).concat(entry).slice(-12);
+    this.update({ library, currentMaterialId: id, missedBank: [], ptHistory: [], materialTopMethods: null });
   }
 
   switchMaterial = (id) => {
     const entry = (this.state.library || []).find(x => x.id === id);
     if (!entry || id === this.state.currentMaterialId) return;
-    // Save current session to current library entry before switching
+    // Save ALL progress from the current material back to its library entry
     const currentId = this.state.currentMaterialId;
     let library = this.state.library || [];
     if (currentId) {
       library = library.map(x => x.id === currentId
-        ? Object.assign({}, x, { savedSession: this.state.session || {}, savedActiveMethod: this.state.activeMethod })
+        ? Object.assign({}, x, {
+            savedSession: this.state.session || {},
+            savedActiveMethod: this.state.activeMethod,
+            savedMissedBank: this.state.missedBank || [],
+            savedPtHistory: this.state.ptHistory || [],
+            savedTopMethods: this.state.materialTopMethods,
+          })
         : x);
     }
+    // Restore the incoming material's saved progress
+    const restoredTopMethods = 'savedTopMethods' in entry ? entry.savedTopMethods : null;
     this.update({
       library,
       material: entry.material, concepts: entry.concepts, topic: entry.topic,
       isMath: !!entry.isMath, currentMaterialId: id,
       session: entry.savedSession || {},
       activeMethod: entry.savedActiveMethod || null,
-      tab: 'today', mathNoticeSeen: false,
+      missedBank: entry.savedMissedBank || [],
+      ptHistory: entry.savedPtHistory || [],
+      materialTopMethods: restoredTopMethods,
+      tab: 'today',
       screen: 'app',
     });
-    if (entry.isMath && !this.state.mathNoticeSeen) setTimeout(() => this.setState({ mathNoticeOpen: true }), 0);
+    // Show math setup notice only if this math material has never had its methods configured
+    if (entry.isMath && !entry.savedTopMethods) setTimeout(() => this.setState({ mathNoticeOpen: true }), 0);
   };
 
   startRename = (id) => { const e = (this.state.library || []).find(x => x.id === id); this.setState({ renamingId: id, renameDraft: e ? e.name : '' }); };
@@ -3789,7 +3851,10 @@ class Component extends DCLogic {
       else if (id === 'self_explanation')   session[id] = { phase: 'chunking', chunks: null, idx: 0, text: '', tries: 0, result: null, firstTry: {}, struggled: {}, gradeError: false, genStartedAt: Date.now() };
       else if (id === 'active_recall')      session[id] = { queue: concepts.map((_, i) => i), flipped: false, counts: { easy: 0, medium: 0, hard: 0 }, seenCount: {}, hardIdx: [], done: 0, finished: concepts.length === 0 };
     });
-    this.setState({ topMethods: newTop, activeMethod: newTop[0], mathNoticeOpen: false, mathNoticeSeen: true, session }, () => {
+    // Save math methods per-material (preserves quiz ranking for non-math materials)
+    const updatedLibrary = (this.state.library || []).map(x =>
+      x.id === this.state.currentMaterialId ? Object.assign({}, x, { savedTopMethods: newTop }) : x);
+    this.setState({ materialTopMethods: newTop, library: updatedLibrary, activeMethod: newTop[0], mathNoticeOpen: false, mathNoticeSeen: true, session }, () => {
       // Fire all background generation tasks in parallel so they're ready when the user arrives.
       newTop.forEach(id => {
         if (id === 'problem_sets')            this.generateProblemSets();
@@ -4016,7 +4081,11 @@ class Component extends DCLogic {
       if (m.id === s.activeMethod) return true; // the mode you're in always has a chip back to it
       return s.isMath ? mod.MATH_METHODS.includes(m.id) : m.id !== 'problem_sets';
     });
-    const topIds = (s.topMethods || []).slice(0, 3);
+    // Per-material top methods: use saved override if set, else quiz ranking (or math defaults for math material)
+    const effectiveTopMethods = s.materialTopMethods !== null
+      ? (s.materialTopMethods || [])
+      : (s.isMath ? mod.MATH_METHODS : (s.topMethods || []));
+    const topIds = effectiveTopMethods.slice(0, 3);
     const topChips   = topIds.map(id => chipMethods.find(m => m.id === id)).filter(Boolean);
     const restChips  = chipMethods.filter(m => !topIds.includes(m.id));
     const rankPfx    = ['#1 ', '#2 ', '#3 '];
@@ -4644,6 +4713,33 @@ class Component extends DCLogic {
       drillBtnBgCursor: (s.missedBank || []).length ? 'pointer' : 'default',
       sessionsFinished: s.sessionsFinished || 0,
       startDrill: this.startDrill,
+      top3UI: (() => {
+        const validMethods = mod.METHODS.filter(m => s.isMath ? mod.MATH_METHODS.includes(m.id) : m.id !== 'problem_sets');
+        const currentTop3 = (s.materialTopMethods !== null
+          ? (s.materialTopMethods || [])
+          : (s.isMath ? mod.MATH_METHODS : (s.topMethods || []))).slice(0, 3)
+          .filter(id => validMethods.find(m => m.id === id));
+        return {
+          hasTop3: currentTop3.length > 0,
+          isFull: currentTop3.length >= 3,
+          canAdd: currentTop3.length < 3,
+          slots: currentTop3.map((id, rank) => {
+            const m = validMethods.find(x => x.id === id) || { label: id };
+            return {
+              rank: rank + 1, id, label: m.label,
+              cantUp: rank === 0, cantDown: rank === currentTop3.length - 1,
+              upCursor: rank === 0 ? 'not-allowed' : 'pointer',
+              downCursor: rank === currentTop3.length - 1 ? 'not-allowed' : 'pointer',
+              moveUp: () => this.moveTop3Up(id),
+              moveDown: () => this.moveTop3Down(id),
+              remove: () => this.removeFromTop3(id),
+            };
+          }),
+          available: validMethods.filter(m => !currentTop3.includes(m.id)).map(m => ({
+            id: m.id, label: m.label, add: () => this.addToTop3(m.id),
+          })),
+        };
+      })(),
       ...todayProgressVals,
 
       isActiveRecall: s.activeMethod === 'active_recall', activeRecallUI,
