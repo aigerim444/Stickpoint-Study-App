@@ -231,6 +231,37 @@ export default function ProblemSets({ notes, name, age, onComplete, onBack }: Pr
     };
   }, [phase, navigation]);
 
+  // ── GUARD SOLVE PHASE ─────────────────────────────────────────────────────
+  // Android hardware back while the student has typed work → show the same
+  // "Leave this problem?" confirmation used by the on-screen ← SKILLS button.
+  // If no work has been entered yet, let the default back behaviour proceed.
+  useEffect(() => {
+    if (phase !== 'solve') return;
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (sess.work.trim().length > 0) {
+        Alert.alert(
+          'Leave this problem?',
+          'Your working will not be saved.',
+          [
+            { text: 'Stay', style: 'cancel' },
+            {
+              text: 'Leave',
+              style: 'destructive',
+              onPress: () => { update({ work: '', result: null }); setPhase('pick'); },
+            },
+          ],
+        );
+        return true; // event consumed — suppress default back
+      }
+      return false; // no work typed — allow default back
+    });
+
+    return () => {
+      backHandler.remove();
+    };
+  }, [phase, sess.work, update]);
+
   // ── PICK ──────────────────────────────────────────────────────────────────
   const pickSkill = useCallback((i: number) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
