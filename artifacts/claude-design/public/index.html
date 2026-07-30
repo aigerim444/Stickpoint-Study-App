@@ -515,7 +515,7 @@
               <div style="font-size:11px;font-weight:700;color:#8a8194;">missed {{ row.misses }}× · from {{ row.source }} · {{ row.dueLabel }}</div>
             </div>
           </sc-for>
-          <button onclick="{{ startDrill }}" disabled="{{ noMissed }}" style="font-family:'Nunito';font-weight:900;border:3px solid #201E2E;cursor:{{ drillBtnBgCursor }};font-size:13px;color:#fff;background:{{ drillBtnBg }};box-shadow:4px 4px 0 #201E2E;padding:13px;">DRILL MY MISSED ITEMS ({{ dueCount }})</button>
+          <button onclick="{{ startDrill }}" disabled="{{ noMissed }}" style="font-family:'Nunito';font-weight:900;border:3px solid #201E2E;cursor:{{ drillBtnBgCursor }};font-size:13px;color:#fff;background:{{ drillBtnBg }};box-shadow:4px 4px 0 #201E2E;padding:13px;">DRILL MY MISSED ITEMS ({{ bankCount }})</button>
           <sc-if value="{{ hasPtHistory }}" hint-placeholder-val="{{ false }}">
             <div style="font-family:'Press Start 2P';font-size:10px;color:#201E2E;line-height:1.8;margin-top:6px;">PRACTICE TEST SCORES</div>
             <div style="background:#fff;border:3px solid #201E2E;padding:12px;display:flex;flex-direction:column;gap:8px;">
@@ -936,6 +936,7 @@
 
             <sc-if value="{{ psUI.phaseSolve }}" hint-placeholder-val="{{ false }}">
               <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                <button onclick="{{ psUI.backToSkills }}" style="font-family:'Nunito';font-weight:900;font-size:11px;color:#201E2E;background:#fff;border:2px solid #201E2E;padding:5px 10px;cursor:pointer;">← SKILLS</button>
                 <div style="flex:none;white-space:nowrap;font-size:11px;font-weight:800;color:#8a8194;letter-spacing:1px;">PROBLEM {{ psUI.pNum }} OF {{ psUI.pTotal }}</div>
                 <div style="flex:none;white-space:nowrap;font-size:10px;font-weight:900;color:#fff;background:{{ psUI.stageBg }};border:2px solid #201E2E;padding:3px 8px;letter-spacing:1px;">{{ psUI.stageLabel }}</div>
               </div>
@@ -1072,6 +1073,7 @@
                 </div>
               </sc-if>
               <div style="display:flex;gap:8px;">
+                <button onclick="{{ psUI.backToSkills }}" style="font-family:'Nunito';font-weight:900;border:3px solid #201E2E;flex:none;font-size:12px;color:#201E2E;background:#fff;padding:12px 14px;cursor:pointer;">← SKILLS</button>
                 <sc-if value="{{ psUI.hasError }}" hint-placeholder-val="{{ false }}">
                   <button onclick="{{ psUI.fixIt }}" style="font-family:'Nunito';font-weight:900;border:3px solid #201E2E;flex:1;font-size:12px;color:#201E2E;background:#FFC93C;box-shadow:3px 3px 0 #201E2E;padding:12px;cursor:pointer;">FIX FROM THAT LINE</button>
                 </sc-if>
@@ -1544,7 +1546,10 @@
                     <div style="background:#C9F5E5;border:2px solid #2DD4A7;padding:8px;font-size:12px;font-weight:700;color:#201E2E;"><span style="display:block;font-size:9px;font-weight:900;color:#1a9c77;letter-spacing:1px;">CORRECT ANSWER</span>{{ row.correct }}</div>
                   </div>
                   <sc-if value="{{ row.hasExplain }}" hint-placeholder-val="{{ false }}">
-                    <div style="font-size:12px;font-weight:700;color:#463f52;line-height:1.5;">{{ row.explanation }}</div>
+                    <div style="background:#F6F1E5;border:2px solid #c9c2b8;padding:8px;font-size:12px;font-weight:700;color:#463f52;line-height:1.5;">{{ row.explanation }}</div>
+                  </sc-if>
+                  <sc-if value="{{ row.canOverride }}" hint-placeholder-val="{{ false }}">
+                    <button onclick="{{ row.overrideCorrect }}" style="font-family:'Nunito';font-weight:900;font-size:11px;color:#1a9c77;background:#E6FBF4;border:2px solid #2DD4A7;padding:7px 12px;cursor:pointer;text-align:left;">✅ I AM CORRECT — Chop got this wrong, mark me right</button>
                   </sc-if>
                 </div>
               </sc-for>
@@ -2556,10 +2561,12 @@ class Component extends DCLogic {
   startStudying = () => {
     this.ensureSession(this.state.pendingMethod);
     this.update({ screen: 'app', tab: 'study', activeMethod: this.state.pendingMethod });
-    // Show tutorial the very first time a user reaches the app
-    if (!this.state.tutorialSeen) setTimeout(() => this.update({ tutorialOpen: true, tutorialStep: 0 }), 400);
-    // Show math popup for first-time users coming through methodTutorial
-    if (this.state.isMath && !this.state.mathNoticeSeen) setTimeout(() => this.setState({ mathNoticeOpen: true }), 80);
+    // Tutorial takes priority — show math popup only AFTER tutorial completes
+    if (!this.state.tutorialSeen) {
+      setTimeout(() => this.update({ tutorialOpen: true, tutorialStep: 0 }), 400);
+    } else if (this.state.isMath && !this.state.mathNoticeSeen) {
+      setTimeout(() => this.setState({ mathNoticeOpen: true }), 400);
+    }
   };
 
   chooseMethod = (id) => {
@@ -2658,11 +2665,15 @@ class Component extends DCLogic {
     const next = (this.state.tutorialStep || 0) + 1;
     if (next >= Component.TUTORIAL_STEPS.length) {
       this.update({ tutorialOpen: false, tutorialSeen: true });
+      if (this.state.isMath && !this.state.mathNoticeSeen) setTimeout(() => this.setState({ mathNoticeOpen: true }), 350);
     } else {
       this.setState({ tutorialStep: next });
     }
   };
-  appTourSkip = () => this.update({ tutorialOpen: false, tutorialSeen: true });
+  appTourSkip = () => {
+    this.update({ tutorialOpen: false, tutorialSeen: true });
+    if (this.state.isMath && !this.state.mathNoticeSeen) setTimeout(() => this.setState({ mathNoticeOpen: true }), 350);
+  };
   replayTutorial = () => this.setState({ tutorialOpen: true, tutorialStep: 0 });
 
   // Add source material as grading context to improve fact-checking accuracy
@@ -3322,12 +3333,19 @@ class Component extends DCLogic {
     const secondPass = sess.pass === 2;
     this.setSession('feynman', { phase: 'grading', gradeError: false });
     const prompt = 'A student is doing the Feynman technique. The concept is: "' + item.concept + '". The correct definition is: "' + item.definition + '".\n\n' +
-      (secondPass ? 'This is their SECOND attempt, after being told the gap in their first. Their first attempt was:\n"""' + (sess.firstText || '') + '"""\n\nTheir new explanation:\n' : 'They explained it from memory, as if teaching a younger student who has never heard of it:\n') +
+      (secondPass ? 'This is their SECOND attempt, after being told the gap in their first. Their first attempt was:\n"""' + (sess.firstText || '') + '"""\n\nTheir revised explanation:\n' : 'Their explanation from memory:\n') +
       '"""' + sess.text + '"""\n\n' +
-      'Evaluate the explanation. If the student says anything that contradicts the source material below, mark it as incorrect even if it seems plausible in general.\n' +
-      'Return ONLY JSON: {"score": 1-5, "got_right": "what they explained correctly, one or two sentences", "missed": "what was missing or wrong, one or two sentences, or empty string if nothing", "gap": "the single biggest thing missing, phrased as a short instruction to the student such as: why it actually happens, not just what it is, never reveal the answer itself", "jargon": [{"term": "a word or phrase they used that they probably could not define themselves, or leave the array empty", "plain": "a plain-English replacement"}], "simpler_version": "a one sentence ideal explanation of this concept in plain English"}' +
+      'STRICT SCORING RULES — apply these before anything else:\n' +
+      '- Score 1: The explanation is off-topic, does not address the concept at all, is nonsensical, or is clearly unrelated to "' + item.concept + '". A confident-sounding wrong explanation is still wrong.\n' +
+      '- Score 2: Mentions the concept but gets the meaning wrong or is mostly confused/superficial.\n' +
+      '- Score 3: Gets the core idea but misses important parts of the definition.\n' +
+      '- Score 4: Mostly correct, only minor gaps.\n' +
+      '- Score 5: Covers all key points from the definition accurately and in plain terms.\n' +
+      'If the student wrote random text, repeated the question, or described a completely different concept — score MUST be 1.\n' +
+      'Compare strictly against the definition and source material below. Do not give credit for plausible-sounding guesses.\n' +
+      'Return ONLY JSON: {"score": 1-5, "got_right": "what they explained correctly, one or two sentences, or empty string if nothing was right", "missed": "what was missing or wrong, one or two sentences, or empty string if nothing", "gap": "the single biggest thing missing or wrong, phrased as a short instruction such as: explain why it actually happens, not just what it is, never reveal the answer itself", "jargon": [{"term": "a word or phrase they used that they probably could not define themselves, leave array empty if none", "plain": "a plain-English replacement"}], "simpler_version": "a one sentence ideal explanation of this concept in plain English"}' +
       this.materialCtx();
-    const p = this.parseJson(await this.callAI(prompt, 'You grade Feynman-technique explanations warmly but honestly. Respond with ONLY valid JSON, no markdown fences, no extra text. Never use em dashes in any text you return.'));
+    const p = this.parseJson(await this.callAI(prompt, 'You grade Feynman-technique explanations strictly and accurately. A student writing off-topic or wrong content must receive a low score (1-2) regardless of writing quality. Respond with ONLY valid JSON, no markdown fences, no extra text. Never use em dashes in any text you return.'));
     let result = null;
     if (p && typeof p.score === 'number') result = {
       score: Math.max(1, Math.min(5, Math.round(p.score))),
@@ -3391,13 +3409,14 @@ class Component extends DCLogic {
   extractEIFacts = async () => {
     this.setSession('elaborative_interrogation', { phase: 'gen' });
     const prompt = 'Here are a student\'s study notes:\n\n"""' + (this.state.material || '').slice(0, 6000) + '"""\n\n' +
-      'Read these notes and break them into individual facts, statements, or concepts. For each one generate a why question or a how question that pushes the student to think about the reasoning behind it rather than just memorizing the fact itself. Also generate a connection question asking how this fact connects to something else in the notes. Also, for each item, build a small visual chain that shows the reasoning as a sequence of 3 or 4 steps a student can see at a glance, each step a short label of 2 to 6 words, in causal order, so the chain reads like cause then mechanism then effect.\n\n' +
+      'Read these notes and break them into individual facts, statements, or concepts FROM THE NOTES ONLY. Do not introduce facts or concepts not present in the student\'s notes. For each one generate a why question or a how question that pushes the student to think about the reasoning behind it. Also generate a connection question asking how this fact connects to something else IN THESE SAME NOTES. Also, for each item, build a small visual chain showing the reasoning as a sequence of 3 or 4 steps, each step a short label of 2 to 6 words, in causal order.\n\n' +
+      'IMPORTANT: Every "fact", "model_answer", and "connection_question" MUST be grounded in the student\'s notes above. Only add extra context if it directly explains WHY a note-fact is true and would realistically appear on their test.\n\n' +
       'Return ONLY a JSON array (6 to 10 items) where each object has:\n' +
       '"fact" (the original statement copied word-for-word from the notes),\n' +
-      '"plain_english" (a plain-English rewrite of that same fact — this MUST use completely different words from "fact", NO jargon, NO technical terms unless you immediately define them in brackets, written as if texting a friend who has never studied this subject at all; if "fact" says "mitosis is the process of cell division" then "plain_english" might say "when your body needs to make a new cell, it copies itself — the original cell splits into two identical ones"; 2 to 3 sentences, genuinely simpler than the original),\n' +
+      '"plain_english" (a plain-English rewrite of that same fact — NO jargon, NO technical terms unless immediately defined in brackets, written as if texting a friend who has never studied this subject at all; 2 to 3 sentences, genuinely simpler than the original),\n' +
       '"why_question" (a why or how question about that fact),\n' +
-      '"connection_question" (asking how it connects to other content in the notes),\n' +
-      '"model_answer" (a strong example answer to the why question),\n' +
+      '"connection_question" (asking how it connects to other content IN THESE NOTES specifically),\n' +
+      '"model_answer" (a strong answer to the why question, based on the notes — if the notes don\'t explain why, say so honestly and give the best answer the notes support),\n' +
       '"chain" (array of 3 or 4 short step labels in causal order),\n' +
       '"chain_caption" (one short sentence naming what the chain shows),\n' +
       '"primer_terms" (array of 0 to 3 objects with "term" and "means", defining any word in "fact" a beginner would not know).';
@@ -3665,24 +3684,43 @@ class Component extends DCLogic {
       return { question: q.question, type: q.type, yours, correctDisplay, verdict, explanation };
     });
     const pending = results.map((r, i) => ({ r, i })).filter(x => x.r.verdict === 'pending');
-    if (pending.length) {
-      const prompt = 'Grade these short-answer responses from a student\'s practice test. For each, compare the student response to the model answer and decide if it is "correct", "partially_correct", or "incorrect", with a brief one-sentence explanation of why.\n\n' +
-        JSON.stringify(pending.map(x => ({ i: x.i, question: results[x.i].question, model_answer: results[x.i].correctDisplay, student_response: results[x.i].yours }))) +
-        '\n\nReturn ONLY a JSON array: [{"i": number, "verdict": "correct"|"partially_correct"|"incorrect", "explanation": "brief reason"}]';
-      const raw = await this.callAI(prompt, 'You grade short-answer test responses fairly but strictly. Respond with ONLY a valid JSON array, no markdown fences, no extra text. Never use em dashes in any text you return.', 'haiku', 1800);
-      let graded = null;
-      if (raw) { try { const p = JSON.parse(raw.replace(/```json|```/g, '').trim()); if (Array.isArray(p)) graded = p; } catch (e) {} }
-      pending.forEach(x => {
-        const g = graded && graded.find(gg => gg && gg.i === x.i);
-        if (g && (g.verdict === 'correct' || g.verdict === 'partially_correct' || g.verdict === 'incorrect')) {
-          results[x.i].verdict = g.verdict;
-          results[x.i].explanation = typeof g.explanation === 'string' ? g.explanation : '';
-        } else {
-          results[x.i].verdict = 'incorrect';
-          results[x.i].explanation = 'Chop couldn\'t auto-grade this one, compare your answer with the model answer.';
-        }
-      });
-    }
+    const wrongFixed = results.map((r, i) => ({ r, i })).filter(x => x.r.verdict === 'incorrect' && x.r.type !== 'short_answer' && !x.r.explanation);
+    // Run SA grading and MC/TF explanation generation in parallel
+    const [saGraded, explainGraded] = await Promise.all([
+      pending.length ? (async () => {
+        const prompt = 'Grade these short-answer responses from a student\'s practice test. For each, compare the student response to the model answer and decide if it is "correct", "partially_correct", or "incorrect".\n\n' +
+          'IMPORTANT: Accept answers that are abbreviated (e.g. "DNA" instead of "deoxyribonucleic acid"), use equivalent phrasing, or reach the correct meaning through a different valid method or approach. Be lenient with format but strict about factual accuracy.\n\n' +
+          JSON.stringify(pending.map(x => ({ i: x.i, question: results[x.i].question, model_answer: results[x.i].correctDisplay, student_response: results[x.i].yours }))) +
+          '\n\nReturn ONLY a JSON array: [{"i": number, "verdict": "correct"|"partially_correct"|"incorrect", "explanation": "one or two sentences — if incorrect/partially correct, explain clearly what was wrong or missing and what the correct idea is"}]';
+        const raw = await this.callAI(prompt, 'You grade short-answer test responses. Accept abbreviations and equivalent correct approaches. Be strict on factual accuracy but generous on phrasing and format. Respond with ONLY a valid JSON array, no markdown fences, no extra text. Never use em dashes.', 'haiku', 2000);
+        let graded = null;
+        if (raw) { try { const p = JSON.parse(raw.replace(/```json|```/g, '').trim()); if (Array.isArray(p)) graded = p; } catch (e) {} }
+        return graded;
+      })() : Promise.resolve(null),
+      wrongFixed.length ? (async () => {
+        const prompt = 'For each wrong answer below, write a brief 1-2 sentence explanation of why the correct answer is right and what the student likely misunderstood or got confused about.\n\n' +
+          JSON.stringify(wrongFixed.map(x => ({ i: x.i, question: results[x.i].question, correct_answer: results[x.i].correctDisplay, student_answer: results[x.i].yours }))) +
+          '\n\nReturn ONLY a JSON array: [{"i": number, "explanation": "1-2 sentences explaining why the correct answer is right and what went wrong"}]';
+        const raw = await this.callAI(prompt, 'You explain why test answers are wrong, clearly and helpfully. Respond with ONLY a valid JSON array, no markdown fences, no extra text. Never use em dashes.', 'haiku', 1500);
+        let graded = null;
+        if (raw) { try { const p = JSON.parse(raw.replace(/```json|```/g, '').trim()); if (Array.isArray(p)) graded = p; } catch (e) {} }
+        return graded;
+      })() : Promise.resolve(null),
+    ]);
+    pending.forEach(x => {
+      const g = saGraded && saGraded.find(gg => gg && gg.i === x.i);
+      if (g && (g.verdict === 'correct' || g.verdict === 'partially_correct' || g.verdict === 'incorrect')) {
+        results[x.i].verdict = g.verdict;
+        results[x.i].explanation = typeof g.explanation === 'string' ? g.explanation : '';
+      } else {
+        results[x.i].verdict = 'incorrect';
+        results[x.i].explanation = 'Chop couldn\'t auto-grade this one — compare your answer with the model answer above.';
+      }
+    });
+    wrongFixed.forEach(x => {
+      const g = explainGraded && explainGraded.find(gg => gg && gg.i === x.i);
+      if (g && typeof g.explanation === 'string') results[x.i].explanation = g.explanation;
+    });
     const score = results.filter(r => r.verdict === 'correct').length;
     this.recordMissed(results.filter(r => r.verdict !== 'correct').map(r => ({ question: r.question, answer: String(r.correctDisplay || '').replace(/^\s*[A-D][.)]\s+/, '').trim() })), 'practice test');
     const now = new Date();
@@ -3692,6 +3730,21 @@ class Component extends DCLogic {
     this.sessionComplete();
     this.addXp(score * 3);
     this.markStudiedToday();
+  };
+
+  ptOverrideCorrect = (idx) => {
+    const sess = this.state.session.practice_testing;
+    if (!sess || !sess.results) return;
+    const results = sess.results.slice();
+    const q = results[idx];
+    if (!q) return;
+    results[idx] = Object.assign({}, q, { verdict: 'correct', explanation: '' });
+    const score = results.filter(r => r.verdict === 'correct').length;
+    this.setSession('practice_testing', { results, score });
+    // Remove from missed bank since the student confirmed they were right
+    const key = (q.question || '').toLowerCase().slice(0, 120);
+    const bank = (this.state.missedBank || []).filter(b => b.key !== key);
+    this.update({ missedBank: bank });
   };
 
   setPtSaText = (v) => this.setSession('practice_testing', { saText: v });
@@ -3885,7 +3938,14 @@ class Component extends DCLogic {
     this.setState({ renamingId: null, renameDraft: '' });
   };
 
-  closeMathNotice = () => this.setState({ mathNoticeOpen: false, mathNoticeSeen: true });
+  closeMathNotice = () => {
+    // User chose to keep their quiz results — save quiz topMethods as the material override
+    // so the math auto-default never overrides their choice on this material.
+    const quizTop = (this.state.topMethods || []).slice(0, 3);
+    const updatedLibrary = (this.state.library || []).map(x =>
+      x.id === this.state.currentMaterialId ? Object.assign({}, x, { savedTopMethods: quizTop }) : x);
+    this.update({ mathNoticeOpen: false, mathNoticeSeen: true, materialTopMethods: quizTop, library: updatedLibrary });
+  };
   acceptMathMethods = () => {
     const ranked = this.mod.MATH_METHODS.slice();
     const newTop = ranked.slice(0, 3);
@@ -3947,12 +4007,16 @@ class Component extends DCLogic {
   goElsewhereWhileLoading = () => {
     const loadingPhases = new Set(['gen', 'topics', 'chunking']);
     const s = this.state;
+    // First try: find a non-loading alternative
     const alt = (s.topMethods || []).find(id => {
       if (id === s.activeMethod) return false;
       const sess = s.session && s.session[id];
       return !sess || !loadingPhases.has(sess.phase);
     });
-    if (alt) this.chooseMethod(alt);
+    if (alt) { this.chooseMethod(alt); return; }
+    // Fallback: go to the first method in top list that isn't the current one
+    const first = (s.topMethods || []).find(id => id !== s.activeMethod);
+    if (first) this.chooseMethod(first);
     else this.update({ tab: 'today' });
   };
 
@@ -4582,10 +4646,12 @@ class Component extends DCLogic {
         rightRows: right.map(x => ({ qNum: x.i + 1, question: x.r.question, yours: x.r.yours, correct: x.r.correctDisplay })),
         wrongCount: wrong.length, noneWrong: wrong.length === 0,
         reviewRows: wrong.map(x => ({
-          qNum: x.i + 1, question: x.r.question, yours: x.r.yours, correct: x.r.correctDisplay,
+          qNum: x.i + 1, idx: x.i, question: x.r.question, yours: x.r.yours, correct: x.r.correctDisplay,
           verdictLabel: x.r.verdict === 'partially_correct' ? 'PARTIALLY CORRECT' : 'INCORRECT',
           verdictColor: x.r.verdict === 'partially_correct' ? '#b8860b' : '#c92c30',
           hasExplain: !!x.r.explanation, explanation: x.r.explanation,
+          canOverride: x.r.type === 'short_answer' && x.r.verdict !== 'correct',
+          overrideCorrect: () => this.ptOverrideCorrect(x.i),
         })),
         historyRows: (s.ptHistory || []).map(h => ({ date: h.date, label: h.score + '/' + h.total, pct: Math.round(100 * h.score / Math.max(1, h.total)) + '%' })),
         retake: this.retakePracticeTest, studyWrong: this.studyWrongPt,
@@ -4704,7 +4770,7 @@ class Component extends DCLogic {
     const methodBadges = mod ? mod.METHODS.map(m => { const tried = !!(s.methodsTried || {})[m.id]; return { label: m.label, bg: tried ? '#2DD4A7' : '#fff', color: tried ? '#fff' : '#8a8194' }; }) : [];
     const todayProgressVals = {
       nextStepTitle, nextStepWhy, nextStepCta, nextStepGo, planSteps,
-      dueCount: due.length, hasTestDate: !!s.testDate, testCountdownLabel,
+      dueCount: due.length, bankCount: bank.length, hasTestDate: !!s.testDate, testCountdownLabel,
       masteredCount: mastered, shakyCount: shaky,
       missedRows, noMissed: bank.length === 0, hasPtHistory: (s.ptHistory || []).length > 0,
       methodBadges,
