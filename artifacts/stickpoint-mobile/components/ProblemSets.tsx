@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator, Alert, Pressable, ScrollView,
+  ActivityIndicator, Alert, BackHandler, Pressable, ScrollView,
   StyleSheet, Text, TextInput, View,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { useNavigation } from 'expo-router';
 import { useColors } from '@/hooks/useColors';
 import {
   generateProblemSets, gradeProblemStep,
@@ -160,6 +161,7 @@ function Figure({ fig }: { fig: PsFigure }) {
 
 export default function ProblemSets({ notes, name, age, onComplete, onBack }: Props) {
   const colors = useColors();
+  const navigation = useNavigation();
   const [phase, setPhase] = useState<Phase>('gen');
   const [sess, setSess] = useState<SessionState>({
     skills: [], skillIdx: 0, stepsShown: 1, pIdx: 0,
@@ -205,6 +207,29 @@ export default function ProblemSets({ notes, name, age, onComplete, onBack }: Pr
   const update = useCallback((patch: Partial<SessionState>) => {
     setSess((s) => ({ ...s, ...patch }));
   }, []);
+
+  // ── GUARD TRANSIENT PHASES ────────────────────────────────────────────────
+  // During 'grading' and 'marked' phases there are no back buttons, but the
+  // Android hardware-back gesture and iOS swipe-back could still discard the
+  // grading result silently.  Block both until the student uses an on-screen
+  // action to move forward.
+  useEffect(() => {
+    const blocked = phase === 'grading' || phase === 'marked';
+    if (!blocked) return;
+
+    // Android: hardware back button → no-op
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => true);
+
+    // iOS (and any stack navigator): block the beforeRemove navigation event
+    const unsubscribe = navigation.addListener('beforeRemove' as any, (e: any) => {
+      e.preventDefault();
+    });
+
+    return () => {
+      backHandler.remove();
+      unsubscribe();
+    };
+  }, [phase, navigation]);
 
   // ── PICK ──────────────────────────────────────────────────────────────────
   const pickSkill = useCallback((i: number) => {
