@@ -4,3 +4,4 @@
 - [Stickpoint PS canvas eraser](stickpoint-ps-eraser.md) — eraser uses destination-out composite op; psCanvasUp resets to source-over; psDrawTool/psEraserSize in top-level state
 - [Stickpoint tutorial overlay](stickpoint-tutorial.md) — TUTORIAL_STEPS static prop on Component; spotlight via box-shadow 9999px; triggered once in startStudying() when !tutorialSeen; tutorialSeen persisted
 - [Stickpoint per-material progress](stickpoint-per-material.md) — missedBank, ptHistory, materialTopMethods all saved/restored per library entry; topMethods never overwritten (quiz result stays); acceptMathMethods sets materialTopMethods not topMethods
+- [Stickpoint web app nav bar](stickpoint-web-nav.md) — 6 tabs, 16.67% each; tutorial spotlight height 38px; public/index.html is the real web app
