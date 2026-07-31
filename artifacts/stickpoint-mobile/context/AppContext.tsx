@@ -149,7 +149,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }
       try {
         const persisted = JSON.parse(raw);
-        setState((s) => ({ ...s, ...persisted, loaded: true }));
+        // Recompute streak from studiedDates so missed days are reflected
+        // immediately on load — the persisted streak value can be stale.
+        let computedStreak = 0;
+        if (Array.isArray(persisted.studiedDates) && persisted.studiedDates.length) {
+          const sorted = [...persisted.studiedDates].sort().reverse();
+          const now = Date.now();
+          for (let i = 0; i < sorted.length; i++) {
+            const expected = dayKey(now - i * 86400000);
+            if (sorted[i] === expected) computedStreak++;
+            else break;
+          }
+        }
+        setState((s) => ({ ...s, ...persisted, streak: computedStreak, loaded: true }));
       } catch {
         setState((s) => ({ ...s, loaded: true }));
       }

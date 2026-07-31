@@ -44,12 +44,15 @@ function ClassicTabLayout() {
           borderTopWidth: 3,
           borderTopColor: c.dark,
           elevation: 0,
-          height: Platform.OS === 'web' ? 84 : 72,
+          height: Platform.OS === 'web' ? 96 : 88,
         },
         tabBarLabelStyle: {
           fontWeight: '900',
-          fontSize: 10,
+          fontSize: 12,
           letterSpacing: 0.5,
+        },
+        tabBarItemStyle: {
+          paddingVertical: 6,
         },
         tabBarBackground: () =>
           isIOS ? (
@@ -65,9 +68,9 @@ function ClassicTabLayout() {
           title: 'Study',
           tabBarIcon: ({ color }) =>
             isIOS ? (
-              <SymbolView name="bolt" tintColor={color} size={22} />
+              <SymbolView name="bolt" tintColor={color} size={26} />
             ) : (
-              <Feather name="zap" size={22} color={color} />
+              <Feather name="zap" size={26} color={color} />
             ),
           tabBarActiveTintColor: isIOS ? c.primary : '#FFC93C',
           tabBarInactiveTintColor: isIOS ? c.muted : '#8a8194',
@@ -79,9 +82,9 @@ function ClassicTabLayout() {
           title: 'Progress',
           tabBarIcon: ({ color }) =>
             isIOS ? (
-              <SymbolView name="chart.bar" tintColor={color} size={22} />
+              <SymbolView name="chart.bar" tintColor={color} size={26} />
             ) : (
-              <Feather name="bar-chart-2" size={22} color={color} />
+              <Feather name="bar-chart-2" size={26} color={color} />
             ),
           tabBarActiveTintColor: isIOS ? c.primary : '#FFC93C',
           tabBarInactiveTintColor: isIOS ? c.muted : '#8a8194',
@@ -93,9 +96,9 @@ function ClassicTabLayout() {
           title: 'Library',
           tabBarIcon: ({ color }) =>
             isIOS ? (
-              <SymbolView name="books.vertical" tintColor={color} size={22} />
+              <SymbolView name="books.vertical" tintColor={color} size={26} />
             ) : (
-              <Feather name="book" size={22} color={color} />
+              <Feather name="book" size={26} color={color} />
             ),
           tabBarActiveTintColor: isIOS ? c.primary : '#FFC93C',
           tabBarInactiveTintColor: isIOS ? c.muted : '#8a8194',

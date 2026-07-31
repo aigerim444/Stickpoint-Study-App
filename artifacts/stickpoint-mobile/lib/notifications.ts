@@ -36,9 +36,12 @@ export async function scheduleDaily(
   // Cancel any existing reminder first
   await cancelDailyReminder();
 
+  // Do NOT embed the specific day count — the notification is scheduled once
+  // and fires daily, so a baked-in number becomes stale if the user misses
+  // days and the streak resets before they reopen the app.
   const streakLine =
     streak > 0
-      ? `Day ${streak} streak 🔥 — keep it going!`
+      ? "Keep your streak going! 🔥"
       : "Start your streak today 📚";
 
   await Notifications.scheduleNotificationAsync({

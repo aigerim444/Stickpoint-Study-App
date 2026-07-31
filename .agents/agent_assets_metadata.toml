@@ -6,3 +6,9 @@ id = "tsZJDeD0J_XwDO-O_VkTW"
 uri = "file://stickpoint-pitch.html"
 type = "unspecified"
 title = "Stickpoint — Product Pitch Document"
+
+[[outputs]]
+id = "XvBU7ytmjAkcYqNrkRQ_w"
+uri = "file://.local/outputs/Stickpoint---Professor-Fact-Check-Deck.pdf"
+type = "pdf"
+title = "Stickpoint — Professor Fact-Check Deck.pdf"

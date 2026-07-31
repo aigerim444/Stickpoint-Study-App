@@ -185,7 +185,7 @@ export default function StudyTab() {
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: c.background }}
-      contentContainerStyle={[styles.container, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 80 }]}>
+      contentContainerStyle={[styles.container, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 100 }]}>
 
       {/* Header */}
       <View style={styles.headerRow}>
