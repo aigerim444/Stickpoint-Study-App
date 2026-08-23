@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main, rebuild]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Enable pnpm via corepack
+        run: corepack enable pnpm
+
+      - name: Install dependencies
+        # Skip the heavy Expo app in CI for now — it is checked in Phase 3
+        # when it becomes the primary app.
+        run: pnpm install --filter '!@workspace/stickpoint-mobile'
+
+      - name: Typecheck libs and packages
+        run: pnpm exec tsc --build
+
+      - name: Typecheck API server
+        run: pnpm exec tsc -p artifacts/api-server/tsconfig.json --noEmit
+
+      - name: Test
+        run: pnpm --filter @workspace/core run test
+
+      - name: Build API server
+        run: pnpm --filter @workspace/api-server run build
+        env:
+          NODE_ENV: production
