@@ -6,8 +6,7 @@
   "scripts": {
     "dev": "node serve.mjs",
     "build": "node -e \"require('fs').cpSync('public','dist/public',{recursive:true})\"",
-    "serve": "node serve.mjs",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "serve": "node serve.mjs"
   },
   "devDependencies": {
     "@react-spring/web": "^10.0.3",
