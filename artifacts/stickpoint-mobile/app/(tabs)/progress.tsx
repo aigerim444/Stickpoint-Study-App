@@ -3,7 +3,7 @@ import { Alert, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useApp } from '@/context/AppContext';
-import { METHODS } from '@/lib/content';
+import { METHODS, featherIcon } from '@/lib/content';
 import colors from '@/constants/colors';
 import { scheduleDaily, cancelDailyReminder } from '@/lib/notifications';
 
@@ -178,7 +178,7 @@ export default function ProgressTab() {
                   backgroundColor: tried ? c.purpleLight : c.card,
                 },
               ]}>
-              <Feather name={m.icon as any} size={14} color={tried ? c.primary : c.muted} />
+              <Feather name={featherIcon(m.id) as any} size={14} color={tried ? c.primary : c.muted} />
               <Text style={[styles.methodBadgeText, { color: tried ? c.primary : c.muted }]}>
                 {m.label}
               </Text>

@@ -7,21 +7,20 @@ import React, {
   useState,
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Card, scoreQuiz } from '@/lib/content';
+import {
+  Card,
+  MissedItem,
+  computeStreak,
+  dueMissed as coreDueMissed,
+  gradeMissedItem as coreGradeMissedItem,
+  markStudiedToday as coreMarkStudiedToday,
+  recordMissed as coreRecordMissed,
+  scoreQuiz,
+} from '@/lib/content';
 
 const STORAGE_KEY = 'stickpoint_mobile_v1';
-const SR_DAYS = [1, 2, 4, 7, 14];
 
-export interface MissedItem {
-  key: string;
-  question: string;
-  answer: string;
-  source: string;
-  misses: number;
-  box: number;
-  dueAt: number;
-  added: number;
-}
+export type { MissedItem };
 
 export interface LibraryEntry {
   id: string;
@@ -126,16 +125,6 @@ interface AppContextValue {
 
 const AppContext = createContext<AppContextValue | null>(null);
 
-function dayKey(ts: number): string {
-  const d = new Date(ts);
-  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
-}
-
-function dueAtFor(box: number): number {
-  const days = SR_DAYS[Math.min(box, SR_DAYS.length - 1)];
-  return Date.now() + days * 86400000;
-}
-
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AppState>(defaultState);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -151,16 +140,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const persisted = JSON.parse(raw);
         // Recompute streak from studiedDates so missed days are reflected
         // immediately on load — the persisted streak value can be stale.
-        let computedStreak = 0;
-        if (Array.isArray(persisted.studiedDates) && persisted.studiedDates.length) {
-          const sorted = [...persisted.studiedDates].sort().reverse();
-          const now = Date.now();
-          for (let i = 0; i < sorted.length; i++) {
-            const expected = dayKey(now - i * 86400000);
-            if (sorted[i] === expected) computedStreak++;
-            else break;
-          }
-        }
+        const computedStreak = Array.isArray(persisted.studiedDates)
+          ? computeStreak(persisted.studiedDates, Date.now())
+          : 0;
         setState((s) => ({ ...s, ...persisted, streak: computedStreak, loaded: true }));
       } catch {
         setState((s) => ({ ...s, loaded: true }));
@@ -237,18 +219,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const recordSession = useCallback((method: string) => {
     setState((prev) => {
-      const today = dayKey(Date.now());
-      const studiedDates = prev.studiedDates.includes(today)
-        ? prev.studiedDates
-        : [...prev.studiedDates, today];
-      // Calculate streak
-      let streak = 0;
-      const sorted = [...studiedDates].sort().reverse();
-      for (let i = 0; i < sorted.length; i++) {
-        const expected = dayKey(Date.now() - i * 86400000);
-        if (sorted[i] === expected) streak++;
-        else break;
-      }
+      const { studiedDates, streak } = coreMarkStudiedToday(prev.studiedDates, Date.now());
       const methodsTried = { ...prev.methodsTried, [method]: true };
       const next = {
         ...prev,
@@ -268,22 +239,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const recordMissed = useCallback((items: { question: string; answer: string }[], source: string) => {
     setState((prev) => {
       if (!items?.length) return prev;
-      const bank = [...(prev.missedBank || [])];
-      items.forEach((it) => {
-        const q = String(it.question || '').trim();
-        const a = String(it.answer || '').trim();
-        if (!q || !a) return;
-        const key = q.toLowerCase().slice(0, 120);
-        const found = bank.find((b) => b.key === key);
-        if (found) {
-          found.misses = (found.misses || 1) + 1;
-          found.box = 0;
-          found.dueAt = dueAtFor(0);
-        } else {
-          bank.push({ key, question: q, answer: a, source, misses: 1, box: 0, dueAt: dueAtFor(0), added: Date.now() });
-        }
-      });
-      const newBank = bank.slice(-120);
+      const newBank = coreRecordMissed(prev.missedBank || [], items, source, Date.now(), prev.topic || 'Your notes');
       // Also persist into the current library entry so switching materials doesn't lose it
       const library = prev.currentMaterialId
         ? prev.library.map((e) =>
@@ -299,12 +255,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const gradeMissedItem = useCallback((key: string, rating: 'hard' | 'medium' | 'easy') => {
     setState((prev) => {
-      const bank = [...(prev.missedBank || [])];
-      const item = bank.find((b) => b.key === key);
-      if (!item) return prev;
-      if (rating === 'hard') { item.box = 0; item.misses = (item.misses || 1) + 1; }
-      else if (rating === 'easy') { item.box = Math.min(SR_DAYS.length - 1, (item.box || 0) + 1); }
-      item.dueAt = dueAtFor(item.box);
+      if (!(prev.missedBank || []).some((b) => b.key === key)) return prev;
+      const bank = coreGradeMissedItem(prev.missedBank || [], key, rating, Date.now());
       const next = { ...prev, missedBank: bank };
       if (saveTimer.current) clearTimeout(saveTimer.current);
       saveTimer.current = setTimeout(() => { AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)); }, 300);
@@ -332,10 +284,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const markStudiedToday = useCallback(() => {
-    const today = dayKey(Date.now());
-    if (!state.studiedDates.includes(today)) {
-      persist({ studiedDates: [...state.studiedDates, today] });
-    }
+    const { studiedDates, streak } = coreMarkStudiedToday(state.studiedDates, Date.now());
+    if (studiedDates !== state.studiedDates) persist({ studiedDates, streak });
   }, [persist, state.studiedDates]);
 
   const addToLibrary = useCallback((entry: Omit<LibraryEntry, 'id' | 'savedAt'>): string => {
@@ -410,12 +360,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setState({ ...defaultState, loaded: true });
   }, []);
 
-  const dueMissed = useCallback((): MissedItem[] => {
-    const now = Date.now();
-    return (state.missedBank || [])
-      .filter((b) => (b.dueAt || 0) <= now)
-      .sort((a, b) => (b.misses || 0) - (a.misses || 0));
-  }, [state.missedBank]);
+  const dueMissed = useCallback(
+    (): MissedItem[] => coreDueMissed(state.missedBank || [], Date.now()),
+    [state.missedBank],
+  );
 
   return (
     <AppContext.Provider value={{
@@ -437,7 +385,7 @@ export function useApp(): AppContextValue {
 }
 
 const MOBILE_METHODS = [
-  'active_recall', 'blurting', 'feynman', 'practice_testing',
+  'active_recall', 'blurting', 'feynman', 'practice_testing', 'concrete_examples',
   'self_explanation', 'elaborative_interrogation', 'pomodoro', 'problem_sets',
 ];
 

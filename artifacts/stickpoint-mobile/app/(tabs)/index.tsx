@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useApp, useEffectiveMethods } from '@/context/AppContext';
-import { METHODS, getMethodById, Card } from '@/lib/content';
+import { METHODS, getMethodById, featherIcon, Card } from '@/lib/content';
 import ActiveRecall from '@/components/ActiveRecall';
 import Blurting from '@/components/Blurting';
 import Feynman from '@/components/Feynman';
@@ -15,6 +15,7 @@ import Pomodoro from '@/components/Pomodoro';
 import SelfExplanation from '@/components/SelfExplanation';
 import ElaborativeInterrogation from '@/components/ElaborativeInterrogation';
 import ProblemSets from '@/components/ProblemSets';
+import ConcreteExamples from '@/components/ConcreteExamples';
 import ChopCharacter from '@/components/ChopCharacter';
 import colors from '@/constants/colors';
 
@@ -154,10 +155,26 @@ export default function StudyTab() {
             <Text style={styles.sessionTitle}>ELABORATIVE INTERROGATION</Text>
           </View>
           <ElaborativeInterrogation
-            cards={state.concepts}
+            notes={state.material}
             name={state.name}
             age={state.age}
             onComplete={() => endSession()}
+            onBack={goBack}
+          />
+        </View>
+      );
+    }
+    if (activeSession === 'concrete_examples') {
+      return (
+        <View style={{ flex: 1, backgroundColor: c.background }}>
+          <View style={[styles.sessionHeader, { paddingTop: insets.top + 8 }]}>
+            <Text style={styles.sessionTitle}>CONCRETE EXAMPLES</Text>
+          </View>
+          <ConcreteExamples
+            notes={state.material}
+            name={state.name}
+            age={state.age}
+            onComplete={(hard) => endSession(hard)}
             onBack={goBack}
           />
         </View>
@@ -257,7 +274,7 @@ function MethodCard({ method, highlighted, onPress }: {
         },
       ]}>
       <View style={[styles.methodIcon, { backgroundColor: highlighted ? c.purpleLight : c.secondary, borderColor: c.dark }]}>
-        <Feather name={method.icon as any} size={20} color={highlighted ? c.primary : c.dark} />
+        <Feather name={featherIcon(method.id) as any} size={20} color={highlighted ? c.primary : c.dark} />
       </View>
       <View style={{ flex: 1, gap: 3 }}>
         <Text style={[styles.methodLabel, { color: c.dark }]}>{method.label}</Text>

@@ -1,52 +1,35 @@
 /**
- * Wrapper around the Stickpoint API server's Claude proxy.
- * All AI calls go through POST /api/claude.
+ * Typed client for Stickpoint's purpose-built AI endpoints (/api/ai/*).
+ *
+ * Prompts and model choices live server-side; this file only shapes requests
+ * and responses. Wrapper functions keep the signatures the components were
+ * already written against.
  */
 
-const BASE_URL = process.env.EXPO_PUBLIC_DOMAIN
-  ? `https://${process.env.EXPO_PUBLIC_DOMAIN}`
-  : '';
+const BASE_URL =
+  process.env.EXPO_PUBLIC_API_URL ||
+  (process.env.EXPO_PUBLIC_DOMAIN ? `https://${process.env.EXPO_PUBLIC_DOMAIN}` : '');
 
-interface ClaudeMessage {
-  role: 'user' | 'assistant';
-  content: string | Array<{ type: string; [key: string]: unknown }>;
+interface Student {
+  name?: string;
+  age?: number | null;
 }
 
-interface ClaudeOptions {
-  messages: ClaudeMessage[];
-  system?: string;
-  max_tokens?: number;
-}
-
-export async function callClaude(opts: ClaudeOptions): Promise<string | null> {
+async function post<T>(path: string, body: Record<string, unknown>): Promise<T | null> {
   try {
-    const res = await fetch(`${BASE_URL}/api/claude`, {
+    const res = await fetch(`${BASE_URL}/api/ai${path}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        messages: opts.messages,
-        system: opts.system,
-        max_tokens: opts.max_tokens ?? 2000,
-      }),
+      body: JSON.stringify(body),
     });
     if (!res.ok) return null;
-    const data = await res.json();
-    return data.text ?? null;
+    return (await res.json()) as T;
   } catch {
     return null;
   }
 }
 
-function ageDirective(name: string, age: number | null): string {
-  if (!age) return '';
-  let band: string;
-  if (age <= 10) band = `They are ${age} years old, in elementary school. Use very short sentences and everyday words.`;
-  else if (age <= 13) band = `They are ${age} years old, in middle school. Plain language, short sentences, no academic register.`;
-  else if (age <= 18) band = `They are ${age} years old, in high school. Talk to them like a capable peer. Full technical vocabulary is fine as long as you define it once.`;
-  else if (age <= 22) band = `They are ${age} years old, a university student. Use precise technical terms, draw examples from coursework and research.`;
-  else band = `They are ${age} years old, an adult learner. Write to an intelligent adult. Use precise terminology.`;
-  return `\n\nAUDIENCE: You are writing for a student named ${name || 'the student'}. ${band}\nMatch that level exactly. Never talk down to them. Keep humour dry and light. Never use em dashes.`;
-}
+// ─── Card extraction ─────────────────────────────────────────────────────────
 
 export interface ExtractResult {
   topic: string;
@@ -59,43 +42,21 @@ export async function extractConcepts(
   name: string,
   age: number | null,
 ): Promise<ExtractResult | null> {
-  const trimmed = material.trim().slice(0, 6000);
-  const prompt =
-    `Here is a student's study material:\n\n"""${trimmed}"""\n\n` +
-    `Read these notes carefully and identify every individual vocabulary word, key concept, important person, significant date, and core idea. Create one flashcard for EACH one you find. Never combine multiple concepts into a single card.\n` +
-    `Return between 8 and 20 cards, scaling with how much material is in the notes.\n` +
-    `Return JSON only, no markdown fences:\n` +
-    `{"topic": "short topic name, 4-6 words", "is_math": true or false, "cards": [{"question": "...", "answer": "...", "methodTag": "active_recall|blurting|practice_testing|feynman|self_explanation|elaborative_interrogation|pomodoro"}]}`;
-
-  const system =
-    'You are a study assistant that turns student notes into individual study cards. Respond with ONLY valid JSON, no markdown fences, no extra text. Never use em dashes.' +
-    ageDirective(name, age);
-
-  const text = await callClaude({ messages: [{ role: 'user', content: prompt }], system, max_tokens: 4000 });
-  if (!text) return null;
-
-  try {
-    // Try direct parse first
-    let parsed: { topic: string; is_math: boolean; cards: ExtractResult['cards'] };
-    try {
-      parsed = JSON.parse(text);
-    } catch {
-      // Try to salvage by extracting JSON object
-      const match = text.match(/\{[\s\S]*\}/);
-      if (!match) return null;
-      parsed = JSON.parse(match[0]);
-    }
-    if (!parsed.cards?.length) return null;
-    return { topic: parsed.topic || 'Your notes', cards: parsed.cards, isMath: !!parsed.is_math };
-  } catch {
-    return null;
-  }
+  return post<ExtractResult>('/extract-cards', { material, name, age });
 }
+
+// ─── Blurting ────────────────────────────────────────────────────────────────
 
 export interface BlurtGradeResult {
   covered: string[];
   missed: string[];
   scorePct: number;
+  notesSection: string;
+}
+
+export async function blurtTopics(material: string, s: Student = {}): Promise<string[] | null> {
+  const r = await post<{ topics: { topic: string }[] }>('/blurt-topics', { material, ...s });
+  return r ? r.topics.map((t) => t.topic) : null;
 }
 
 export async function gradeBlurt(
@@ -105,28 +66,35 @@ export async function gradeBlurt(
   name: string,
   age: number | null,
 ): Promise<BlurtGradeResult | null> {
-  const prompt =
-    `The student is blurting about: "${topicName}"\n\nTheir notes:\n"""${notes.slice(0, 3000)}"""\n\nStudent's blurt:\n"""${userText}"""\n\n` +
-    `Compare the blurt to the notes. Identify which key concepts from the notes they covered and which they missed.\n` +
-    `Return JSON only: {"covered": ["concept1", "concept2"], "missed": ["concept3"], "scorePct": 75}`;
-  const system = 'You grade student study blurts. Respond with ONLY valid JSON.' + ageDirective(name, age);
-  const text = await callClaude({ messages: [{ role: 'user', content: prompt }], system, max_tokens: 1000 });
-  if (!text) return null;
-  try {
-    const match = text.match(/\{[\s\S]*\}/);
-    if (!match) return null;
-    return JSON.parse(match[0]);
-  } catch {
-    return null;
-  }
+  const r = await post<{ notesSection: string; covered: string[]; missed: string[] }>(
+    '/blurt-grade',
+    { material: notes, topic: topicName, text: userText, name, age },
+  );
+  if (!r) return null;
+  const total = Math.max(1, r.covered.length + r.missed.length);
+  return { ...r, scorePct: Math.round((r.covered.length / total) * 100) };
 }
 
+// ─── Feynman ─────────────────────────────────────────────────────────────────
+
 export interface FeynmanGradeResult {
-  score: number;  // 1-5
+  score: number; // 1-5
   feedback: string;
   simpler: string;
   gotRight: string;
   gap: string | null;
+  jargon: { term: string; plain: string }[];
+}
+
+export async function feynmanConcepts(
+  material: string,
+  s: Student = {},
+): Promise<{ concept: string; definition: string }[] | null> {
+  const r = await post<{ items: { concept: string; definition: string }[] }>(
+    '/feynman-concepts',
+    { material, ...s },
+  );
+  return r ? r.items : null;
 }
 
 export async function gradeFeynman(
@@ -135,84 +103,51 @@ export async function gradeFeynman(
   userExplanation: string,
   name: string,
   age: number | null,
+  opts: { material?: string; secondPass?: boolean; firstText?: string } = {},
 ): Promise<FeynmanGradeResult | null> {
-  const prompt =
-    `Concept: "${conceptName}"\nCorrect definition/notes: """${definition.slice(0, 1000)}"""\n\n` +
-    `Student's explanation: """${userExplanation}"""\n\n` +
-    `Grade this explanation 1-5 (5 = excellent, clear, complete). Identify what they got right and what the key gap is.\n` +
-    `Return JSON only: {"score": 4, "feedback": "...", "simpler": "one-sentence plain English version", "gotRight": "...", "gap": "the main thing missing or unclear, or null if 5/5"}`;
-  const system = 'You grade Feynman Technique explanations. Be encouraging but honest. JSON only.' + ageDirective(name, age);
-  const text = await callClaude({ messages: [{ role: 'user', content: prompt }], system, max_tokens: 800 });
-  if (!text) return null;
-  try {
-    const match = text.match(/\{[\s\S]*\}/);
-    if (!match) return null;
-    return JSON.parse(match[0]);
-  } catch {
-    return null;
-  }
+  const r = await post<{
+    score: number;
+    gotRight: string;
+    missed: string;
+    gap: string;
+    jargon: { term: string; plain: string }[];
+    simpler: string;
+  }>('/feynman-grade', {
+    concept: conceptName,
+    definition,
+    text: userExplanation,
+    name,
+    age,
+    ...opts,
+  });
+  if (!r) return null;
+  return {
+    score: r.score,
+    feedback: r.missed || r.gotRight,
+    simpler: r.simpler,
+    gotRight: r.gotRight,
+    gap: r.score >= 5 ? null : r.gap,
+    jargon: r.jargon,
+  };
 }
 
-export interface ElabGradeResult {
-  correct: boolean;
-  feedback: string;
-  modelAnswer: string;
-}
-
-export async function gradeElaborative(
-  fact: string,
-  whyQuestion: string,
-  userAnswer: string,
-  name: string,
-  age: number | null,
-): Promise<ElabGradeResult | null> {
-  const prompt =
-    `Fact: "${fact}"\nQuestion: "${whyQuestion}"\nStudent's answer: """${userAnswer}"""\n\n` +
-    `Assess if the student's reasoning is correct. Give a model answer.\n` +
-    `Return JSON only: {"correct": true, "feedback": "...", "modelAnswer": "..."}`;
-  const system = 'You grade elaborative interrogation answers. JSON only.' + ageDirective(name, age);
-  const text = await callClaude({ messages: [{ role: 'user', content: prompt }], system, max_tokens: 600 });
-  if (!text) return null;
-  try {
-    const match = text.match(/\{[\s\S]*\}/);
-    if (!match) return null;
-    return JSON.parse(match[0]);
-  } catch {
-    return null;
-  }
-}
-
-export interface WhyQuestion {
-  fact: string;
-  why: string;
-}
-
-export async function generateWhyQuestions(
-  cards: Array<{ question: string; answer: string }>,
-  name: string,
-  age: number | null,
-): Promise<WhyQuestion[] | null> {
-  const facts = cards.slice(0, 8).map((c) => c.answer).join('\n- ');
-  const prompt =
-    `Facts from student's notes:\n- ${facts}\n\n` +
-    `For each fact, write a "why" question that asks the student to explain the reason behind it.\n` +
-    `Return JSON only: [{"fact": "...", "why": "Why does/is ...?"}]`;
-  const system = 'You generate why questions for elaborative interrogation. JSON array only.' + ageDirective(name, age);
-  const text = await callClaude({ messages: [{ role: 'user', content: prompt }], system, max_tokens: 1000 });
-  if (!text) return null;
-  try {
-    const match = text.match(/\[[\s\S]*\]/);
-    if (!match) return null;
-    return JSON.parse(match[0]);
-  } catch {
-    return null;
-  }
-}
+// ─── Self-Explanation ────────────────────────────────────────────────────────
 
 export interface SelfExplainGradeResult {
   correct: boolean;
   feedback: string;
   simpler: string;
+}
+
+export async function seChunks(
+  material: string,
+  s: Student = {},
+): Promise<{ chunk: string; keyIdea: string }[] | null> {
+  const r = await post<{ chunks: { chunk: string; keyIdea: string }[] }>('/se-chunks', {
+    material,
+    ...s,
+  });
+  return r ? r.chunks : null;
 }
 
 export async function gradeSelfExplain(
@@ -221,20 +156,100 @@ export async function gradeSelfExplain(
   name: string,
   age: number | null,
 ): Promise<SelfExplainGradeResult | null> {
-  const prompt =
-    `Original text: """${chunk}"""\nStudent's paraphrase: """${userExplanation}"""\n\n` +
-    `Did they capture the key idea? Give feedback and a simpler one-sentence version.\n` +
-    `Return JSON only: {"correct": true, "feedback": "...", "simpler": "..."}`;
-  const system = 'You grade self-explanation paraphrases. JSON only.' + ageDirective(name, age);
-  const text = await callClaude({ messages: [{ role: 'user', content: prompt }], system, max_tokens: 400 });
-  if (!text) return null;
-  try {
-    const match = text.match(/\{[\s\S]*\}/);
-    if (!match) return null;
-    return JSON.parse(match[0]);
-  } catch {
-    return null;
-  }
+  return post<SelfExplainGradeResult>('/se-grade', { chunk, explanation: userExplanation, name, age });
+}
+
+// ─── Elaborative Interrogation ───────────────────────────────────────────────
+
+export interface EIItem {
+  fact: string;
+  plainEnglish: string;
+  whyQuestion: string;
+  connectionQuestion: string;
+  modelAnswer: string;
+  chain: string[];
+  chainCaption: string;
+  primerTerms: { term: string; means: string }[];
+}
+
+export type EIVerdict = 'correct' | 'partially_correct' | 'incorrect';
+
+export async function eiGenerate(material: string, s: Student = {}): Promise<EIItem[] | null> {
+  const r = await post<{ items: EIItem[] }>('/ei-generate', { material, ...s });
+  return r ? r.items : null;
+}
+
+export async function eiGradeWhy(
+  item: Pick<EIItem, 'fact' | 'whyQuestion' | 'modelAnswer'>,
+  text: string,
+  material: string,
+  s: Student = {},
+): Promise<{ verdict: EIVerdict; feedback: string } | null> {
+  return post('/ei-grade-why', {
+    fact: item.fact,
+    whyQuestion: item.whyQuestion,
+    modelAnswer: item.modelAnswer,
+    text,
+    material,
+    ...s,
+  });
+}
+
+export async function eiGradeConnection(
+  item: Pick<EIItem, 'fact' | 'connectionQuestion'>,
+  text: string,
+  material: string,
+  s: Student = {},
+): Promise<{ verdict: EIVerdict; feedback: string; idealConnection: string } | null> {
+  return post('/ei-grade-connection', {
+    fact: item.fact,
+    connectionQuestion: item.connectionQuestion,
+    text,
+    material,
+    ...s,
+  });
+}
+
+// ─── Concrete Examples ───────────────────────────────────────────────────────
+
+export interface CEItem {
+  concept: string;
+  plainDefinition: string;
+  example: string;
+  sampleProblem: string;
+  connectionQuestion: string;
+}
+
+export async function ceGenerate(material: string, s: Student = {}): Promise<CEItem[] | null> {
+  const r = await post<{ items: CEItem[] }>('/ce-generate', { material, ...s });
+  return r ? r.items : null;
+}
+
+export async function ceGrade(
+  item: Pick<CEItem, 'concept' | 'plainDefinition' | 'example'>,
+  text: string,
+  s: Student = {},
+): Promise<{ correct: boolean; gotRight: string; missed: string; reinforce: string } | null> {
+  return post('/ce-grade', {
+    concept: item.concept,
+    plainDefinition: item.plainDefinition,
+    example: item.example,
+    text,
+    ...s,
+  });
+}
+
+export async function ceNewExample(
+  item: Pick<CEItem, 'concept' | 'plainDefinition' | 'example'>,
+  s: Student = {},
+): Promise<string | null> {
+  const r = await post<{ example: string }>('/ce-new-example', {
+    concept: item.concept,
+    plainDefinition: item.plainDefinition,
+    example: item.example,
+    ...s,
+  });
+  return r ? r.example : null;
 }
 
 // ─── Problem Sets ────────────────────────────────────────────────────────────
@@ -272,76 +287,19 @@ export interface PsGenerateResult {
   skills: PsSkill[];
 }
 
-function cleanPsFigure(f: unknown): PsFigure | null {
-  if (!f || typeof f !== 'object') return null;
-  const fig = f as Record<string, unknown>;
-  const caption = typeof fig.caption === 'string' ? fig.caption : '';
-  if (fig.type === 'table' && Array.isArray(fig.headers) && Array.isArray(fig.rows))
-    return { type: 'table', headers: (fig.headers as unknown[]).map(String), rows: (fig.rows as unknown[]).filter(Array.isArray).map((r) => (r as unknown[]).map(String)), caption };
-  if (fig.type === 'chart' && Array.isArray(fig.bars)) {
-    const bars = (fig.bars as unknown[]).filter((b): b is { label: unknown; value: number } => !!b && typeof (b as Record<string,unknown>).value === 'number');
-    return bars.length ? { type: 'chart', bars: bars.map((b) => ({ label: String(b.label), value: b.value })), caption } : null;
-  }
-  if (fig.type === 'diagram' && typeof fig.art === 'string' && fig.art.trim())
-    return { type: 'diagram', art: fig.art, caption };
-  return null;
-}
-
 export async function generateProblemSets(
   material: string,
   name: string,
   age: number | null,
 ): Promise<PsGenerateResult | null | 'not_math'> {
-  const trimmed = material.trim().slice(0, 6000);
-  const prompt =
-    `Here is a student's study material:\n\n"""${trimmed}"""\n\n` +
-    `This student is studying MATH or a problem-based science. Do not make vocabulary cards. Instead identify the 3 to 6 PROBLEM TYPES (procedural skills) this material requires, things a student has to DO, like "solve a quadratic by factoring" or "differentiate a product".\n` +
-    `For each skill give: one fully worked example broken into 3 to 6 steps, where every step has the algebra/working AND a short plain-English reason for that step; then 3 practice problems of increasing difficulty with their final answers and a one-line hint each.\n` +
-    `Write all mathematics as plain text a student could type (x^2, sqrt(x), (a+b)/c, integral, pi), no LaTeX, no markdown.\n` +
-    `If the material genuinely contains no problems to solve (it is pure prose or vocabulary), return exactly {"not_math": true} instead.\n` +
-    `Otherwise return ONLY JSON: {"skills": [{"skill": "short name of the procedure", "worked": {"problem": "the example problem", "steps": [{"step": "the working for this line", "why": "why you do this, one short sentence"}]}, "practice": [{"problem": "a problem of this type", "answer": "the final answer", "hint": "a one line nudge, no answer"}]}]}`;
-
-  const system =
-    `You are a maths tutor who builds worked examples and graded practice from a student's own material. Respond with ONLY valid JSON, no markdown fences, no extra text. Never use em dashes.` +
-    ageDirective(name, age);
-
-  const text = await callClaude({ messages: [{ role: 'user', content: prompt }], system, max_tokens: 8000 });
-  if (!text) return null;
-
-  try {
-    const match = text.match(/\{[\s\S]*\}/);
-    if (!match) return null;
-    const parsed = JSON.parse(match[0]);
-    if (parsed.not_math) return 'not_math';
-    if (!Array.isArray(parsed.skills)) return null;
-    const skills: PsSkill[] = parsed.skills
-      .filter((s: unknown) => {
-        if (!s || typeof s !== 'object') return false;
-        const sk = s as Record<string, unknown>;
-        return sk.skill && sk.worked && Array.isArray((sk.worked as Record<string,unknown>).steps) && Array.isArray(sk.practice);
-      })
-      .slice(0, 6)
-      .map((s: Record<string, unknown>) => {
-        const w = s.worked as Record<string, unknown>;
-        return {
-          skill: String(s.skill),
-          worked: {
-            problem: String(w.problem || ''),
-            figure: cleanPsFigure(w.figure),
-            steps: (w.steps as Record<string,unknown>[]).map((st) => ({ step: String(st.step || ''), why: String(st.why || '') })),
-          },
-          practice: (s.practice as Record<string,unknown>[]).map((p) => ({
-            problem: String(p.problem || ''),
-            answer: String(p.answer || ''),
-            hint: String(p.hint || ''),
-            figure: cleanPsFigure(p.figure),
-          })),
-        };
-      });
-    return skills.length ? { skills } : null;
-  } catch {
-    return null;
-  }
+  const r = await post<{ notMath: boolean; skills: PsSkill[] }>('/ps-generate', {
+    material,
+    name,
+    age,
+  });
+  if (!r) return null;
+  if (r.notMath) return 'not_math';
+  return { skills: r.skills };
 }
 
 export interface PsGradeResult {
@@ -361,36 +319,31 @@ export async function gradeProblemStep(
   name: string,
   age: number | null,
 ): Promise<PsGradeResult | null> {
-  const numbered = workLines.map((l, i) => `${i + 1}. ${l}`).join('\n');
-  const prompt =
-    `A student is solving this ${skillName} problem:\n"""${problem}"""\nThe correct final answer is: "${correctAnswer}".\n\n` +
-    `Here is their working, one step per numbered line:\n${numbered}\n\n` +
-    `Check the working LINE BY LINE. Find the FIRST line that contains a mathematical error, everything before it is correct. Mathematically equivalent forms are correct (2/4 equals 1/2, x=-2 or x=-3 equals x=-3 or x=-2). Skipping several steps at once is fine as long as the result is right.\n` +
-    `Name the error using a short reusable label describing the KIND of mistake, for example "sign error", "dropped a term", "wrong order of operations", "arithmetic slip", "used the wrong rule".\n` +
-    `Return ONLY JSON: {"first_error_line": the 1-based line number of the first wrong line or null if all correct, "error_type": "short reusable label or empty string if none", "explanation": "one or two sentences about what went wrong and what to do instead", "correct_line": "what that line should say or empty string", "reached_answer": true if their final line matches the correct answer}`;
+  return post<PsGradeResult>('/ps-mark', {
+    skill: skillName,
+    problem,
+    answer: correctAnswer,
+    lines: workLines,
+    name,
+    age,
+  });
+}
 
-  const system =
-    `You are a maths tutor marking a student's working line by line. Find the FIRST error and explain it without solving the rest for them. Respond with ONLY valid JSON, no markdown fences, no extra text. Never use em dashes.` +
-    ageDirective(name, age);
+// ─── Practice Testing ────────────────────────────────────────────────────────
 
-  const text = await callClaude({ messages: [{ role: 'user', content: prompt }], system, max_tokens: 600 });
-  if (!text) return null;
-  try {
-    const match = text.match(/\{[\s\S]*\}/);
-    if (!match) return null;
-    const p = JSON.parse(match[0]);
-    if (typeof p.first_error_line !== 'number' && p.first_error_line !== null) return null;
-    return {
-      errLine: typeof p.first_error_line === 'number' ? p.first_error_line : null,
-      errorType: String(p.error_type || ''),
-      explanation: String(p.explanation || ''),
-      correctLine: String(p.correct_line || ''),
-      reached: !!p.reached_answer,
-      lines: workLines,
-    };
-  } catch {
-    return null;
-  }
+export interface PTQuestion {
+  question: string;
+  type: 'multiple_choice' | 'true_or_false' | 'short_answer';
+  options?: string[];
+  correctAnswer: string;
+}
+
+export async function generatePracticeTest(
+  material: string,
+  s: Student = {},
+): Promise<PTQuestion[] | null> {
+  const r = await post<{ questions: PTQuestion[] }>('/pt-generate', { material, ...s });
+  return r ? r.questions : null;
 }
 
 export async function gradePracticeTestSA(
@@ -400,17 +353,24 @@ export async function gradePracticeTestSA(
   name: string,
   age: number | null,
 ): Promise<{ correct: boolean; explanation: string } | null> {
-  const prompt =
-    `Question: "${question}"\nCorrect answer: "${correctAnswer}"\nStudent's answer: "${userAnswer}"\n\n` +
-    `Is the student's answer correct? Return JSON only: {"correct": true, "explanation": "brief explanation"}`;
-  const system = 'You grade short answer quiz questions. JSON only.' + ageDirective(name, age);
-  const text = await callClaude({ messages: [{ role: 'user', content: prompt }], system, max_tokens: 300 });
-  if (!text) return null;
-  try {
-    const match = text.match(/\{[\s\S]*\}/);
-    if (!match) return null;
-    return JSON.parse(match[0]);
-  } catch {
-    return null;
-  }
+  const r = await post<{ graded: { i: number; verdict: EIVerdict; explanation: string }[] }>(
+    '/pt-grade-sa',
+    {
+      items: [{ i: 0, question, modelAnswer: correctAnswer, studentResponse: userAnswer }],
+      name,
+      age,
+    },
+  );
+  const g = r?.graded.find((x) => x.i === 0);
+  if (!g) return null;
+  return { correct: g.verdict === 'correct', explanation: g.explanation };
+}
+
+// ─── Pomodoro ────────────────────────────────────────────────────────────────
+
+export async function pomodoroChunks(
+  material: string,
+  s: Student = {},
+): Promise<{ chunks: { title: string; bullets: string[] }[]; funFacts: string[] } | null> {
+  return post('/pomodoro-chunks', { material, ...s });
 }
