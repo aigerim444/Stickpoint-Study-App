@@ -95,6 +95,7 @@ export default function StudyTab() {
           </View>
           <Feynman
             cards={state.concepts.slice(0, 6)}
+            notes={state.material}
             name={state.name}
             age={state.age}
             onComplete={(hard) => endSession(hard)}

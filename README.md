@@ -54,6 +54,25 @@ and the Express API runs as a single serverless function via `api/index.ts`.
 If the deploy complains about `maxDuration`, lower the value in `vercel.json`
 to your plan's limit (AI generation calls need at least ~90s).
 
+### Cutting the web app over to the Expo build
+
+The deploy above serves the **legacy** single-file web app. The Expo app also
+runs on web (`pnpm --filter @workspace/stickpoint-mobile run export:web`) and
+is the long-term web app. Once you've used it enough to trust it, flip
+`vercel.json`:
+
+```jsonc
+"installCommand": "corepack enable pnpm && pnpm install",
+"buildCommand": "pnpm --filter @workspace/stickpoint-mobile run export:web",
+"outputDirectory": "artifacts/stickpoint-mobile/dist",
+```
+
+Everything else (the `/api` function, rewrites) stays the same. Keep the
+legacy app's files in the repo — they're the behavioral reference — just
+stop serving them. Note: legacy-app users' progress lives in their
+browser's localStorage under a different key, so testers start fresh on the
+new web app (accounts in Phase 4 fix this class of problem for good).
+
 ## Engineering notes
 
 - `replit.md` has the full repo map, deploy flow, and gotchas.
