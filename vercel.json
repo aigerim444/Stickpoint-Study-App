@@ -1,0 +1,21 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "corepack enable pnpm && pnpm install --filter @workspace/api-server",
+  "buildCommand": "",
+  "outputDirectory": "artifacts/claude-design/public",
+  "functions": {
+    "api/index.ts": {
+      "maxDuration": 120
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/api"
+    },
+    {
+      "source": "/((?!api|.*\\..*).*)",
+      "destination": "/index.html"
+    }
+  ]
+}

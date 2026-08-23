@@ -38,6 +38,22 @@ Serve the web app:
 pnpm --filter @workspace/claude-design run dev
 ```
 
+## Deploying to Vercel
+
+The repo is Vercel-ready: the web app is served statically from
+`artifacts/claude-design/public` (no build step — no `dist/` copy to forget),
+and the Express API runs as a single serverless function via `api/index.ts`.
+
+1. Import the GitHub repo at [vercel.com/new](https://vercel.com/new)
+   (framework preset: **Other**; the committed `vercel.json` handles the rest).
+2. Add the `ANTHROPIC_API_KEY` environment variable in the project settings —
+   use a **freshly created** key, then delete the old one once the previous
+   hosting is retired.
+3. Deploy. `/` serves the app, `/api/claude` and `/api/healthz` serve the API.
+
+If the deploy complains about `maxDuration`, lower the value in `vercel.json`
+to your plan's limit (AI generation calls need at least ~90s).
+
 ## Engineering notes
 
 - `replit.md` has the full repo map, deploy flow, and gotchas.
