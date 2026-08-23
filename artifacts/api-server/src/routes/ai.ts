@@ -818,4 +818,53 @@ endpoint(
     }),
 );
 
+// ---------- Material ingestion (photo / PDF) ----------
+
+const MEDIA_TYPES = ["image/png", "image/jpeg", "image/webp", "application/pdf"] as const;
+
+endpoint(
+  "/ai/transcribe",
+  z.object({
+    data: z.string().min(100).max(4_500_000),
+    mediaType: z.enum(MEDIA_TYPES),
+    ...student,
+  }),
+  async (body) => {
+    const block =
+      body.mediaType === "application/pdf"
+        ? {
+            type: "document" as const,
+            source: { type: "base64" as const, media_type: "application/pdf" as const, data: body.data },
+          }
+        : {
+            type: "image" as const,
+            source: {
+              type: "base64" as const,
+              media_type: body.mediaType as "image/png" | "image/jpeg" | "image/webp",
+              data: body.data,
+            },
+          };
+    const raw = await askClaude({
+      model: "sonnet",
+      maxTokens: 4000,
+      name: body.name,
+      age: body.age,
+      system:
+        "You transcribe a student's study material (handwritten or printed notes, textbook pages, slides, worksheets) into clean plain text. Transcribe faithfully - do not summarize, do not add content, do not correct the student's facts. Preserve the structure: headings, bullet points, numbered lists, and definitions each on their own line. Write mathematics as plain text (x^2, sqrt(x), pi). Skip page numbers, headers/footers, and doodles. If the material is unreadable or contains no study content, reply with exactly NO_TEXT_FOUND and nothing else.",
+      messages: [
+        {
+          role: "user",
+          content: [
+            block,
+            { type: "text", text: "Transcribe these study notes into clean plain text." },
+          ],
+        },
+      ],
+    });
+    const text = (raw || "").trim();
+    if (!text || text.includes("NO_TEXT_FOUND")) return null;
+    return { text };
+  },
+);
+
 export default router;

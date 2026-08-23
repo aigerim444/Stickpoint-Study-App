@@ -9,10 +9,10 @@ import * as Haptics from 'expo-haptics';
 import * as ImagePicker from 'expo-image-picker';
 import { useApp } from '@/context/AppContext';
 import ChopCharacter from '@/components/ChopCharacter';
-import { extractConcepts } from '@/lib/api';
+import { extractConcepts, transcribeMaterial, TranscribeMediaType } from '@/lib/api';
 import colors from '@/constants/colors';
 
-type Phase = 'input' | 'processing' | 'error';
+type Phase = 'input' | 'transcribing' | 'processing' | 'error';
 
 export default function Material() {
   const insets = useSafeAreaInsets();
@@ -30,10 +30,31 @@ export default function Material() {
       Alert.alert('Permission needed', 'Allow photo access to import images of your notes.');
       return;
     }
-    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8 });
-    if (!result.canceled && result.assets[0]) {
-      Alert.alert('Photo selected', 'For now, type out your notes from the photo. Full OCR coming soon!');
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 0.6,
+      base64: true,
+    });
+    const asset = result.canceled ? null : result.assets[0];
+    const base64 = asset?.base64;
+    if (!asset || !base64) return;
+    const mediaType: TranscribeMediaType =
+      asset.mimeType === 'image/png' ? 'image/png'
+      : asset.mimeType === 'image/webp' ? 'image/webp'
+      : 'image/jpeg';
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setPhase('transcribing');
+    const text = await transcribeMaterial(base64, mediaType, { name: state.name, age: state.age });
+    if (!text) {
+      setErrorMsg("Chop couldn't read that photo. Try a clearer, well-lit shot straight over the page — or type the notes instead.");
+      setPhase('error');
+      return;
     }
+    // Drop the transcription into the editor so the student can check and
+    // fix it before Chop builds cards from it.
+    setNotes((prev) => (prev.trim() ? prev.trimEnd() + '\n\n' + text : text));
+    setPhase('input');
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
   };
 
   const process = async () => {
@@ -52,15 +73,19 @@ export default function Material() {
     router.replace('/(tabs)');
   };
 
-  if (phase === 'processing') {
+  if (phase === 'processing' || phase === 'transcribing') {
     return (
       <View style={[styles.center, { flex: 1, backgroundColor: c.background, paddingTop: insets.top }]}>
         <ChopCharacter size={1.4} color={c.primary} animation="bounce" />
         <View style={styles.processingBox}>
           <ActivityIndicator size="large" color={c.primary} />
-          <Text style={[styles.processingTitle, { color: c.dark }]}>CHOP IS READING…</Text>
+          <Text style={[styles.processingTitle, { color: c.dark }]}>
+            {phase === 'transcribing' ? 'CHOP IS READING YOUR PHOTO…' : 'CHOP IS READING…'}
+          </Text>
           <Text style={[styles.processingBody, { color: c.subtle }]}>
-            Building your flashcards, questions, and study plan.
+            {phase === 'transcribing'
+              ? 'Turning the photo into text you can check and edit.'
+              : 'Building your flashcards, questions, and study plan.'}
           </Text>
         </View>
       </View>

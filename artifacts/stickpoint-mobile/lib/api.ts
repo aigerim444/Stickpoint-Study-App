@@ -366,6 +366,24 @@ export async function gradePracticeTestSA(
   return { correct: g.verdict === 'correct', explanation: g.explanation };
 }
 
+// ─── Material ingestion (photo / PDF) ────────────────────────────────────────
+
+export type TranscribeMediaType = 'image/png' | 'image/jpeg' | 'image/webp' | 'application/pdf';
+
+/**
+ * Transcribes a photo of notes (or a PDF) into plain text via the server's
+ * vision endpoint. Returns null when unreadable — the student can always
+ * fall back to typing.
+ */
+export async function transcribeMaterial(
+  base64Data: string,
+  mediaType: TranscribeMediaType,
+  s: Student = {},
+): Promise<string | null> {
+  const r = await post<{ text: string }>('/transcribe', { data: base64Data, mediaType, ...s });
+  return r ? r.text : null;
+}
+
 // ─── Pomodoro ────────────────────────────────────────────────────────────────
 
 export async function pomodoroChunks(

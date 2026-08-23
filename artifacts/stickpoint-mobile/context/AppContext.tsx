@@ -204,7 +204,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const id = 'm' + Date.now();
       const entry: LibraryEntry = { id, name: topic, material, concepts, topic, isMath, savedAt: Date.now() };
       const library = [...(prev.library || []), entry];
-      const next = { ...prev, material, topic, concepts, isMath, library, currentMaterialId: id, materialTopMethods: null };
+      // Per-material progress starts fresh — the previous material's missed
+      // bank and test history live in its own library entry, not here.
+      const next = {
+        ...prev, material, topic, concepts, isMath, library, currentMaterialId: id,
+        materialTopMethods: null, missedBank: [], ptHistory: [],
+      };
       if (saveTimer.current) clearTimeout(saveTimer.current);
       saveTimer.current = setTimeout(() => {
         AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
