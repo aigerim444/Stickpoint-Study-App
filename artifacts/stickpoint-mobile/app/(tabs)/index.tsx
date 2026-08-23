@@ -111,6 +111,9 @@ export default function StudyTab() {
           </View>
           <PracticeTest
             cards={state.concepts}
+            notes={state.material}
+            name={state.name}
+            age={state.age}
             onComplete={(hard, score, total) => endSession(hard, score, total)}
             onBack={goBack}
           />
@@ -126,6 +129,8 @@ export default function StudyTab() {
           <Pomodoro
             topic={state.topic}
             notes={state.material}
+            name={state.name}
+            age={state.age}
             onComplete={() => endSession()}
             onBack={goBack}
           />

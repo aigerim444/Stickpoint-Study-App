@@ -1,9 +1,9 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useColors } from '@/hooks/useColors';
-import { gradeBlurt } from '@/lib/api';
+import { blurtTopics, gradeBlurt } from '@/lib/api';
 
 interface Props {
   topic: string;
@@ -14,35 +14,74 @@ interface Props {
   onBack: () => void;
 }
 
-type Phase = 'write' | 'grading' | 'results';
+type Phase = 'loading' | 'write' | 'grading' | 'results' | 'done';
 
 export default function Blurting({ topic, notes, name, age, onComplete, onBack }: Props) {
   const colors = useColors();
   const [blurt, setBlurt] = useState('');
-  const [phase, setPhase] = useState<Phase>('write');
+  const [phase, setPhase] = useState<Phase>('loading');
   const [covered, setCovered] = useState<string[]>([]);
   const [missed, setMissed] = useState<string[]>([]);
   const [scorePct, setScorePct] = useState(0);
   const [attempt, setAttempt] = useState(1);
+  // The web flow blurts one extracted topic at a time, not the whole
+  // material at once. Falls back to the single material topic if the
+  // topic extraction is unavailable.
+  const [topics, setTopics] = useState<string[]>([topic]);
+  const [topicIdx, setTopicIdx] = useState(0);
+  useEffect(() => {
+    let alive = true;
+    blurtTopics(notes, { name, age }).then((ts) => {
+      if (!alive) return;
+      if (ts && ts.length) setTopics(ts);
+      setPhase('write');
+    });
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const currentTopic = topics[topicIdx] || topic;
 
   const submit = useCallback(async () => {
     if (!blurt.trim()) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setPhase('grading');
-    const result = await gradeBlurt(blurt, notes, topic, name, age);
+    const result = await gradeBlurt(blurt, notes, currentTopic, name, age);
     if (result) {
       setCovered(result.covered || []);
       setMissed(result.missed || []);
       setScorePct(result.scorePct || 0);
     }
     setPhase('results');
-  }, [blurt, notes, topic, name, age]);
+  }, [blurt, notes, currentTopic, name, age]);
 
   const retry = useCallback(() => {
     setBlurt('');
     setPhase('write');
     setAttempt((a) => a + 1);
   }, []);
+
+  const nextTopic = useCallback(() => {
+    if (topicIdx < topics.length - 1) {
+      setTopicIdx(topicIdx + 1);
+      setBlurt('');
+      setCovered([]);
+      setMissed([]);
+      setScorePct(0);
+      setAttempt(1);
+      setPhase('write');
+    } else {
+      onComplete();
+    }
+  }, [topicIdx, topics.length, onComplete]);
+
+  if (phase === 'loading') {
+    return (
+      <View style={[styles.center, { flex: 1, gap: 16, backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.label, { color: colors.muted }]}>PICKING YOUR TOPICS…</Text>
+      </View>
+    );
+  }
 
   if (phase === 'grading') {
     return (
@@ -59,7 +98,9 @@ export default function Blurting({ topic, notes, name, age, onComplete, onBack }
         {/* Score */}
         <View style={[styles.scoreCard, { borderColor: scorePct >= 70 ? colors.green : scorePct >= 40 ? colors.yellow : colors.red }]}>
           <Text style={[styles.scoreNum, { color: colors.dark }]}>{scorePct}%</Text>
-          <Text style={[styles.scoreSub, { color: colors.muted }]}>ATTEMPT {attempt}</Text>
+          <Text style={[styles.scoreSub, { color: colors.muted }]}>
+            TOPIC {topicIdx + 1} OF {topics.length} · ATTEMPT {attempt}
+          </Text>
         </View>
 
         {covered.length > 0 && (
@@ -90,8 +131,10 @@ export default function Blurting({ topic, notes, name, age, onComplete, onBack }
               <Text style={[styles.btnText, { color: '#fff' }]}>BLURT AGAIN</Text>
             </Pressable>
           ) : null}
-          <Pressable onPress={() => { onComplete(); }} style={[styles.btn, { backgroundColor: colors.card, borderColor: colors.dark, flex: 1 }]}>
-            <Text style={[styles.btnText, { color: colors.dark }]}>DONE</Text>
+          <Pressable onPress={nextTopic} style={[styles.btn, { backgroundColor: colors.card, borderColor: colors.dark, flex: 1 }]}>
+            <Text style={[styles.btnText, { color: colors.dark }]}>
+              {topicIdx < topics.length - 1 ? 'NEXT TOPIC →' : 'DONE'}
+            </Text>
           </Pressable>
         </View>
 
@@ -106,7 +149,9 @@ export default function Blurting({ topic, notes, name, age, onComplete, onBack }
   return (
     <ScrollView contentContainerStyle={[styles.container, { paddingBottom: 40 }]} keyboardShouldPersistTaps="handled">
       <View style={[styles.topicBadge, { backgroundColor: colors.purpleLight, borderColor: colors.dark }]}>
-        <Text style={[styles.topicText, { color: colors.primary }]}>TOPIC: {topic.toUpperCase()}</Text>
+        <Text style={[styles.topicText, { color: colors.primary }]}>
+          TOPIC {topicIdx + 1}/{topics.length}: {currentTopic.toUpperCase()}
+        </Text>
       </View>
       <Text style={[styles.heading, { color: colors.dark }]}>Write everything you know</Text>
       <Text style={[styles.body, { color: colors.subtle }]}>

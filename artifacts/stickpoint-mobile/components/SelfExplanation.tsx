@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator, Pressable, ScrollView,
   StyleSheet, Text, TextInput, View,
@@ -6,7 +6,7 @@ import {
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useColors } from '@/hooks/useColors';
-import { gradeSelfExplain } from '@/lib/api';
+import { gradeSelfExplain, seChunks } from '@/lib/api';
 import { Card } from '@/lib/content';
 
 interface Props {
@@ -21,10 +21,24 @@ type Phase = 'reading' | 'writing' | 'grading' | 'feedback';
 
 export default function SelfExplanation({ notes, name, age, onComplete, onBack }: Props) {
   const colors = useColors();
-  const lines = useMemo(() =>
-    notes.split('\n').map(l => l.trim()).filter(Boolean).slice(0, 20),
-    [notes]
+  // Local fallback: raw line split. The server's one-idea chunking replaces
+  // it once loaded (pasted paragraphs don't split usefully on newlines).
+  const fallbackLines = useMemo(
+    () => notes.split('\n').map(l => l.trim()).filter(Boolean).slice(0, 20),
+    [notes],
   );
+  const [lines, setLines] = useState<string[]>(fallbackLines);
+  const [chunking, setChunking] = useState(true);
+  useEffect(() => {
+    let alive = true;
+    seChunks(notes, { name, age }).then((chunks) => {
+      if (!alive) return;
+      if (chunks && chunks.length) setLines(chunks.map((c) => c.chunk));
+      setChunking(false);
+    });
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [lineIdx, setLineIdx] = useState(0);
   const [phase, setPhase] = useState<Phase>('reading');
   const [text, setText] = useState('');
@@ -63,6 +77,15 @@ export default function SelfExplanation({ notes, name, age, onComplete, onBack }
       onComplete(hardCards);
     }
   }, [result, hardLines, lineIdx, lines.length, current, onComplete]);
+
+  if (chunking) {
+    return (
+      <View style={[styles.center, { flex: 1, gap: 14, backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.label, { color: colors.muted }]}>SPLITTING YOUR NOTES…</Text>
+      </View>
+    );
+  }
 
   if (done) {
     return (

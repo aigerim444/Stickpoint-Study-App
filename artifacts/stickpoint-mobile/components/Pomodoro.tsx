@@ -3,10 +3,13 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useColors } from '@/hooks/useColors';
+import { pomodoroChunks } from '@/lib/api';
 
 interface Props {
   topic: string;
   notes: string;
+  name: string;
+  age: number | null;
   onComplete: () => void;
   onBack: () => void;
 }
@@ -23,7 +26,7 @@ function fmt(secs: number) {
   return `${m}:${s}`;
 }
 
-export default function Pomodoro({ topic, notes, onComplete, onBack }: Props) {
+export default function Pomodoro({ topic, notes, name, age, onComplete, onBack }: Props) {
   const colors = useColors();
   const [phase, setPhase] = useState<Phase>('work');
   const [round, setRound] = useState(1);
@@ -31,6 +34,20 @@ export default function Pomodoro({ topic, notes, onComplete, onBack }: Props) {
   const [running, setRunning] = useState(false);
   const [finished, setFinished] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Server-chunked notes (one topic per round, bullets) + break fun facts.
+  // Falls back to a raw newline split while loading or offline.
+  const [aiChunks, setAiChunks] = useState<{ title: string; bullets: string[] }[] | null>(null);
+  const [funFacts, setFunFacts] = useState<string[]>([]);
+  useEffect(() => {
+    let alive = true;
+    pomodoroChunks(notes, { name, age }).then((r) => {
+      if (!alive || !r) return;
+      setAiChunks(r.chunks);
+      setFunFacts(r.funFacts);
+    });
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const totalDuration = phase === 'work' ? WORK_SECS : phase === 'shortBreak' ? SHORT_BREAK : LONG_BREAK;
   const pct = (timeLeft / totalDuration) * 100;
@@ -125,10 +142,14 @@ export default function Pomodoro({ topic, notes, onComplete, onBack }: Props) {
     );
   }
 
-  // Chunk of notes to show
-  const chunks = notes.split('\n').filter(Boolean);
-  const chunkIdx = Math.min(round - 1, chunks.length - 1);
-  const noteChunk = chunks[chunkIdx] || notes.slice(0, 300);
+  // Chunk of notes to show — server chunks when available, raw lines otherwise
+  const fallbackChunks = notes.split('\n').filter(Boolean);
+  const chunkIdx = Math.min(round - 1, (aiChunks?.length || fallbackChunks.length) - 1);
+  const aiChunk = aiChunks?.[Math.max(0, chunkIdx)];
+  const noteChunk = aiChunk
+    ? aiChunk.bullets.map((b) => '•  ' + b.replace(/\*\*/g, '')).join('\n')
+    : fallbackChunks[Math.max(0, chunkIdx)] || notes.slice(0, 300);
+  const funFact = funFacts.length ? funFacts[(round - 1) % funFacts.length] : null;
 
   return (
     <ScrollView contentContainerStyle={[styles.container, { paddingBottom: 40 }]}>
@@ -158,7 +179,9 @@ export default function Pomodoro({ topic, notes, onComplete, onBack }: Props) {
       {/* Current study chunk */}
       {phase === 'work' && (
         <View style={[styles.noteCard, { borderColor: colors.dark }]}>
-          <Text style={[styles.noteLabel, { color: colors.muted }]}>FOCUS ON THIS</Text>
+          <Text style={[styles.noteLabel, { color: colors.muted }]}>
+            {aiChunk ? aiChunk.title.toUpperCase() : 'FOCUS ON THIS'}
+          </Text>
           <Text style={[styles.noteText, { color: colors.dark }]}>{noteChunk}</Text>
         </View>
       )}
@@ -166,6 +189,9 @@ export default function Pomodoro({ topic, notes, onComplete, onBack }: Props) {
         <View style={[styles.breakCard, { borderColor: colors.green, backgroundColor: colors.greenLight }]}>
           <Text style={[styles.breakLabel, { color: colors.green }]}>BREAK TIME</Text>
           <Text style={[styles.breakBody, { color: colors.dark }]}>Step away from your screen. Breathe. No phones.</Text>
+          {!!funFact && (
+            <Text style={[styles.breakBody, { color: colors.dark }]}>💡 {funFact}</Text>
+          )}
         </View>
       )}
 
