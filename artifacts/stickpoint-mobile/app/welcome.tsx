@@ -95,7 +95,7 @@ export default function Welcome() {
           <View style={[styles.logoBox, { borderColor: c.dark }]}>
             <Text style={[styles.logoText, { color: c.dark }]}>DAILY REMINDER</Text>
           </View>
-          <Text style={[styles.tagline, { color: c.subtle }]}>Never break your streak.</Text>
+          <Text style={[styles.tagline, { color: c.subtle }]}>A little every day is what sticks.</Text>
         </View>
 
         <View style={[styles.card, { borderColor: c.dark }]}>

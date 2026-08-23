@@ -19,15 +19,10 @@ jobs:
         run: corepack enable pnpm
 
       - name: Install dependencies
-        # Skip the heavy Expo app in CI for now — it is checked in Phase 3
-        # when it becomes the primary app.
-        run: pnpm install --filter '!@workspace/stickpoint-mobile'
+        run: pnpm install
 
-      - name: Typecheck libs and packages
-        run: pnpm exec tsc --build
-
-      - name: Typecheck API server
-        run: pnpm exec tsc -p artifacts/api-server/tsconfig.json --noEmit
+      - name: Typecheck (libs, packages, artifacts incl. the Expo app)
+        run: pnpm run typecheck
 
       - name: Test
         run: pnpm --filter @workspace/core run test
