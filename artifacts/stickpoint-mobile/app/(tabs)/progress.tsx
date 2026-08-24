@@ -6,11 +6,15 @@ import { useApp } from '@/context/AppContext';
 import { METHODS, featherIcon } from '@/lib/content';
 import colors from '@/constants/colors';
 import { scheduleDaily, cancelDailyReminder } from '@/lib/notifications';
+import AccountCard from '@/components/AccountCard';
+import { accountsEnabled } from '@/lib/supabase';
+import { useRouter } from 'expo-router';
 
 const c = colors.light;
 
 export default function ProgressTab() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { state, gradeMissedItem, dueMissed, setNotificationPreference } = useApp();
 
   // Local mirror for notification time so the UI updates immediately
@@ -214,6 +218,14 @@ export default function ProgressTab() {
       )}
 
       {/* Notification settings */}
+      {/* Account & sync */}
+      {accountsEnabled && (
+        <>
+          <Text style={[styles.sectionLabel, { color: c.dark }]}>ACCOUNT</Text>
+          <AccountCard />
+        </>
+      )}
+
       <Text style={[styles.sectionLabel, { color: c.dark }]}>DAILY REMINDER</Text>
       <View style={[styles.card, { borderColor: c.dark }]}>
         {/* Toggle row */}
@@ -290,6 +302,9 @@ export default function ProgressTab() {
           </>
         )}
       </View>
+      <Pressable onPress={() => router.push('/privacy')} style={{ alignSelf: 'center', paddingVertical: 8 }}>
+        <Text style={{ fontSize: 12, fontWeight: '700', color: c.muted }}>Privacy & your data</Text>
+      </Pressable>
     </ScrollView>
   );
 }

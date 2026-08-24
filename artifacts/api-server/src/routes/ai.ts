@@ -1,6 +1,8 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { z } from "zod";
 import { rateLimit } from "../middlewares/rateLimit";
+import { optionalAuth } from "../middlewares/auth";
+import { checkAiQuota, ensureUserRow } from "../lib/quota";
 import {
   NO_EM_DASH,
   askClaude,
@@ -20,6 +22,7 @@ import {
 const router: IRouter = Router();
 
 router.use(rateLimit({ windowMs: 60_000, max: 30 }));
+router.use(optionalAuth);
 
 // Student calibration accepted by every endpoint.
 const student = {
@@ -46,6 +49,17 @@ function endpoint<S extends z.ZodTypeAny>(
       req.log.error("ANTHROPIC_API_KEY is not configured");
       res.status(500).json({ error: "AI service is not configured" });
       return;
+    }
+    // Signed-in students get a durable daily budget on top of the IP limit.
+    if (req.user) {
+      await ensureUserRow(req.user);
+      const quota = await checkAiQuota(req.user.id);
+      if (!quota.allowed) {
+        res.status(429).json({
+          error: "Daily AI limit reached — Chop needs a rest. Come back tomorrow!",
+        });
+        return;
+      }
     }
     try {
       const result = await handler(parsed.data);

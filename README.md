@@ -73,6 +73,45 @@ stop serving them. Note: legacy-app users' progress lives in their
 browser's localStorage under a different key, so testers start fresh on the
 new web app (accounts in Phase 4 fix this class of problem for good).
 
+## Accounts & sync (Phase 4)
+
+Accounts are optional at every layer — with none of the env vars below set,
+the app runs local-only and every accounts surface disappears.
+
+Setup (~15 min, one time):
+
+1. Create a free project at [supabase.com](https://supabase.com) (used for
+   **auth only** — email one-time codes; we never store passwords).
+   In Authentication → Providers, leave Email enabled; no other providers
+   needed.
+2. Get a Postgres database. Easiest: use the same Supabase project's
+   database (Settings → Database → connection string, use the *pooler* URI
+   for serverless hosts).
+3. Push the schema: `DATABASE_URL=... pnpm --filter @workspace/db run push`
+4. Set the environment variables:
+
+| Variable | Where | Purpose |
+| --- | --- | --- |
+| `ANTHROPIC_API_KEY` | API server | AI features |
+| `DATABASE_URL` | API server | sync, analytics, quotas |
+| `SUPABASE_URL` | API server | verifying sign-in tokens |
+| `SUPABASE_ANON_KEY` | API server | verifying sign-in tokens |
+| `SUPABASE_SERVICE_ROLE_KEY` | API server | deleting auth users on account deletion (optional but recommended) |
+| `AI_DAILY_CALL_CAP` | API server | per-user daily AI budget (default 300) |
+| `EXPO_PUBLIC_SUPABASE_URL` | app build | enables the accounts UI |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | app build | enables the accounts UI |
+| `EXPO_PUBLIC_API_URL` | app build | API origin (omit when same-origin) |
+
+How it behaves: students sign in with a 6-digit email code, their progress
+snapshot syncs to the server (last-write-wins across devices), and the
+Progress tab gains **Export my data** and **Delete my account** (deletion is
+immediate, cascades through all rows, and removes the auth identity when the
+service-role key is present). Signed-in users also get a durable daily AI
+call budget on top of the per-IP rate limit.
+
+The privacy policy lives in the app at `/privacy` — **review it and add a
+contact email before public launch.**
+
 ## Engineering notes
 
 - `replit.md` has the full repo map, deploy flow, and gotchas.

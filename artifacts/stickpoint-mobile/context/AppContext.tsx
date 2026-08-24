@@ -7,6 +7,8 @@ import React, {
   useState,
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { supabase, accountsEnabled } from '@/lib/supabase';
+import { postEvent, pullState, pushState } from '@/lib/sync';
 import {
   Card,
   MissedItem,
@@ -19,6 +21,7 @@ import {
 } from '@/lib/content';
 
 const STORAGE_KEY = 'stickpoint_mobile_v1';
+const SYNC_META_KEY = 'stickpoint_sync_meta_v1';
 
 export type { MissedItem };
 
@@ -121,6 +124,8 @@ interface AppContextValue {
   setNotificationPreference: (enabled: boolean, hour: number, minute: number) => void;
   resetApp: () => void;
   dueMissed: () => MissedItem[];
+  /** Signed-in account email, or null. Always null when accounts are disabled. */
+  account: { email: string } | null;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -128,6 +133,91 @@ const AppContext = createContext<AppContextValue | null>(null);
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AppState>(defaultState);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // ---- Account + snapshot sync ----
+  // The server is the source of truth once signed in. We track the server
+  // timestamp we last reconciled with (sync meta, stored under its own key)
+  // and push a debounced snapshot after every local save. Conflicts are
+  // last-write-wins: a 409 hands us the newer server copy and we adopt it.
+  const [account, setAccount] = useState<{ email: string } | null>(null);
+  const signedInRef = useRef(false);
+  const syncMetaRef = useRef<{ updatedAt: number }>({ updatedAt: 0 });
+  const pushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const stateRef = useRef(state);
+  stateRef.current = state;
+
+  const setSyncMeta = useCallback((updatedAt: number) => {
+    syncMetaRef.current = { updatedAt };
+    AsyncStorage.setItem(SYNC_META_KEY, JSON.stringify({ updatedAt })).catch(() => {});
+  }, []);
+
+  const snapshotOf = useCallback((s: AppState): Record<string, unknown> => {
+    const { loaded: _loaded, ...rest } = s;
+    return rest;
+  }, []);
+
+  const adoptServerState = useCallback((serverState: Record<string, unknown>, updatedAt: number) => {
+    setState((prev) => {
+      const next = { ...defaultState, ...(serverState as Partial<AppState>), loaded: true };
+      // Recompute the streak locally; the snapshot's copy may be stale.
+      next.streak = Array.isArray(next.studiedDates) ? computeStreak(next.studiedDates, Date.now()) : 0;
+      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)).catch(() => {});
+      return next;
+    });
+    setSyncMeta(updatedAt);
+  }, [setSyncMeta]);
+
+  const schedulePush = useCallback((next: AppState) => {
+    if (!signedInRef.current) return;
+    if (pushTimer.current) clearTimeout(pushTimer.current);
+    pushTimer.current = setTimeout(async () => {
+      const result = await pushState(snapshotOf(next), syncMetaRef.current.updatedAt);
+      if (result.ok) setSyncMeta(result.updatedAt);
+      else if (result.conflict) adoptServerState(result.conflict.state, result.conflict.updatedAt);
+    }, 2000);
+  }, [snapshotOf, setSyncMeta, adoptServerState]);
+
+  /** Local save + (when signed in) debounced server push. */
+  const saveAndSync = useCallback((next: AppState) => {
+    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)).catch(() => {});
+    schedulePush(next);
+  }, [schedulePush]);
+
+  const reconcileWithServer = useCallback(async () => {
+    const pulled = await pullState();
+    if (pulled === null) return; // offline or server hiccup — try again next launch
+    if (pulled === 'empty' || pulled.updatedAt <= syncMetaRef.current.updatedAt) {
+      // Server has nothing newer: our local copy becomes the server copy.
+      const result = await pushState(snapshotOf(stateRef.current), syncMetaRef.current.updatedAt);
+      if (result.ok) setSyncMeta(result.updatedAt);
+      else if (result.conflict) adoptServerState(result.conflict.state, result.conflict.updatedAt);
+    } else {
+      adoptServerState(pulled.state, pulled.updatedAt);
+    }
+  }, [snapshotOf, setSyncMeta, adoptServerState]);
+
+  useEffect(() => {
+    if (!supabase) return;
+    AsyncStorage.getItem(SYNC_META_KEY).then((raw) => {
+      if (raw) {
+        try { syncMetaRef.current = JSON.parse(raw); } catch {}
+      }
+    });
+    supabase.auth.getSession().then(({ data }) => {
+      const email = data.session?.user?.email;
+      signedInRef.current = !!data.session;
+      setAccount(email ? { email } : null);
+      if (data.session) reconcileWithServer();
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      signedInRef.current = !!session;
+      setAccount(session?.user?.email ? { email: session.user.email } : null);
+      if (event === 'SIGNED_IN') reconcileWithServer();
+      if (event === 'SIGNED_OUT') setSyncMeta(0);
+    });
+    return () => sub.subscription.unsubscribe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Load from storage on mount
   useEffect(() => {
@@ -154,40 +244,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setState((prev) => {
       const next = { ...prev, ...patch };
       if (saveTimer.current) clearTimeout(saveTimer.current);
-      saveTimer.current = setTimeout(() => {
-        const toSave: Partial<AppState> = {
-          name: next.name,
-          age: next.age,
-          subjectId: next.subjectId,
-          quizAnswers: next.quizAnswers,
-          topMethods: next.topMethods,
-          scores: next.scores,
-          material: next.material,
-          topic: next.topic,
-          concepts: next.concepts,
-          isMath: next.isMath,
-          library: next.library,
-          currentMaterialId: next.currentMaterialId,
-          missedBank: next.missedBank,
-          streak: next.streak,
-          studiedDates: next.studiedDates,
-          sessionsFinished: next.sessionsFinished,
-          methodsTried: next.methodsTried,
-          ptHistory: next.ptHistory,
-          activeMethod: next.activeMethod,
-          materialTopMethods: next.materialTopMethods,
-          notificationsEnabled: next.notificationsEnabled,
-          notificationHour: next.notificationHour,
-          notificationMinute: next.notificationMinute,
-        };
-        AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
-      }, 300);
+      saveTimer.current = setTimeout(() => saveAndSync(next), 300);
       return next;
     });
-  }, []);
+  }, [saveAndSync]);
 
   const setName = useCallback((name: string, age: number) => {
     persist({ name, age });
+    postEvent('onboarding_started');
   }, [persist]);
 
   const setQuizResult = useCallback((
@@ -197,6 +261,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     scores: Record<string, number>,
   ) => {
     persist({ subjectId, quizAnswers: answers, topMethods, scores });
+    postEvent('quiz_completed', undefined, { subjectId, topMethods });
   }, [persist]);
 
   const setMaterial = useCallback((material: string, topic: string, concepts: Card[], isMath: boolean) => {
@@ -204,6 +269,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const id = 'm' + Date.now();
       const entry: LibraryEntry = { id, name: topic, material, concepts, topic, isMath, savedAt: Date.now() };
       const library = [...(prev.library || []), entry];
+      postEvent('material_added', undefined, { isMath });
       // Per-material progress starts fresh — the previous material's missed
       // bank and test history live in its own library entry, not here.
       const next = {
@@ -212,7 +278,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       };
       if (saveTimer.current) clearTimeout(saveTimer.current);
       saveTimer.current = setTimeout(() => {
-        AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        saveAndSync(next);
       }, 300);
       return next;
     });
@@ -226,6 +292,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setState((prev) => {
       const { studiedDates, streak } = coreMarkStudiedToday(prev.studiedDates, Date.now());
       const methodsTried = { ...prev.methodsTried, [method]: true };
+      postEvent('session_completed', method, { total: (prev.sessionsFinished || 0) + 1 });
       const next = {
         ...prev,
         sessionsFinished: (prev.sessionsFinished || 0) + 1,
@@ -235,7 +302,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       };
       if (saveTimer.current) clearTimeout(saveTimer.current);
       saveTimer.current = setTimeout(() => {
-        AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        saveAndSync(next);
       }, 300);
       return next;
     });
@@ -253,7 +320,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         : prev.library;
       const next = { ...prev, missedBank: newBank, library };
       if (saveTimer.current) clearTimeout(saveTimer.current);
-      saveTimer.current = setTimeout(() => { AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)); }, 300);
+      saveTimer.current = setTimeout(() => { saveAndSync(next); }, 300);
       return next;
     });
   }, []);
@@ -264,7 +331,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const bank = coreGradeMissedItem(prev.missedBank || [], key, rating, Date.now());
       const next = { ...prev, missedBank: bank };
       if (saveTimer.current) clearTimeout(saveTimer.current);
-      saveTimer.current = setTimeout(() => { AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)); }, 300);
+      saveTimer.current = setTimeout(() => { saveAndSync(next); }, 300);
       return next;
     });
   }, []);
@@ -283,7 +350,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         : prev.library;
       const next = { ...prev, ptHistory: newHistory, library };
       if (saveTimer.current) clearTimeout(saveTimer.current);
-      saveTimer.current = setTimeout(() => { AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)); }, 300);
+      saveTimer.current = setTimeout(() => { saveAndSync(next); }, 300);
       return next;
     });
   }, []);
@@ -362,6 +429,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const resetApp = useCallback(() => {
     AsyncStorage.removeItem(STORAGE_KEY);
+    AsyncStorage.removeItem(SYNC_META_KEY);
+    syncMetaRef.current = { updatedAt: 0 };
     setState({ ...defaultState, loaded: true });
   }, []);
 
@@ -377,6 +446,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       recordMissed, gradeMissedItem, addPtResult, markStudiedToday,
       addToLibrary, switchMaterial, deleteFromLibrary, renameLibraryEntry,
       setMaterialTopMethods, setNotificationPreference, resetApp, dueMissed,
+      account: accountsEnabled ? account : null,
     }}>
       {children}
     </AppContext.Provider>

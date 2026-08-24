@@ -6,7 +6,9 @@
  * already written against.
  */
 
-const BASE_URL =
+import { authToken } from './supabase';
+
+export const BASE_URL =
   process.env.EXPO_PUBLIC_API_URL ||
   (process.env.EXPO_PUBLIC_DOMAIN ? `https://${process.env.EXPO_PUBLIC_DOMAIN}` : '');
 
@@ -15,13 +17,22 @@ interface Student {
   age?: number | null;
 }
 
+/** Fetch against our API with the auth token attached when signed in. */
+export async function apiFetch(path: string, init: RequestInit = {}): Promise<Response> {
+  const token = await authToken();
+  return fetch(`${BASE_URL}/api${path}`, {
+    ...init,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(init.headers || {}),
+    },
+  });
+}
+
 async function post<T>(path: string, body: Record<string, unknown>): Promise<T | null> {
   try {
-    const res = await fetch(`${BASE_URL}/api/ai${path}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
+    const res = await apiFetch(`/ai${path}`, { method: 'POST', body: JSON.stringify(body) });
     if (!res.ok) return null;
     return (await res.json()) as T;
   } catch {

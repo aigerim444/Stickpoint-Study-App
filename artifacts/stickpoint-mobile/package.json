@@ -58,7 +58,9 @@
   },
   "dependencies": {
     "@expo-google-fonts/nunito": "^0.4.2",
+    "@supabase/supabase-js": "^2.58.0",
     "@workspace/core": "workspace:*",
-    "expo-notifications": "^0.32.17"
+    "expo-notifications": "^0.32.17",
+    "react-native-url-polyfill": "^2.0.0"
   }
 }
