@@ -69,6 +69,9 @@ export interface AppState {
   activeMethod: string;
   materialTopMethods: string[] | null;
 
+  // Planning
+  testDate: string | null; // YYYY-MM-DD
+
   // Notifications
   notificationsEnabled: boolean;
   notificationHour: number;
@@ -99,6 +102,7 @@ const defaultState: AppState = {
   ptHistory: [],
   activeMethod: 'active_recall',
   materialTopMethods: null,
+  testDate: null,
   notificationsEnabled: false,
   notificationHour: 20,
   notificationMinute: 0,
@@ -121,6 +125,7 @@ interface AppContextValue {
   deleteFromLibrary: (id: string) => void;
   renameLibraryEntry: (id: string, name: string) => void;
   setMaterialTopMethods: (methods: string[] | null) => void;
+  setTestDate: (date: string | null) => void;
   setNotificationPreference: (enabled: boolean, hour: number, minute: number) => void;
   resetApp: () => void;
   dueMissed: () => MissedItem[];
@@ -420,6 +425,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     persist({ materialTopMethods: methods });
   }, [persist]);
 
+  const setTestDate = useCallback((date: string | null) => {
+    persist({ testDate: date });
+  }, [persist]);
+
   const setNotificationPreference = useCallback(
     (enabled: boolean, hour: number, minute: number) => {
       persist({ notificationsEnabled: enabled, notificationHour: hour, notificationMinute: minute });
@@ -445,7 +454,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setName, setQuizResult, setMaterial, setActiveMethod, recordSession,
       recordMissed, gradeMissedItem, addPtResult, markStudiedToday,
       addToLibrary, switchMaterial, deleteFromLibrary, renameLibraryEntry,
-      setMaterialTopMethods, setNotificationPreference, resetApp, dueMissed,
+      setMaterialTopMethods, setTestDate, setNotificationPreference, resetApp, dueMissed,
       account: accountsEnabled ? account : null,
     }}>
       {children}

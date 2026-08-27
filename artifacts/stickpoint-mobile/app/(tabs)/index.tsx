@@ -1,8 +1,9 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Pressable, ScrollView, StyleSheet, Text, View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useApp, useEffectiveMethods } from '@/context/AppContext';
@@ -35,6 +36,18 @@ export default function StudyTab() {
     setActiveMethod(id);
     setActiveSession(id);
   }, [setActiveMethod]);
+
+  // Deep link from the Today tab: /(tabs)?start=method_id starts a session.
+  const params = useLocalSearchParams<{ start?: string }>();
+  const router = useRouter();
+  useEffect(() => {
+    if (typeof params.start === 'string' && params.start && !activeSession) {
+      const id = params.start;
+      router.setParams({ start: '' });
+      startMethod(id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.start]);
 
   const endSession = useCallback((hardCards?: Card[], ptScore?: number, ptTotal?: number) => {
     if (activeSession) {

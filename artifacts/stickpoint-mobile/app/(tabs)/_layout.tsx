@@ -13,9 +13,17 @@ const c = colors.light;
 function NativeTabLayout() {
   return (
     <NativeTabs>
+      <NativeTabs.Trigger name="today">
+        <Icon sf={{ default: 'sun.max', selected: 'sun.max.fill' }} />
+        <Label>Today</Label>
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="index">
         <Icon sf={{ default: 'bolt', selected: 'bolt.fill' }} />
         <Label>Study</Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="plan">
+        <Icon sf={{ default: 'calendar', selected: 'calendar' }} />
+        <Label>Plan</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="progress">
         <Icon sf={{ default: 'chart.bar', selected: 'chart.bar.fill' }} />
@@ -63,6 +71,20 @@ function ClassicTabLayout() {
       }}
     >
       <Tabs.Screen
+        name="today"
+        options={{
+          title: 'Today',
+          tabBarIcon: ({ color }) =>
+            isIOS ? (
+              <SymbolView name="sun.max" tintColor={color} size={26} />
+            ) : (
+              <Feather name="sun" size={26} color={color} />
+            ),
+          tabBarActiveTintColor: isIOS ? c.primary : '#FFC93C',
+          tabBarInactiveTintColor: isIOS ? c.muted : '#8a8194',
+        }}
+      />
+      <Tabs.Screen
         name="index"
         options={{
           title: 'Study',
@@ -71,6 +93,20 @@ function ClassicTabLayout() {
               <SymbolView name="bolt" tintColor={color} size={26} />
             ) : (
               <Feather name="zap" size={26} color={color} />
+            ),
+          tabBarActiveTintColor: isIOS ? c.primary : '#FFC93C',
+          tabBarInactiveTintColor: isIOS ? c.muted : '#8a8194',
+        }}
+      />
+      <Tabs.Screen
+        name="plan"
+        options={{
+          title: 'Plan',
+          tabBarIcon: ({ color }) =>
+            isIOS ? (
+              <SymbolView name="calendar" tintColor={color} size={26} />
+            ) : (
+              <Feather name="calendar" size={26} color={color} />
             ),
           tabBarActiveTintColor: isIOS ? c.primary : '#FFC93C',
           tabBarInactiveTintColor: isIOS ? c.muted : '#8a8194',
