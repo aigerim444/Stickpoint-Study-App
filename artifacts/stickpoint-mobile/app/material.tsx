@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator, Alert, KeyboardAvoidingView, Platform,
   Pressable, ScrollView, StyleSheet, Text, TextInput, View,
@@ -43,19 +43,111 @@ export default function Material() {
       : asset.mimeType === 'image/webp' ? 'image/webp'
       : 'image/jpeg';
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    setPhase('transcribing');
-    const text = await transcribeMaterial(base64, mediaType, { name: state.name, age: state.age });
-    if (!text) {
-      setErrorMsg("Chop couldn't read that photo. Try a clearer, well-lit shot straight over the page — or type the notes instead.");
-      setPhase('error');
-      return;
-    }
-    // Drop the transcription into the editor so the student can check and
+    // The transcription lands in the editor so the student can check and
     // fix it before Chop builds cards from it.
-    setNotes((prev) => (prev.trim() ? prev.trimEnd() + '\n\n' + text : text));
-    setPhase('input');
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    await importTranscribable(base64, mediaType);
   };
+
+  const [dragging, setDragging] = useState(false);
+
+  const notify = (title: string, message: string) => {
+    if (Platform.OS === 'web') window.alert(`${title}\n\n${message}`);
+    else Alert.alert(title, message);
+  };
+
+  const importTranscribable = useCallback(
+    async (base64: string, mediaType: TranscribeMediaType) => {
+      setPhase('transcribing');
+      const text = await transcribeMaterial(base64, mediaType, { name: state.name, age: state.age });
+      if (!text) {
+        setErrorMsg("Chop couldn't read that file. Try a clearer photo or a text-based PDF — or paste the notes instead.");
+        setPhase('error');
+        return;
+      }
+      setNotes((prev) => (prev.trim() ? prev.trimEnd() + '\n\n' + text : text));
+      setPhase('input');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    },
+    [state.name, state.age],
+  );
+
+  /** Web: a file dropped anywhere on the screen becomes notes. */
+  const handleDroppedFile = useCallback(
+    async (file: File) => {
+      const type = file.type || '';
+      const name = file.name.toLowerCase();
+      const isText =
+        type.startsWith('text/') || name.endsWith('.txt') || name.endsWith('.md');
+      if (isText) {
+        const text = (await file.text()).trim();
+        if (text) setNotes((prev) => (prev.trim() ? prev.trimEnd() + '\n\n' + text : text));
+        return;
+      }
+      const mediaType: TranscribeMediaType | null =
+        type === 'image/png' ? 'image/png'
+        : type === 'image/jpeg' ? 'image/jpeg'
+        : type === 'image/webp' ? 'image/webp'
+        : type === 'application/pdf' || name.endsWith('.pdf') ? 'application/pdf'
+        : null;
+      if (!mediaType) {
+        notify('File type not supported', 'Drop a photo (PNG/JPG), a PDF, or a text file — or just paste the notes.');
+        return;
+      }
+      if (file.size > 3_500_000) {
+        notify('File too big', 'Keep it under ~3.5 MB — try one page at a time, or a smaller photo.');
+        return;
+      }
+      const base64 = await new Promise<string | null>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = String(reader.result || '');
+          const comma = result.indexOf(',');
+          resolve(comma >= 0 ? result.slice(comma + 1) : null);
+        };
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(file);
+      });
+      if (!base64) {
+        notify('Could not read that file', 'Try again, or paste the notes instead.');
+        return;
+      }
+      await importTranscribable(base64, mediaType);
+    },
+    [importTranscribable],
+  );
+
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    let depth = 0;
+    const onDragEnter = (e: DragEvent) => {
+      e.preventDefault();
+      depth++;
+      setDragging(true);
+    };
+    const onDragOver = (e: DragEvent) => e.preventDefault();
+    const onDragLeave = (e: DragEvent) => {
+      e.preventDefault();
+      depth = Math.max(0, depth - 1);
+      if (depth === 0) setDragging(false);
+    };
+    const onDrop = (e: DragEvent) => {
+      e.preventDefault();
+      depth = 0;
+      setDragging(false);
+      const file = e.dataTransfer?.files?.[0];
+      if (file) handleDroppedFile(file);
+    };
+    window.addEventListener('dragenter', onDragEnter);
+    window.addEventListener('dragover', onDragOver);
+    window.addEventListener('dragleave', onDragLeave);
+    window.addEventListener('drop', onDrop);
+    return () => {
+      window.removeEventListener('dragenter', onDragEnter);
+      window.removeEventListener('dragover', onDragOver);
+      window.removeEventListener('dragleave', onDragLeave);
+      window.removeEventListener('drop', onDrop);
+    };
+  }, [handleDroppedFile]);
 
   const process = async () => {
     const trimmed = notes.trim();
@@ -127,7 +219,11 @@ export default function Material() {
         </Text>
 
         <Pressable onPress={pickPhoto} style={[styles.photoBtn, { borderColor: c.dark, backgroundColor: c.card }]}>
-          <Text style={[styles.photoBtnText, { color: c.dark }]}>📷  Import photo of notes</Text>
+          <Text style={[styles.photoBtnText, { color: c.dark }]}>
+            {Platform.OS === 'web'
+              ? '📷  Import photo of notes — or drop a photo, PDF, or text file anywhere'
+              : '📷  Import photo of notes'}
+          </Text>
         </Pressable>
 
         <TextInput
@@ -161,11 +257,27 @@ export default function Material() {
           </Pressable>
         )}
       </ScrollView>
+      {dragging && (
+        <View style={[styles.dropOverlay, { borderColor: c.primary }]} pointerEvents="none">
+          <Text style={styles.dropEmoji}>📄</Text>
+          <Text style={[styles.dropTitle, { color: c.primary }]}>Drop it!</Text>
+          <Text style={[styles.dropSub, { color: c.dark }]}>Photo, PDF, or text file — Chop will read it.</Text>
+        </View>
+      )}
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  dropOverlay: {
+    position: 'absolute', top: 12, left: 12, right: 12, bottom: 12,
+    borderWidth: 4, borderStyle: 'dashed',
+    backgroundColor: 'rgba(251, 232, 211, 0.94)',
+    alignItems: 'center', justifyContent: 'center', gap: 6,
+  },
+  dropEmoji: { fontSize: 44 },
+  dropTitle: { fontSize: 26, fontWeight: '900', letterSpacing: 1 },
+  dropSub: { fontSize: 14, fontWeight: '700' },
   center: { alignItems: 'center', justifyContent: 'center', gap: 20 },
   container: { padding: 20, gap: 14 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
