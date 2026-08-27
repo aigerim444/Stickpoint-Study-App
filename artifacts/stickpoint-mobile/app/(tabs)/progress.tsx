@@ -3,10 +3,11 @@ import { Alert, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useApp } from '@/context/AppContext';
-import { METHODS, featherIcon } from '@/lib/content';
+import { METHODS, featherIcon, Card } from '@/lib/content';
 import colors from '@/constants/colors';
 import { scheduleDaily, cancelDailyReminder } from '@/lib/notifications';
 import AccountCard from '@/components/AccountCard';
+import ActiveRecall from '@/components/ActiveRecall';
 import { accountsEnabled } from '@/lib/supabase';
 import { useRouter } from 'expo-router';
 
@@ -15,7 +16,8 @@ const c = colors.light;
 export default function ProgressTab() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { state, gradeMissedItem, dueMissed, setNotificationPreference } = useApp();
+  const [drillCards, setDrillCards] = useState<Card[] | null>(null);
+  const { state, gradeMissedItem, dueMissed, setNotificationPreference, markStudiedToday, recordSession } = useApp();
 
   // Local mirror for notification time so the UI updates immediately
   const [notifHour, setNotifHour] = useState(state.notificationHour ?? 20);
@@ -68,6 +70,26 @@ export default function ProgressTab() {
   const avgPt = ptHistory.length
     ? Math.round(ptHistory.reduce((a, p) => a + (p.score / p.total) * 100, 0) / ptHistory.length)
     : null;
+
+  if (drillCards) {
+    return (
+      <View style={{ flex: 1, backgroundColor: c.background, paddingTop: insets.top + 8 }}>
+        <Text style={drillStyles.title}>DRILL YOUR MISSED ITEMS</Text>
+        <ActiveRecall
+          cards={drillCards}
+          onRate={(card, rating) => {
+            if (card.srKey) gradeMissedItem(card.srKey, rating);
+          }}
+          onComplete={() => {
+            markStudiedToday();
+            recordSession('active_recall');
+            setDrillCards(null);
+          }}
+          onBack={() => setDrillCards(null)}
+        />
+      </View>
+    );
+  }
 
   return (
     <ScrollView
@@ -130,6 +152,21 @@ export default function ProgressTab() {
           <Text style={[styles.sectionLabel, { color: c.red }]}>
             DRILL DECK — {due.length} DUE
           </Text>
+          <Pressable
+            onPress={() =>
+              setDrillCards(
+                due.slice(0, 20).map((b) => ({
+                  question: b.question,
+                  answer: b.answer,
+                  methodTag: 'missed · ' + (b.source || 'review'),
+                  srKey: b.key,
+                })),
+              )
+            }
+            style={[styles.drillBtn, { backgroundColor: c.primary, borderColor: c.dark }]}>
+            <Feather name="rotate-ccw" size={16} color="#fff" />
+            <Text style={styles.drillBtnText}>DRILL ALL {Math.min(due.length, 20)} AS FLASHCARDS</Text>
+          </Pressable>
           {due.slice(0, 6).map((item) => (
             <View key={item.key} style={[styles.missedCard, { borderColor: c.dark }]}>
               <View style={{ flex: 1, gap: 4 }}>
@@ -318,7 +355,20 @@ function StatBox({ label, value, color }: { label: string; value: string; color:
   );
 }
 
+const drillStyles = StyleSheet.create({
+  title: {
+    fontSize: 12, fontWeight: '900', letterSpacing: 1.5, textAlign: 'center',
+    color: '#201E2E', paddingVertical: 8,
+  },
+});
+
 const styles = StyleSheet.create({
+  drillBtn: {
+    borderWidth: 3, padding: 13, alignItems: 'center', justifyContent: 'center',
+    flexDirection: 'row', gap: 8,
+    boxShadow: '4px 4px 0px #201E2E',
+  },
+  drillBtnText: { fontWeight: '900', fontSize: 13, color: '#fff', letterSpacing: 0.5 },
   container: { padding: 16, gap: 12 },
   heading: { fontWeight: '900', fontSize: 24, lineHeight: 32 },
   sectionLabel: { fontWeight: '900', fontSize: 10, letterSpacing: 1.5, marginTop: 4 },

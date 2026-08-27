@@ -9,6 +9,9 @@ interface Props {
   cards: Card[];
   onComplete: (hardCards: Card[]) => void;
   onBack: () => void;
+  /** Drill mode: reports every rating so the caller can reschedule
+      spaced-repetition boxes per card. */
+  onRate?: (card: Card, rating: 'easy' | 'medium' | 'hard') => void;
 }
 
 interface CardState {
@@ -16,7 +19,7 @@ interface CardState {
   rating: 'easy' | 'medium' | 'hard' | null;
 }
 
-export default function ActiveRecall({ cards, onComplete, onBack }: Props) {
+export default function ActiveRecall({ cards, onComplete, onBack, onRate }: Props) {
   const colors = useColors();
   const [idx, setIdx] = useState(0);
   const [flipped, setFlipped] = useState(false);
@@ -49,6 +52,7 @@ export default function ActiveRecall({ cards, onComplete, onBack }: Props) {
     );
     const updated = cardStates.map((cs, i) => (i === idx ? { ...cs, rating } : cs));
     setCardStates(updated);
+    if (current) onRate?.(current.card, rating);
 
     if (idx < cardStates.length - 1) {
       Animated.timing(flipAnim, { toValue: 0, duration: 0, useNativeDriver: true }).start();

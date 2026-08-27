@@ -1,3 +1,4 @@
+import { postEvent } from '@/lib/sync';
 import React, { Component, ComponentType, PropsWithChildren } from 'react';
 import { ErrorFallback, ErrorFallbackProps } from '@/components/ErrorFallback';
 
@@ -29,6 +30,12 @@ export class ErrorBoundary extends Component<
   }
 
   componentDidCatch(error: Error, info: { componentStack: string }): void {
+    // Crash visibility without a third-party tracker: report into our own
+    // analytics events (students don't file bug reports).
+    postEvent('client_error', undefined, {
+      message: String(error?.message || error).slice(0, 300),
+      stack: String(info?.componentStack || '').slice(0, 500),
+    });
     if (typeof this.props.onError === 'function') {
       this.props.onError(error, info.componentStack);
     }
