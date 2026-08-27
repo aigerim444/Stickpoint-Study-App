@@ -383,16 +383,39 @@ export type TranscribeMediaType = 'image/png' | 'image/jpeg' | 'image/webp' | 'a
 
 /**
  * Transcribes a photo of notes (or a PDF) into plain text via the server's
- * vision endpoint. Returns null when unreadable — the student can always
- * fall back to typing.
+ * vision endpoint. Distinguishes "the file was unreadable" from "the AI
+ * service isn't reachable" so the UI can say the right thing.
  */
+export type TranscribeResult =
+  | { ok: true; text: string }
+  | { ok: false; reason: 'unreadable' | 'unavailable' };
+
 export async function transcribeMaterial(
   base64Data: string,
   mediaType: TranscribeMediaType,
   s: Student = {},
-): Promise<string | null> {
-  const r = await post<{ text: string }>('/transcribe', { data: base64Data, mediaType, ...s });
-  return r ? r.text : null;
+): Promise<TranscribeResult> {
+  try {
+    const res = await apiFetch('/ai/transcribe', {
+      method: 'POST',
+      body: JSON.stringify({ data: base64Data, mediaType, ...s }),
+    });
+    // 502 is the server saying "I reached Claude but the reply was
+    // unusable" — that one genuinely means try a better photo.
+    if (res.status === 502) return { ok: false, reason: 'unreadable' };
+    if (!res.ok) return { ok: false, reason: 'unavailable' };
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      // A static host answering for a missing API returns HTML.
+      return { ok: false, reason: 'unavailable' };
+    }
+    const body = (await res.json()) as { text?: string };
+    return body.text
+      ? { ok: true, text: body.text }
+      : { ok: false, reason: 'unreadable' };
+  } catch {
+    return { ok: false, reason: 'unavailable' };
+  }
 }
 
 // ─── Pomodoro ────────────────────────────────────────────────────────────────

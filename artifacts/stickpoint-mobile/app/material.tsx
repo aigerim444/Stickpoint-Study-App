@@ -58,13 +58,17 @@ export default function Material() {
   const importTranscribable = useCallback(
     async (base64: string, mediaType: TranscribeMediaType) => {
       setPhase('transcribing');
-      const text = await transcribeMaterial(base64, mediaType, { name: state.name, age: state.age });
-      if (!text) {
-        setErrorMsg("Chop couldn't read that file. Try a clearer photo or a text-based PDF — or paste the notes instead.");
+      const result = await transcribeMaterial(base64, mediaType, { name: state.name, age: state.age });
+      if (!result.ok) {
+        setErrorMsg(
+          result.reason === 'unavailable'
+            ? "Chop's AI isn't reachable right now — the file is probably fine. Check your connection (or, if this is a preview build, the AI server isn't set up). You can still paste or type the notes."
+            : "Chop couldn't read that file. Try a clearer, well-lit photo or a text-based PDF — or paste the notes instead.",
+        );
         setPhase('error');
         return;
       }
-      setNotes((prev) => (prev.trim() ? prev.trimEnd() + '\n\n' + text : text));
+      setNotes((prev) => (prev.trim() ? prev.trimEnd() + '\n\n' + result.text : result.text));
       setPhase('input');
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     },
