@@ -51,5 +51,3 @@ Thumbs.db
 # Vercel
 .vercel/
 
-# Generated Vercel function (built by artifacts/api-server/build.vercel.mjs)
-/api/index.js
