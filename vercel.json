@@ -1,6 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "installCommand": "corepack enable pnpm && pnpm install --filter @workspace/api-server",
   "buildCommand": "node artifacts/api-server/build.vercel.mjs",
   "outputDirectory": "artifacts/claude-design/public",
   "functions": {
