@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "node artifacts/api-server/build.vercel.mjs",
-  "outputDirectory": "artifacts/claude-design/public",
+  "buildCommand": "node artifacts/api-server/build.vercel.mjs && pnpm --filter @workspace/stickpoint-mobile run export:web",
+  "outputDirectory": "artifacts/stickpoint-mobile/dist",
   "functions": {
     "api/index.js": {
       "maxDuration": 120
