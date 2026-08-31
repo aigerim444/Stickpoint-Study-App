@@ -18,7 +18,7 @@ export default function ProgressTab() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [drillCards, setDrillCards] = useState<Card[] | null>(null);
-  const { state, gradeMissedItem, dueMissed, setNotificationPreference, markStudiedToday, recordSession } = useApp();
+  const { state, gradeMissedItem, dueMissed, setNotificationPreference, markStudiedToday, recordSession, resetApp } = useApp();
 
   // Local mirror for notification time so the UI updates immediately
   const [notifHour, setNotifHour] = useState(state.notificationHour ?? 20);
@@ -342,6 +342,26 @@ export default function ProgressTab() {
       </View>
       <Pressable onPress={() => router.push('/privacy')} style={{ alignSelf: 'center', paddingVertical: 8 }}>
         <Text style={{ fontSize: 12, fontWeight: '700', color: c.muted }}>Privacy & your data</Text>
+      </Pressable>
+
+      {/* Start over — the prototype's RESTART, with a guard rail */}
+      <Pressable
+        onPress={() => {
+          const wipe = () => {
+            resetApp();
+            router.replace('/welcome');
+          };
+          if (Platform.OS === 'web') {
+            if (window.confirm('Start over? This erases your name, quiz results, and all progress on this device.')) wipe();
+          } else {
+            Alert.alert('Start over?', 'This erases your name, quiz results, and all progress on this device.', [
+              { text: 'Cancel', style: 'cancel' },
+              { text: 'Start over', style: 'destructive', onPress: wipe },
+            ]);
+          }
+        }}
+        style={{ alignSelf: 'center', paddingVertical: 4, paddingBottom: 12 }}>
+        <Text style={{ fontSize: 12, fontWeight: '800', color: c.red }}>Restart from scratch</Text>
       </Pressable>
     </ScrollView>
   );
