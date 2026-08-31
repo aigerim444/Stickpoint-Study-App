@@ -12,12 +12,12 @@ export default function Index() {
     if (!state.loaded) return;
     if (!state.name) {
       router.replace('/welcome');
-    } else if (!state.concepts || state.concepts.length === 0) {
-      router.replace('/material');
     } else {
+      // Land on the tabs even with no material: the Today tab invites you
+      // to add notes without trapping you on the input screen.
       router.replace('/(tabs)');
     }
-  }, [state.loaded, state.name, state.concepts?.length]);
+  }, [state.loaded, state.name]);
 
   return (
     <View style={styles.container}>

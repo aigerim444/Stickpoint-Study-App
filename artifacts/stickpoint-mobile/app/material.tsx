@@ -256,11 +256,11 @@ export default function Material() {
           <Text style={[styles.btnText, { color: isReady ? '#fff' : c.muted }]}>LET CHOP ANALYSE →</Text>
         </Pressable>
 
-        {state.library && state.library.length > 0 && (
-          <Pressable onPress={() => router.replace('/(tabs)')} style={styles.skipLink}>
-            <Text style={[styles.skipText, { color: c.muted }]}>skip — use existing material</Text>
-          </Pressable>
-        )}
+        <Pressable onPress={() => router.replace('/(tabs)')} style={styles.skipLink}>
+          <Text style={[styles.skipText, { color: c.muted }]}>
+            {state.library && state.library.length > 0 ? 'skip — use existing material' : 'skip for now — look around first'}
+          </Text>
+        </Pressable>
       </ScrollView>
       {dragging && (
         <View style={[styles.dropOverlay, { borderColor: c.primary }]} pointerEvents="none">
