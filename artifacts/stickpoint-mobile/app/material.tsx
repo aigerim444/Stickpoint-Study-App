@@ -9,6 +9,7 @@ import * as Haptics from 'expo-haptics';
 import * as ImagePicker from 'expo-image-picker';
 import { useApp } from '@/context/AppContext';
 import ChopCharacter from '@/components/ChopCharacter';
+import PixelText from '@/components/PixelText';
 import { extractConcepts, transcribeMaterial, TranscribeMediaType } from '@/lib/api';
 import colors from '@/constants/colors';
 
@@ -172,7 +173,7 @@ export default function Material() {
   if (phase === 'processing' || phase === 'transcribing') {
     return (
       <View style={[styles.center, { flex: 1, backgroundColor: c.background, paddingTop: insets.top }]}>
-        <ChopCharacter size={1.4} color={c.primary} animation="bounce" />
+        <ChopCharacter size={1.4} color={c.dark} animation="bounce" />
         <View style={styles.processingBox}>
           <ActivityIndicator size="large" color={c.primary} />
           <Text style={[styles.processingTitle, { color: c.dark }]}>
@@ -191,7 +192,7 @@ export default function Material() {
   if (phase === 'error') {
     return (
       <View style={[styles.center, { flex: 1, backgroundColor: c.background, padding: 24, paddingTop: insets.top }]}>
-        <ChopCharacter size={1.2} color={c.red} animation="tilt" />
+        <ChopCharacter size={1.2} color={c.dark} animation="tilt" />
         <Text style={[styles.errorTitle, { color: c.red }]}>SOMETHING WENT WRONG</Text>
         <Text style={[styles.errorBody, { color: c.subtle }]}>{errorMsg}</Text>
         <Pressable onPress={() => setPhase('input')} style={[styles.btn, { backgroundColor: c.primary, borderColor: c.dark }]}>
@@ -213,9 +214,9 @@ export default function Material() {
         <View style={styles.headerRow}>
           <View>
             <Text style={[styles.greeting, { color: c.muted }]}>HEY {state.name?.toUpperCase()}</Text>
-            <Text style={[styles.heading, { color: c.dark }]}>Paste your notes</Text>
+            <PixelText style={styles.headingPixel}>PASTE YOUR NOTES</PixelText>
           </View>
-          <ChopCharacter size={0.9} color={c.primary} animation="bounce" />
+          <ChopCharacter size={0.9} color={c.dark} animation="bounce" />
         </View>
 
         <Text style={[styles.body, { color: c.subtle }]}>
@@ -250,7 +251,7 @@ export default function Material() {
           disabled={!isReady}
           style={({ pressed }) => [
             styles.btn,
-            { backgroundColor: isReady ? c.primary : c.secondary, borderColor: c.dark, opacity: pressed ? 0.85 : 1 },
+            { backgroundColor: isReady ? c.accent : c.secondary, borderColor: c.dark, opacity: pressed ? 0.85 : 1 },
           ]}>
           <Text style={[styles.btnText, { color: isReady ? '#fff' : c.muted }]}>LET CHOP ANALYSE →</Text>
         </Pressable>
@@ -273,6 +274,7 @@ export default function Material() {
 }
 
 const styles = StyleSheet.create({
+  headingPixel: { fontSize: 13, lineHeight: 22, marginTop: 4 },
   dropOverlay: {
     position: 'absolute', top: 12, left: 12, right: 12, bottom: 12,
     borderWidth: 4, borderStyle: 'dashed',

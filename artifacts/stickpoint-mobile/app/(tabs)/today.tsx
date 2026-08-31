@@ -65,7 +65,7 @@ export default function TodayTab() {
             {studiedToday ? 'You showed up today 🎉' : "Today's plan"}
           </Text>
         </View>
-        <ChopCharacter size={0.9} color={c.primary} animation={studiedToday ? 'celebrate' : 'bounce'} />
+        <ChopCharacter size={0.9} color={c.dark} animation={studiedToday ? 'celebrate' : 'bounce'} />
       </View>
 
       {/* Stat chips */}

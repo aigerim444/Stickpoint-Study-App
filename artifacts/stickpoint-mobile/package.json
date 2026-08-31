@@ -58,6 +58,7 @@
   },
   "dependencies": {
     "@expo-google-fonts/nunito": "^0.4.2",
+    "@expo-google-fonts/press-start-2p": "^0.4.1",
     "@supabase/supabase-js": "^2.58.0",
     "@workspace/core": "workspace:*",
     "expo-notifications": "^0.32.17",

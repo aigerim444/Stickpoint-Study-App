@@ -4,6 +4,8 @@ import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import WebFrame from '@/components/WebFrame';
+import { PressStart2P_400Regular } from '@expo-google-fonts/press-start-2p';
 import {
   Nunito_400Regular,
   Nunito_600SemiBold,
@@ -69,6 +71,7 @@ function RootLayoutNav() {
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
+    PressStart2P_400Regular,
     Nunito_400Regular,
     Nunito_600SemiBold,
     Nunito_700Bold,
@@ -91,7 +94,9 @@ export default function RootLayout() {
           <QueryClientProvider client={queryClient}>
             <GestureHandlerRootView style={{ flex: 1 }}>
               <KeyboardProvider>
-                <RootLayoutNav />
+                <WebFrame>
+                  <RootLayoutNav />
+                </WebFrame>
               </KeyboardProvider>
             </GestureHandlerRootView>
           </QueryClientProvider>

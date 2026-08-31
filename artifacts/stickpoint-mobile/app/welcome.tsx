@@ -8,6 +8,7 @@ import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useApp } from '@/context/AppContext';
 import ChopCharacter from '@/components/ChopCharacter';
+import PixelText from '@/components/PixelText';
 import colors from '@/constants/colors';
 import { scheduleDaily } from '@/lib/notifications';
 
@@ -90,11 +91,9 @@ export default function Welcome() {
 
         <View style={styles.header}>
           <View style={styles.chopRow}>
-            <ChopCharacter size={1.2} color={c.primary} animation="bounce" />
+            <ChopCharacter size={1.2} color={c.dark} animation="bounce" />
           </View>
-          <View style={[styles.logoBox, { borderColor: c.dark }]}>
-            <Text style={[styles.logoText, { color: c.dark }]}>DAILY REMINDER</Text>
-          </View>
+          <PixelText style={styles.screenPixel}>DAILY REMINDER</PixelText>
           <Text style={[styles.tagline, { color: c.subtle }]}>A little every day is what sticks.</Text>
         </View>
 
@@ -159,7 +158,7 @@ export default function Welcome() {
 
         <Pressable
           onPress={finishWithReminder}
-          style={({ pressed }) => [styles.btn, { backgroundColor: c.primary, borderColor: c.dark, opacity: pressed ? 0.85 : 1 }]}>
+          style={({ pressed }) => [styles.btn, { backgroundColor: c.accent, borderColor: c.dark, opacity: pressed ? 0.85 : 1 }]}>
           <Text style={[styles.btnText, { color: '#fff' }]}>REMIND ME DAILY →</Text>
         </Pressable>
 
@@ -183,12 +182,13 @@ export default function Welcome() {
         {/* Logo/header */}
         <View style={styles.header}>
           <View style={styles.chopRow}>
-            <ChopCharacter size={1.2} color={c.primary} animation="bounce" />
+            <ChopCharacter size={1.2} color={c.dark} animation="bounce" />
           </View>
-          <View style={[styles.logoBox, { borderColor: c.dark }]}>
-            <Text style={[styles.logoText, { color: c.dark }]}>STICKPOINT</Text>
+          <View style={[styles.speechBubble, { borderColor: c.dark }]}>
+            <Text style={[styles.speechText, { color: c.dark }]}>Hey! I'm Chop. Welcome to Stickpoint!</Text>
           </View>
-          <Text style={[styles.tagline, { color: c.subtle }]}>Study smarter. Remember longer.</Text>
+          <PixelText style={styles.logoPixel}>STICKPOINT</PixelText>
+          <Text style={[styles.tagline, { color: c.subtle }]}>Find the study method that actually works for YOUR brain.</Text>
         </View>
 
         {/* Card */}
@@ -231,8 +231,8 @@ export default function Welcome() {
 
         <Pressable
           onPress={proceedToNotif}
-          style={({ pressed }) => [styles.btn, { backgroundColor: c.primary, borderColor: c.dark, opacity: pressed ? 0.85 : 1 }]}>
-          <Text style={[styles.btnText, { color: '#fff' }]}>NEXT →</Text>
+          style={({ pressed }) => [styles.btn, { backgroundColor: c.accent, borderColor: c.dark, opacity: pressed ? 0.85 : 1 }]}>
+          <Text style={[styles.btnText, { color: '#fff' }]}>LET'S GO →</Text>
         </Pressable>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -248,6 +248,13 @@ const styles = StyleSheet.create({
     boxShadow: '5px 5px 0px #201E2E',
   },
   logoText: { fontWeight: '900', fontSize: 22, letterSpacing: 4 },
+  logoPixel: { fontSize: 22, lineHeight: 33, textAlign: 'center' },
+  screenPixel: { fontSize: 14, lineHeight: 24, textAlign: 'center' },
+  speechBubble: {
+    backgroundColor: '#fff', borderWidth: 3, paddingHorizontal: 18, paddingVertical: 12,
+    maxWidth: 280, boxShadow: '4px 4px 0px #201E2E',
+  },
+  speechText: { fontWeight: '800', fontSize: 15, textAlign: 'center' },
   tagline: { fontWeight: '700', fontSize: 14, textAlign: 'center' },
   card: {
     borderWidth: 3, padding: 20, gap: 16,

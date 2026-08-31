@@ -7,6 +7,7 @@ import { METHODS, featherIcon, Card } from '@/lib/content';
 import colors from '@/constants/colors';
 import { scheduleDaily, cancelDailyReminder } from '@/lib/notifications';
 import AccountCard from '@/components/AccountCard';
+import PixelText from '@/components/PixelText';
 import ActiveRecall from '@/components/ActiveRecall';
 import { accountsEnabled } from '@/lib/supabase';
 import { useRouter } from 'expo-router';
@@ -97,7 +98,7 @@ export default function ProgressTab() {
       contentContainerStyle={[styles.container, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 100 }]}>
 
       {/* Header */}
-      <Text style={[styles.heading, { color: c.dark }]}>Progress</Text>
+      <PixelText style={styles.headingPixel}>PROGRESS</PixelText>
 
       {/* Stats row */}
       <View style={styles.statsRow}>
@@ -363,6 +364,7 @@ const drillStyles = StyleSheet.create({
 });
 
 const styles = StyleSheet.create({
+  headingPixel: { fontSize: 18, lineHeight: 28 },
   drillBtn: {
     borderWidth: 3, padding: 13, alignItems: 'center', justifyContent: 'center',
     flexDirection: 'row', gap: 8,

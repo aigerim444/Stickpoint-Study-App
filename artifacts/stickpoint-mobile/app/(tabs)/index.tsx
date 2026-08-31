@@ -18,6 +18,7 @@ import ElaborativeInterrogation from '@/components/ElaborativeInterrogation';
 import ProblemSets from '@/components/ProblemSets';
 import ConcreteExamples from '@/components/ConcreteExamples';
 import ChopCharacter from '@/components/ChopCharacter';
+import PixelText from '@/components/PixelText';
 import colors from '@/constants/colors';
 
 const c = colors.light;
@@ -73,7 +74,7 @@ export default function StudyTab() {
       return (
         <View style={[{ flex: 1, backgroundColor: c.background }]}>
           <View style={[styles.sessionHeader, { paddingTop: insets.top + 8 }]}>
-            <Text style={styles.sessionTitle}>ACTIVE RECALL</Text>
+            <PixelText style={styles.sessionTitle}>ACTIVE RECALL</PixelText>
           </View>
           <ActiveRecall
             cards={state.concepts}
@@ -87,7 +88,7 @@ export default function StudyTab() {
       return (
         <View style={{ flex: 1, backgroundColor: c.background }}>
           <View style={[styles.sessionHeader, { paddingTop: insets.top + 8 }]}>
-            <Text style={styles.sessionTitle}>BLURTING</Text>
+            <PixelText style={styles.sessionTitle}>BLURTING</PixelText>
           </View>
           <Blurting
             topic={state.topic}
@@ -104,7 +105,7 @@ export default function StudyTab() {
       return (
         <View style={{ flex: 1, backgroundColor: c.background }}>
           <View style={[styles.sessionHeader, { paddingTop: insets.top + 8 }]}>
-            <Text style={styles.sessionTitle}>FEYNMAN TECHNIQUE</Text>
+            <PixelText style={styles.sessionTitle}>FEYNMAN TECHNIQUE</PixelText>
           </View>
           <Feynman
             cards={state.concepts.slice(0, 6)}
@@ -121,7 +122,7 @@ export default function StudyTab() {
       return (
         <View style={{ flex: 1, backgroundColor: c.background }}>
           <View style={[styles.sessionHeader, { paddingTop: insets.top + 8 }]}>
-            <Text style={styles.sessionTitle}>PRACTICE TEST</Text>
+            <PixelText style={styles.sessionTitle}>PRACTICE TEST</PixelText>
           </View>
           <PracticeTest
             cards={state.concepts}
@@ -138,7 +139,7 @@ export default function StudyTab() {
       return (
         <View style={{ flex: 1, backgroundColor: c.background }}>
           <View style={[styles.sessionHeader, { paddingTop: insets.top + 8 }]}>
-            <Text style={styles.sessionTitle}>POMODORO TIMER</Text>
+            <PixelText style={styles.sessionTitle}>POMODORO TIMER</PixelText>
           </View>
           <Pomodoro
             topic={state.topic}
@@ -155,7 +156,7 @@ export default function StudyTab() {
       return (
         <View style={{ flex: 1, backgroundColor: c.background }}>
           <View style={[styles.sessionHeader, { paddingTop: insets.top + 8 }]}>
-            <Text style={styles.sessionTitle}>SELF-EXPLANATION</Text>
+            <PixelText style={styles.sessionTitle}>SELF-EXPLANATION</PixelText>
           </View>
           <SelfExplanation
             notes={state.material}
@@ -171,7 +172,7 @@ export default function StudyTab() {
       return (
         <View style={{ flex: 1, backgroundColor: c.background }}>
           <View style={[styles.sessionHeader, { paddingTop: insets.top + 8 }]}>
-            <Text style={styles.sessionTitle}>ELABORATIVE INTERROGATION</Text>
+            <PixelText style={styles.sessionTitle}>ELABORATIVE INTERROGATION</PixelText>
           </View>
           <ElaborativeInterrogation
             notes={state.material}
@@ -187,7 +188,7 @@ export default function StudyTab() {
       return (
         <View style={{ flex: 1, backgroundColor: c.background }}>
           <View style={[styles.sessionHeader, { paddingTop: insets.top + 8 }]}>
-            <Text style={styles.sessionTitle}>CONCRETE EXAMPLES</Text>
+            <PixelText style={styles.sessionTitle}>CONCRETE EXAMPLES</PixelText>
           </View>
           <ConcreteExamples
             notes={state.material}
@@ -203,7 +204,7 @@ export default function StudyTab() {
       return (
         <View style={{ flex: 1, backgroundColor: c.background }}>
           <View style={[styles.sessionHeader, { paddingTop: insets.top + 8 }]}>
-            <Text style={styles.sessionTitle}>PROBLEM SETS</Text>
+            <PixelText style={styles.sessionTitle}>PROBLEM SETS</PixelText>
           </View>
           <ProblemSets
             notes={state.material}
@@ -231,7 +232,7 @@ export default function StudyTab() {
             {state.topic || 'No material yet'}
           </Text>
         </View>
-        <ChopCharacter size={0.85} color={c.primary} animation="bounce" />
+        <ChopCharacter size={0.85} color={c.dark} animation="bounce" />
       </View>
 
       {!hasMaterial && (
@@ -321,7 +322,7 @@ const styles = StyleSheet.create({
     backgroundColor: c.dark, paddingHorizontal: 16, paddingBottom: 14,
     borderBottomWidth: 0,
   },
-  sessionTitle: { color: '#FFC93C', fontWeight: '900', fontSize: 11, letterSpacing: 2 },
+  sessionTitle: { fontSize: 12, lineHeight: 20, textAlign: 'center', color: '#201E2E' },
   emptyCard: { borderWidth: 3, borderStyle: 'dashed', padding: 32, alignItems: 'center', gap: 10 },
   emptyTitle: { fontWeight: '900', fontSize: 16 },
   emptyBody: { fontWeight: '700', fontSize: 13, lineHeight: 20, textAlign: 'center' },

@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useApp } from '@/context/AppContext';
+import PixelText from '@/components/PixelText';
 import { dayKey } from '@/lib/content';
 import colors from '@/constants/colors';
 
@@ -84,7 +85,7 @@ export default function PlanTab() {
     <ScrollView
       style={{ flex: 1, backgroundColor: c.background }}
       contentContainerStyle={[styles.container, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 100 }]}>
-      <Text style={[styles.heading, { color: c.dark }]}>Plan</Text>
+      <PixelText style={styles.headingPixel}>PLAN</PixelText>
 
       {/* Test countdown */}
       <View
@@ -184,6 +185,7 @@ export default function PlanTab() {
 }
 
 const styles = StyleSheet.create({
+  headingPixel: { fontSize: 18, lineHeight: 28 },
   container: { padding: 20, gap: 14 },
   heading: { fontWeight: '900', fontSize: 26 },
   countdownCard: {
