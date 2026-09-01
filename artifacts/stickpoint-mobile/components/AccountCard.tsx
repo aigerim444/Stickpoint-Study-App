@@ -39,7 +39,12 @@ export default function AccountCard({ startInEmailMode = false }: { startInEmail
       options: { shouldCreateUser: true },
     });
     if (err) {
-      setError('Could not send the code. Check the address and try again.');
+      // Surface the real reason — "rate limit exceeded" needs a very
+      // different response than a typo'd address.
+      const detail = /rate limit/i.test(err.message)
+        ? 'Too many codes sent — the mailer allows a couple per hour. Try again in a bit.'
+        : err.message || 'Check the address and try again.';
+      setError(`Could not send the code. ${detail}`);
       setMode('email');
       return;
     }
@@ -57,7 +62,8 @@ export default function AccountCard({ startInEmailMode = false }: { startInEmail
       type: 'email',
     });
     if (err) {
-      setError("That code didn't work. Check it, or send a new one.");
+      const detail = /expired/i.test(err.message) ? ' It may have expired — send a new one.' : '';
+      setError(`That code didn't work.${detail} (${err.message})`);
       setMode('code');
       return;
     }
