@@ -6,16 +6,16 @@
     <title>Stickpoint — Join the Waitlist</title>
     <meta
       name="description"
-      content="Stickpoint is an AI study companion that finds your sticking point and coaches you through studying smarter. Join the waitlist for early access."
+      content="Stickpoint is an AI study companion that helps students learn how to study — efficiently, and in the way that actually works for them. Join the waitlist for early access."
     />
     <link
       rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23FF3C00'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle'%3E%F0%9F%8F%B9%3C/text%3E%3C/svg%3E"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23FF3C00'/%3E%3Ccircle cx='50' cy='24' r='11' fill='none' stroke='white' stroke-width='8'/%3E%3Cpath d='M50,35 L50,64 M50,64 L34,92 M50,64 L66,92 M50,44 L32,58 M50,42 L70,20' fill='none' stroke='white' stroke-width='8' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='73' cy='15' r='6' fill='white'/%3E%3C/svg%3E"
     />
     <meta property="og:title" content="Stickpoint — Join the Waitlist" />
     <meta
       property="og:description"
-      content="Find the study method that actually works for your brain. Be first in line when Stickpoint launches."
+      content="Most students were never taught how to study — Stickpoint figures out what's not working and coaches you through a method that actually sticks."
     />
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap");
@@ -67,7 +67,12 @@
         gap: 10px;
       }
       .brand-icon {
-        font-size: 26px;
+        display: flex;
+        color: var(--ink);
+      }
+      .brand-icon svg {
+        width: 24px;
+        height: 24px;
       }
       .brand-word {
         font-weight: 900;
@@ -89,6 +94,19 @@
       .hero {
         text-align: center;
         padding: 56px 0 8px;
+      }
+      .logo-mark {
+        display: flex;
+        justify-content: center;
+        color: var(--ink);
+        margin-bottom: 6px;
+      }
+      .logo-mark svg {
+        width: 56px;
+        height: 56px;
+      }
+      .icon-spark {
+        fill: var(--orange);
       }
       .wordmark {
         display: inline-block;
@@ -114,7 +132,7 @@
         font-size: 15px;
         font-weight: 700;
         color: var(--ink-soft);
-        max-width: 480px;
+        max-width: 560px;
         margin: 0 auto;
       }
 
@@ -383,10 +401,43 @@
         line-height: 1.7;
       }
       .footer-brand {
+        display: flex;
+        align-items: center;
+        gap: 6px;
         font-size: 11px;
         font-weight: 900;
         letter-spacing: 1px;
         color: var(--ink-soft);
+      }
+      .footer-brand svg {
+        width: 16px;
+        height: 16px;
+      }
+
+      /* ── Research quote ── */
+      .quote-card {
+        background: var(--ink);
+        color: #fff;
+        padding: 22px 24px;
+        border: 3px solid var(--ink);
+      }
+      .quote-text {
+        font-size: 14px;
+        font-weight: 800;
+        line-height: 1.7;
+        color: #fff;
+      }
+      .quote-src {
+        margin-top: 10px;
+        font-size: 11px;
+        font-weight: 900;
+        color: var(--teal);
+        letter-spacing: 0.5px;
+      }
+      .quote-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
       }
 
       @media (max-width: 640px) {
@@ -414,7 +465,19 @@
       <!-- Top bar -->
       <div class="topbar">
         <div class="brand">
-          <span class="brand-icon">🏹</span>
+          <span class="brand-icon">
+            <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="50" cy="24" r="11" stroke="currentColor" stroke-width="8" />
+              <path
+                d="M50,35 L50,64 M50,64 L34,92 M50,64 L66,92 M50,44 L32,58 M50,42 L70,20"
+                stroke="currentColor"
+                stroke-width="8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <circle class="icon-spark" cx="73" cy="15" r="6" />
+            </svg>
+          </span>
           <span class="brand-word">STICKPOINT</span>
         </div>
         <span class="soon-pill">Coming soon</span>
@@ -422,16 +485,30 @@
 
       <!-- Hero -->
       <div class="hero">
+        <div class="logo-mark">
+          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="50" cy="24" r="11" stroke="currentColor" stroke-width="8" />
+            <path
+              d="M50,35 L50,64 M50,64 L34,92 M50,64 L66,92 M50,44 L32,58 M50,42 L70,20"
+              stroke="currentColor"
+              stroke-width="8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <circle class="icon-spark" cx="73" cy="15" r="6" />
+          </svg>
+        </div>
         <div class="wordmark">STICKPOINT</div>
         <h1 class="headline">
-          Find the study method that actually works for
-          <span class="accent">your brain.</span>
+          Most students were never taught
+          <span class="accent">how to study.</span>
         </h1>
         <p class="subhead">
-          Stickpoint is an AI study companion for high schoolers. A 2-minute
-          quiz finds your sticking point, matches you to a study method backed
-          by real research, then coaches you through studying your own
-          material.
+          Stickpoint is an AI study companion that figures out where your
+          studying breaks down and coaches you through a method that actually
+          works for you — whether you're a high schooler chasing better
+          grades for college, or you've made it to college and still feel
+          like you're guessing at how to study.
         </p>
 
         <!-- Waitlist form -->
@@ -513,6 +590,43 @@
         </div>
       </div>
 
+      <!-- Backed by research -->
+      <div class="section">
+        <div class="section-label">Backed by research</div>
+        <div class="section-title">
+          This isn't just a high schooler problem
+        </div>
+        <div class="quote-stack">
+          <div class="quote-card">
+            <div class="quote-text">
+              A survey of college students found that most default to
+              rereading their notes and textbooks when studying on their
+              own, and few spontaneously test themselves on the material —
+              even though retrieval practice is one of the most effective
+              ways to actually learn something.
+            </div>
+            <div class="quote-src">
+              — Karpicke, Butler &amp; Roediger, "Metacognitive strategies in
+              student learning," <em>Memory</em>, 2009
+            </div>
+          </div>
+          <div class="quote-card">
+            <div class="quote-text">
+              A landmark review of study techniques found that the two
+              strategies students reach for most — rereading and
+              highlighting — are among the least effective for long-term
+              learning, while techniques like practice testing and spaced
+              practice work far better and are rarely taught.
+            </div>
+            <div class="quote-src">
+              — Dunlosky et al., "Improving Students' Learning With
+              Effective Learning Techniques,"
+              <em>Psychological Science in the Public Interest</em>, 2013
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Features -->
       <div class="section">
         <div class="section-label">What you get</div>
@@ -572,9 +686,12 @@
           <div class="faq-item">
             <div class="faq-q">Who is Stickpoint for?</div>
             <div class="faq-a">
-              High schoolers who study hard but feel like it's not sticking.
-              Stickpoint works with whatever you're already studying — your
-              own notes, readings, and problem sets.
+              Any student who studies hard but feels like it's not sticking —
+              or doesn't even know where to start. That includes high
+              schoolers working toward the grades to get into college, and
+              college students who assumed they'd have figured out "how to
+              study" by now. Stickpoint works with whatever you're already
+              studying — your own notes, readings, and problem sets.
             </div>
           </div>
           <div class="faq-item">
@@ -640,7 +757,20 @@
 
       <!-- Footer -->
       <div class="footer">
-        <div class="footer-brand">🏹 STICKPOINT</div>
+        <div class="footer-brand">
+          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="50" cy="24" r="11" stroke="currentColor" stroke-width="8" />
+            <path
+              d="M50,35 L50,64 M50,64 L34,92 M50,64 L66,92 M50,44 L32,58 M50,42 L70,20"
+              stroke="currentColor"
+              stroke-width="8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <circle class="icon-spark" cx="73" cy="15" r="6" />
+          </svg>
+          STICKPOINT
+        </div>
         <div class="footer-note">
           Stickpoint is built with students' privacy in mind — we collect the
           minimum needed to run the app and never sell personal data.
