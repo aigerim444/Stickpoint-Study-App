@@ -52,6 +52,21 @@ export default function Material() {
 
   const [dragging, setDragging] = useState(false);
 
+  const pickFile = () => {
+    if (Platform.OS !== 'web') {
+      pickPhoto();
+      return;
+    }
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/png,image/jpeg,image/webp,application/pdf,text/plain,.txt,.md';
+    input.onchange = () => {
+      const f = input.files?.[0];
+      if (f) handleDroppedFile(f);
+    };
+    input.click();
+  };
+
   const notify = (title: string, message: string) => {
     if (Platform.OS === 'web') window.alert(`${title}\n\n${message}`);
     else Alert.alert(title, message);
@@ -99,8 +114,8 @@ export default function Material() {
         notify('File type not supported', 'Drop a photo (PNG/JPG), a PDF, or a text file — or just paste the notes.');
         return;
       }
-      if (file.size > 3_500_000) {
-        notify('File too big', 'Keep it under ~3.5 MB — try one page at a time, or a smaller photo.');
+      if (file.size > 3_300_000) {
+        notify('File too big', 'Keep it under ~3 MB — try fewer pages at a time, or a smaller photo.');
         return;
       }
       const base64 = await new Promise<string | null>((resolve) => {
@@ -236,10 +251,10 @@ export default function Material() {
           </Text>
         </Pressable>
 
-        <Pressable onPress={pickPhoto} style={[styles.photoBtn, { borderColor: c.dark, backgroundColor: c.card }]}>
+        <Pressable onPress={pickFile} style={[styles.photoBtn, { borderColor: c.dark, backgroundColor: c.card }]}>
           <Text style={[styles.photoBtnText, { color: c.dark }]}>
             {Platform.OS === 'web'
-              ? '📷  Import photo of notes — or drop a photo, PDF, or text file anywhere'
+              ? '📎  Import a file — photo, PDF, or text (or just drop it anywhere)'
               : '📷  Import photo of notes'}
           </Text>
         </Pressable>
