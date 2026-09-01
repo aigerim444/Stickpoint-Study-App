@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
@@ -12,7 +12,7 @@ import ActiveRecall from '@/components/ActiveRecall';
 import ProfileCard from '@/components/ProfileCard';
 import TopMethodsEditor from '@/components/TopMethodsEditor';
 import { accountsEnabled } from '@/lib/supabase';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 
 const c = colors.light;
 
@@ -20,6 +20,33 @@ export default function ProgressTab() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [drillCards, setDrillCards] = useState<Card[] | null>(null);
+  // ?focus=account (the Today/TopNav sign-in nudges) scrolls to the
+  // account card, which otherwise sits below the fold.
+  const { focus } = useLocalSearchParams<{ focus?: string }>();
+  const scrollRef = useRef<ScrollView>(null);
+  const accountRef = useRef<View>(null);
+  const accountY = useRef(0);
+  const scrollToAccount = () => {
+    // Web: the DOM knows exactly where the section is; RN's onLayout y can
+    // be stale because position-only changes don't re-fire onLayout on web.
+    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      const dom = document.getElementById('account-section');
+      if (dom) {
+        // Instant, not smooth — post-mount layout work cancels smooth scrolls.
+        dom.scrollIntoView({ block: 'start' });
+        return;
+      }
+    }
+    if (accountY.current > 0) scrollRef.current?.scrollTo({ y: accountY.current - 8, animated: true });
+  };
+  // Two paths: screen already mounted (effect fires on param change) or
+  // freshly mounted (layout callback fires once measurement lands).
+  useEffect(() => {
+    if (focus !== 'account') return;
+    const t = setTimeout(scrollToAccount, 300);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focus]);
   const { state, gradeMissedItem, dueMissed, setNotificationPreference, markStudiedToday, recordSession, resetApp } = useApp();
 
   // Local mirror for notification time so the UI updates immediately
@@ -96,6 +123,7 @@ export default function ProgressTab() {
 
   return (
     <ScrollView
+      ref={scrollRef}
       style={{ flex: 1, backgroundColor: c.background }}
       contentContainerStyle={[styles.container, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 100 }]}>
 
@@ -279,10 +307,17 @@ export default function ProgressTab() {
 
       {/* Account & sync */}
       {accountsEnabled && (
-        <>
+        <View
+          ref={accountRef}
+          nativeID="account-section"
+          onLayout={(e) => {
+            accountY.current = e.nativeEvent.layout.y;
+            if (focus === 'account') scrollToAccount();
+          }}
+          style={{ gap: 14 }}>
           <Text style={[styles.sectionLabel, { color: c.dark }]}>ACCOUNT</Text>
           <AccountCard />
-        </>
+        </View>
       )}
 
       <Text style={[styles.sectionLabel, { color: c.dark }]}>DAILY REMINDER</Text>

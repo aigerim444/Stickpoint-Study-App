@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { useApp, useEffectiveMethods } from '@/context/AppContext';
+import { accountsEnabled } from '@/lib/supabase';
 import { dayKey, featherIcon, getMethodById } from '@/lib/content';
 import ChopCharacter from '@/components/ChopCharacter';
 import colors from '@/constants/colors';
@@ -19,7 +20,7 @@ const c = colors.light;
 export default function TodayTab() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { state, dueMissed, setMaterial } = useApp();
+  const { state, dueMissed, setMaterial, account } = useApp();
   const effectiveMethods = useEffectiveMethods(state);
 
   const hasMaterial = state.concepts && state.concepts.length > 0;
@@ -185,6 +186,25 @@ export default function TodayTab() {
             </Pressable>
           )}
         </>
+      )}
+
+      {/* Sign-in nudge — the account card lives on Progress, but nobody
+          scrolls there to find it; surface it on the daily landing. */}
+      {accountsEnabled && !account && (
+        <Pressable
+          onPress={() => router.push('/(tabs)/progress?focus=account' as never)}
+          style={[styles.stepCard, { borderColor: c.dark, backgroundColor: '#FFF3D6' }]}>
+          <View style={[styles.stepIcon, { borderColor: c.dark, backgroundColor: c.card }]}>
+            <Feather name="cloud" size={20} color={c.dark} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.stepTitle, { color: c.dark }]}>Save your progress</Text>
+            <Text style={[styles.stepBody, { color: c.subtle }]}>
+              Sign in with your email so your streak, cards, and scores follow you to any device.
+            </Text>
+          </View>
+          <Feather name="chevron-right" size={20} color={c.muted} />
+        </Pressable>
       )}
     </ScrollView>
   );

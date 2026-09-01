@@ -482,11 +482,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   );
 
   const resetApp = useCallback(() => {
+    if (pushTimer.current) clearTimeout(pushTimer.current);
     AsyncStorage.removeItem(STORAGE_KEY);
     AsyncStorage.removeItem(SYNC_META_KEY);
+    const lastServerAt = syncMetaRef.current.updatedAt;
     syncMetaRef.current = { updatedAt: 0 };
-    setState({ ...defaultState, loaded: true });
-  }, []);
+    const wiped = { ...defaultState, loaded: true };
+    setState(wiped);
+    // A signed-in restart must overwrite the server snapshot too — otherwise
+    // the next sync pulls all the old data straight back.
+    if (signedInRef.current) {
+      (async () => {
+        let result = await pushState(snapshotOf(wiped), lastServerAt);
+        if (!result.ok && result.conflict) {
+          result = await pushState(snapshotOf(wiped), result.conflict.updatedAt);
+        }
+        if (result.ok) setSyncMeta(result.updatedAt);
+      })();
+    }
+  }, [snapshotOf, setSyncMeta]);
 
   const dueMissed = useCallback(
     (): MissedItem[] => coreDueMissed(state.missedBank || [], Date.now()),

@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { usePathname, useRouter } from 'expo-router';
 import { useApp } from '@/context/AppContext';
+import { accountsEnabled } from '@/lib/supabase';
 import PixelText from '@/components/PixelText';
 import colors from '@/constants/colors';
 
@@ -27,7 +28,7 @@ const TAB_PATHS: string[] = TABS.map((t) => t.path);
 export default function TopNav() {
   const router = useRouter();
   const pathname = usePathname();
-  const { state } = useApp();
+  const { state, account } = useApp();
 
   if (!TAB_PATHS.includes(pathname)) return null;
 
@@ -57,6 +58,13 @@ export default function TopNav() {
         <View style={[styles.chip, { borderColor: c.dark }]}>
           <Text style={styles.chipText}>⭐ {state.xp || 0}</Text>
         </View>
+        {accountsEnabled && !account && (
+          <Pressable
+            onPress={() => router.navigate('/progress?focus=account' as never)}
+            style={[styles.chip, { borderColor: c.dark, backgroundColor: c.dark }]}>
+            <Text style={[styles.chipText, { color: '#fff' }]}>SIGN IN</Text>
+          </Pressable>
+        )}
       </View>
     </View>
   );

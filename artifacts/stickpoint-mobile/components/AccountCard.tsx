@@ -71,10 +71,16 @@ export default function AccountCard() {
     setMode('idle');
   }, []);
 
+  // RN Alert is a no-op on web — every dialog here needs the window fallback.
+  const notify = (title: string, message: string) => {
+    if (Platform.OS === 'web') window.alert(`${title}\n\n${message}`);
+    else Alert.alert(title, message);
+  };
+
   const onExport = useCallback(async () => {
     const json = await exportAccountData();
     if (!json) {
-      Alert.alert('Export failed', 'Could not fetch your data. Are you online?');
+      notify('Export failed', 'Could not fetch your data. Are you online?');
       return;
     }
     if (Platform.OS === 'web') {
@@ -88,27 +94,25 @@ export default function AccountCard() {
   }, []);
 
   const onDelete = useCallback(() => {
-    Alert.alert(
-      'Delete your account?',
-      'This permanently deletes your account and all synced study data. It cannot be undone.',
-      [
+    const doDelete = async () => {
+      const ok = await deleteAccount();
+      if (!ok) {
+        notify('Something went wrong', 'Your account was not deleted. Try again.');
+        return;
+      }
+      await supabase?.auth.signOut();
+      resetApp();
+      notify('Account deleted', 'Everything is gone. Thanks for trying Stickpoint.');
+    };
+    const warning = 'This permanently deletes your account and all synced study data. It cannot be undone.';
+    if (Platform.OS === 'web') {
+      if (window.confirm(`Delete your account?\n\n${warning}`)) doDelete();
+    } else {
+      Alert.alert('Delete your account?', warning, [
         { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete forever',
-          style: 'destructive',
-          onPress: async () => {
-            const ok = await deleteAccount();
-            if (!ok) {
-              Alert.alert('Something went wrong', 'Your account was not deleted. Try again.');
-              return;
-            }
-            await supabase?.auth.signOut();
-            resetApp();
-            Alert.alert('Account deleted', 'Everything is gone. Thanks for trying Stickpoint.');
-          },
-        },
-      ],
-    );
+        { text: 'Delete forever', style: 'destructive', onPress: doDelete },
+      ]);
+    }
   }, [resetApp]);
 
   if (!accountsEnabled) return null;
