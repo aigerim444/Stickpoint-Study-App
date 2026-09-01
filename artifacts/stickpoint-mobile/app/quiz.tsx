@@ -35,10 +35,11 @@ export default function Quiz() {
 
   const c = colors.light;
 
+  // Tap selects, NEXT advances — auto-advancing stole the chance to
+  // change your mind (same fix the quiz questions already got).
   const pickSubject = (id: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setSubjectId(id);
-    setStep('questions');
   };
 
   // Tap toggles; up to two picks; a third replaces the older one.
@@ -142,9 +143,24 @@ export default function Quiz() {
               styles.subjectCard,
               { borderColor: c.dark, backgroundColor: subjectId === s.id ? c.purpleLight : c.card, opacity: pressed ? 0.85 : 1 },
             ]}>
-            <Text style={[styles.subjectText, { color: c.dark }]}>{s.label}</Text>
+            <Text style={[styles.subjectText, { color: c.dark, flex: 1 }]}>{s.label}</Text>
+            {subjectId === s.id && <Text style={{ color: c.primary, fontWeight: '900', fontSize: 16 }}>✓</Text>}
           </Pressable>
         ))}
+        <Pressable
+          onPress={() => {
+            if (!subjectId) return;
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            setStep('questions');
+          }}
+          disabled={!subjectId}
+          style={[styles.navNext, {
+            backgroundColor: subjectId ? c.accent : c.secondary,
+            borderColor: c.dark,
+            marginTop: 8,
+          }]}>
+          <Text style={[styles.navNextText, { color: subjectId ? '#fff' : c.muted }]}>NEXT →</Text>
+        </Pressable>
       </ScrollView>
     );
   }
@@ -238,7 +254,7 @@ const styles = StyleSheet.create({
   progressFill: { height: '100%' },
   tieHint: { fontWeight: '700', fontSize: 12, lineHeight: 18 },
   subjectCard: {
-    borderWidth: 3, padding: 16,
+    borderWidth: 3, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 10,
     boxShadow: '4px 4px 0px #201E2E',
   },
   subjectText: { fontWeight: '800', fontSize: 15 },
