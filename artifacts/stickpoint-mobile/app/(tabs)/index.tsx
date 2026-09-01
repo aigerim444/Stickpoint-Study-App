@@ -3,6 +3,7 @@ import {
   Pressable, ScrollView, StyleSheet, Text, View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabContentPadding } from '@/hooks/useTabContentPadding';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -26,6 +27,7 @@ const c = colors.light;
 
 export default function StudyTab() {
   const insets = useSafeAreaInsets();
+  const bottomPad = useTabContentPadding();
   const { state, setActiveMethod, recordSession, recordMissed, addPtResult, addXp } = useApp();
   const [activeSession, setActiveSession] = useState<string | null>(null);
 
@@ -227,7 +229,7 @@ export default function StudyTab() {
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: c.background }}
-      contentContainerStyle={[styles.container, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 100 }]}>
+      contentContainerStyle={[styles.container, { paddingTop: insets.top + 16, paddingBottom: bottomPad }]}>
 
       {/* Header */}
       <View style={styles.headerRow}>
@@ -327,7 +329,7 @@ const styles = StyleSheet.create({
     backgroundColor: c.dark, paddingHorizontal: 16, paddingBottom: 14,
     borderBottomWidth: 0,
   },
-  sessionTitle: { fontSize: 12, lineHeight: 20, textAlign: 'center', color: '#201E2E' },
+  sessionTitle: { fontSize: 12, lineHeight: 20, textAlign: 'center', color: '#fff' },
   emptyCard: { borderWidth: 3, borderStyle: 'dashed', padding: 32, alignItems: 'center', gap: 10 },
   emptyTitle: { fontWeight: '900', fontSize: 16 },
   emptyBody: { fontWeight: '700', fontSize: 13, lineHeight: 20, textAlign: 'center' },

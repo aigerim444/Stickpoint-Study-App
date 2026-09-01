@@ -34,6 +34,13 @@ describe('markStudiedToday', () => {
     expect(streak).toBe(1);
   });
 
+  it('gives a grace day: a run ending yesterday still shows until today is missed', () => {
+    const dates = [dayKey(NOW - 2 * DAY), dayKey(NOW - DAY)]; // studied up to yesterday
+    expect(computeStreak(dates, NOW)).toBe(2);
+    // ...and studying today extends it rather than restarting
+    expect(markStudiedToday(dates, NOW).streak).toBe(3);
+  });
+
   it('handles month boundaries via real date math', () => {
     const sep1 = new Date(2026, 8, 1, 10, 0, 0).getTime();
     const aug31 = new Date(2026, 7, 31, 10, 0, 0).getTime();

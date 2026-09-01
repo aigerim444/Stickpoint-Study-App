@@ -18,10 +18,10 @@ type Mode = 'idle' | 'email' | 'code' | 'busy';
  * Renders nothing when accounts aren't configured, so the app stays fully
  * usable local-only.
  */
-export default function AccountCard() {
+export default function AccountCard({ startInEmailMode = false }: { startInEmailMode?: boolean }) {
   const colors = useColors();
   const { account, resetApp } = useApp();
-  const [mode, setMode] = useState<Mode>('idle');
+  const [mode, setMode] = useState<Mode>(startInEmailMode ? 'email' : 'idle');
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
@@ -189,7 +189,7 @@ export default function AccountCard() {
   if (mode === 'email') {
     return (
       <View style={[styles.card, { borderColor: c.dark }]}>
-        <Text style={[styles.title, { color: c.dark }]}>Back up your progress</Text>
+        <Text style={[styles.title, { color: c.dark }]}>Sign in with email</Text>
         <Text style={[styles.body, { color: c.subtle }]}>
           We'll email you a one-time code — no password to remember, no password to leak.
         </Text>

@@ -4,6 +4,7 @@ import {
   TextInput, View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabContentPadding } from '@/hooks/useTabContentPadding';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -14,6 +15,7 @@ const c = colors.light;
 
 export default function LibraryTab() {
   const insets = useSafeAreaInsets();
+  const bottomPad = useTabContentPadding();
   const router = useRouter();
   const { state, switchMaterial, deleteFromLibrary, renameLibraryEntry } = useApp();
   const [renaming, setRenaming] = useState<string | null>(null);
@@ -59,7 +61,7 @@ export default function LibraryTab() {
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: c.background }}
-      contentContainerStyle={[styles.container, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 100 }]}>
+      contentContainerStyle={[styles.container, { paddingTop: insets.top + 16, paddingBottom: bottomPad }]}>
 
       <View style={styles.headerRow}>
         <Text style={[styles.heading, { color: c.dark }]}>Library</Text>

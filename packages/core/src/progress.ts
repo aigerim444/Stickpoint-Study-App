@@ -14,9 +14,12 @@ export function computeStreak(studiedDates: string[], now: number): number {
   const set = new Set(studiedDates);
   let streak = 0;
   const d = new Date(now);
+  // Grace day: a run that ended yesterday still counts until today is
+  // missed for good — the streak shouldn't read 0 at breakfast just
+  // because the student hasn't studied yet today.
+  if (!set.has(dayKey(d.getTime()))) d.setDate(d.getDate() - 1);
   for (;;) {
-    const key = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
-    if (!set.has(key)) break;
+    if (!set.has(dayKey(d.getTime()))) break;
     streak++;
     d.setDate(d.getDate() - 1);
   }

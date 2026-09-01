@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabContentPadding } from '@/hooks/useTabContentPadding';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { useApp, useEffectiveMethods } from '@/context/AppContext';
@@ -19,6 +20,7 @@ const c = colors.light;
  */
 export default function TodayTab() {
   const insets = useSafeAreaInsets();
+  const bottomPad = useTabContentPadding();
   const router = useRouter();
   const { state, dueMissed, setMaterial, account } = useApp();
   const effectiveMethods = useEffectiveMethods(state);
@@ -56,7 +58,7 @@ export default function TodayTab() {
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: c.background }}
-      contentContainerStyle={[styles.container, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 100 }]}>
+      contentContainerStyle={[styles.container, { paddingTop: insets.top + 16, paddingBottom: bottomPad }]}>
       {/* Header */}
       <View style={styles.headerRow}>
         <View style={{ flex: 1 }}>

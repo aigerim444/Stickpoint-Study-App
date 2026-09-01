@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabContentPadding } from '@/hooks/useTabContentPadding';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useApp } from '@/context/AppContext';
@@ -26,6 +27,7 @@ const iso = (y: number, m: number, d: number) =>
  */
 export default function PlanTab() {
   const insets = useSafeAreaInsets();
+  const bottomPad = useTabContentPadding();
   const { state, setTestDate, toggleStudiedDay } = useApp();
   const [calMode, setCalMode] = useState<'test' | 'studied'>('test');
   const now = new Date();
@@ -98,7 +100,7 @@ export default function PlanTab() {
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: c.background }}
-      contentContainerStyle={[styles.container, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 100 }]}>
+      contentContainerStyle={[styles.container, { paddingTop: insets.top + 16, paddingBottom: bottomPad }]}>
       <PixelText style={styles.headingPixel}>PLAN</PixelText>
 
       {/* Calendar mode — tap days to set the test, or to mark offline study */}

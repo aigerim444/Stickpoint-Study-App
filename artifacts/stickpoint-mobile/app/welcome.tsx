@@ -7,6 +7,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useApp } from '@/context/AppContext';
+import { accountsEnabled } from '@/lib/supabase';
+import AccountCard from '@/components/AccountCard';
 import ChopCharacter from '@/components/ChopCharacter';
 import PixelText from '@/components/PixelText';
 import colors from '@/constants/colors';
@@ -15,7 +17,15 @@ import { scheduleDaily } from '@/lib/notifications';
 export default function Welcome() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { setName, setNotificationPreference } = useApp();
+  const { state, account, setName, setNotificationPreference } = useApp();
+
+  // Returning user restoring an account: once sign-in pulls a synced
+  // profile from the server, skip onboarding entirely.
+  const [signingIn, setSigningIn] = useState(false);
+  React.useEffect(() => {
+    if (signingIn && account && state.name) router.replace('/(tabs)/today');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [signingIn, account, state.name]);
 
   // Step 1: name + age
   const [name, setNameInput] = useState('');
@@ -191,6 +201,24 @@ export default function Welcome() {
           <Text style={[styles.tagline, { color: c.subtle }]}>Find the study method that actually works for YOUR brain.</Text>
         </View>
 
+        {signingIn ? (
+          <>
+            <AccountCard startInEmailMode />
+            {account ? (
+              <Text style={[styles.skipText, { color: c.muted, textAlign: 'center' }]}>
+                Signed in! Saved progress loads in a moment — if this is a new account, just set up below.
+              </Text>
+            ) : null}
+            <Pressable
+              onPress={() => setSigningIn(false)}
+              style={({ pressed }) => [styles.skipBtn, { opacity: pressed ? 0.6 : 1 }]}>
+              <Text style={[styles.skipText, { color: c.muted }]}>
+                {account ? 'Set up as a new student →' : '← New here? Set up from scratch'}
+              </Text>
+            </Pressable>
+          </>
+        ) : (
+        <>
         {/* Card */}
         <View style={[styles.card, { borderColor: c.dark }]}>
           <Text style={[styles.cardTitle, { color: c.dark }]}>BEFORE WE START</Text>
@@ -234,6 +262,18 @@ export default function Welcome() {
           style={({ pressed }) => [styles.btn, { backgroundColor: c.accent, borderColor: c.dark, opacity: pressed ? 0.85 : 1 }]}>
           <Text style={[styles.btnText, { color: '#fff' }]}>LET'S GO →</Text>
         </Pressable>
+
+        {accountsEnabled && (
+          <Pressable
+            onPress={() => setSigningIn(true)}
+            style={({ pressed }) => [styles.skipBtn, { opacity: pressed ? 0.6 : 1 }]}>
+            <Text style={[styles.skipText, { color: c.primary }]}>
+              Used Stickpoint before? Sign in to restore your progress →
+            </Text>
+          </Pressable>
+        )}
+        </>
+        )}
       </ScrollView>
     </KeyboardAvoidingView>
   );

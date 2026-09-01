@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabContentPadding } from '@/hooks/useTabContentPadding';
 import { Feather } from '@expo/vector-icons';
 import { useApp } from '@/context/AppContext';
 import { METHODS, featherIcon, Card } from '@/lib/content';
@@ -18,6 +19,7 @@ const c = colors.light;
 
 export default function ProgressTab() {
   const insets = useSafeAreaInsets();
+  const bottomPad = useTabContentPadding();
   const router = useRouter();
   const [drillCards, setDrillCards] = useState<Card[] | null>(null);
   // ?focus=account (the Today/TopNav sign-in nudges) scrolls to the
@@ -125,7 +127,7 @@ export default function ProgressTab() {
     <ScrollView
       ref={scrollRef}
       style={{ flex: 1, backgroundColor: c.background }}
-      contentContainerStyle={[styles.container, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 100 }]}>
+      contentContainerStyle={[styles.container, { paddingTop: insets.top + 16, paddingBottom: bottomPad }]}>
 
       {/* Header */}
       <PixelText style={styles.headingPixel}>PROGRESS</PixelText>
