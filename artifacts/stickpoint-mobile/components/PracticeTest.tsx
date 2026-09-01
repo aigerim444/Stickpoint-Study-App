@@ -51,9 +51,18 @@ export default function PracticeTest({ cards, notes, name, age, onComplete, onBa
   const [results, setResults] = useState<ResultRow[] | null>(null);
   const [secondsLeft, setSecondsLeft] = useState(TEST_MINUTES * 60);
   const [timedOut, setTimedOut] = useState(false);
+  const [shared, setShared] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const endsAtRef = useRef(0);
   const answersRef = useRef(answers);
   answersRef.current = answers;
+
+  useEffect(() => {
+    if (Platform.OS !== 'web' || phase !== 'answering') return;
+    const h = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ''; };
+    window.addEventListener('beforeunload', h);
+    return () => window.removeEventListener('beforeunload', h);
+  }, [phase]);
 
   useEffect(() => {
     generatePracticeTest(notes, { name, age }).then((qs) => {
@@ -112,6 +121,9 @@ export default function PracticeTest({ cards, notes, name, age, onComplete, onBa
           if (g) {
             rows[i].verdict = g.correct ? 'correct' : 'incorrect';
             rows[i].explanation = g.explanation;
+          } else {
+            rows[i].explanation =
+              "Chop couldn't check this answer (connection hiccup). If you had it right, tap ACTUALLY, I WAS RIGHT below.";
           }
         }),
       );
@@ -127,14 +139,16 @@ export default function PracticeTest({ cards, notes, name, age, onComplete, onBa
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setPhase('answering');
     setSecondsLeft(TEST_MINUTES * 60);
+    // Anchor on the wall clock — browsers throttle background-tab intervals,
+    // which would otherwise pause the exam whenever the tab is hidden.
+    endsAtRef.current = Date.now() + TEST_MINUTES * 60 * 1000;
     timerRef.current = setInterval(() => {
-      setSecondsLeft((s) => {
-        if (s <= 1) {
-          finish(answersRef.current, true);
-          return 0;
-        }
-        return s - 1;
-      });
+      const left = Math.max(0, Math.round((endsAtRef.current - Date.now()) / 1000));
+      setSecondsLeft(left);
+      if (left <= 0) {
+        if (timerRef.current) clearInterval(timerRef.current);
+        finish(answersRef.current, true);
+      }
     }, 1000);
   }, [finish]);
 
@@ -212,7 +226,14 @@ export default function PracticeTest({ cards, notes, name, age, onComplete, onBa
       const msg = `I scored ${score}/${results.length} on my Stickpoint practice test 🔥 It finds the study method that actually works for your brain: https://stickpoint-study.vercel.app`;
       if (Platform.OS === 'web') {
         if (navigator.share) navigator.share({ text: msg }).catch(() => {});
-        else navigator.clipboard?.writeText(msg).catch(() => {});
+        else if (navigator.clipboard) {
+          navigator.clipboard.writeText(msg).then(() => {
+            setShared(true);
+            setTimeout(() => setShared(false), 2000);
+          }).catch(() => {});
+        } else {
+          window.prompt('Copy your score message:', msg);
+        }
       } else {
         Share.share({ message: msg });
       }
@@ -227,7 +248,7 @@ export default function PracticeTest({ cards, notes, name, age, onComplete, onBa
               Know someone who should study smarter too?
             </Text>
             <Pressable onPress={share} style={[styles.crushShare, { backgroundColor: colors.primary, borderColor: colors.dark }]}>
-              <Text style={styles.crushShareText}>SHARE STICKPOINT</Text>
+              <Text style={styles.crushShareText}>{shared ? 'COPIED!' : 'SHARE STICKPOINT'}</Text>
             </Pressable>
           </View>
         )}

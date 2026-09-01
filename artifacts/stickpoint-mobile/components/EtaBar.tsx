@@ -13,7 +13,12 @@ export default function EtaBar({ seconds }: { seconds: number }) {
   const total = useRef(seconds);
 
   useEffect(() => {
-    const iv = setInterval(() => setLeft((l) => Math.max(0, l - 1)), 1000);
+    const iv = setInterval(() => {
+      setLeft((l) => {
+        if (l <= 1) clearInterval(iv);
+        return Math.max(0, l - 1);
+      });
+    }, 1000);
     return () => clearInterval(iv);
   }, []);
 

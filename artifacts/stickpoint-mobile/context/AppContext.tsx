@@ -8,6 +8,7 @@ import React, {
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase, accountsEnabled } from '@/lib/supabase';
+import { cancelDailyReminder } from '@/lib/notifications';
 import { postEvent, pullState, pushState } from '@/lib/sync';
 import {
   Card,
@@ -233,7 +234,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       signedInRef.current = !!session;
       setAccount(session?.user?.email ? { email: session.user.email } : null);
       if (event === 'SIGNED_IN') reconcileWithServer();
-      if (event === 'SIGNED_OUT') setSyncMeta(0);
+      if (event === 'SIGNED_OUT') {
+        // Shared-device safety: signing out removes this account's data from
+        // the device. Without this, the next account to sign in on an empty
+        // server row would inherit — and upload — the previous student's data.
+        if (saveTimer.current) clearTimeout(saveTimer.current);
+        if (pushTimer.current) clearTimeout(pushTimer.current);
+        AsyncStorage.removeItem(STORAGE_KEY).catch(() => {});
+        AsyncStorage.removeItem(SYNC_META_KEY).catch(() => {});
+        setSyncMeta(0);
+        setState({ ...defaultState, loaded: true });
+      }
     });
     return () => sub.subscription.unsubscribe();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -285,11 +296,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [persist]);
 
   const setMaterial = useCallback((material: string, topic: string, concepts: Card[], isMath: boolean) => {
+    const id = 'm' + Date.now();
+    postEvent('material_added', undefined, { isMath });
     setState((prev) => {
-      const id = 'm' + Date.now();
       const entry: LibraryEntry = { id, name: topic, material, concepts, topic, isMath, savedAt: Date.now() };
       const library = [...(prev.library || []), entry];
-      postEvent('material_added', undefined, { isMath });
       // Per-material progress starts fresh — the previous material's missed
       // bank and test history live in its own library entry, not here.
       const next = {
@@ -309,10 +320,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [persist]);
 
   const recordSession = useCallback((method: string) => {
+    postEvent('session_completed', method);
     setState((prev) => {
       const { studiedDates, streak } = coreMarkStudiedToday(prev.studiedDates, Date.now());
       const methodsTried = { ...prev.methodsTried, [method]: true };
-      postEvent('session_completed', method, { total: (prev.sessionsFinished || 0) + 1 });
       const next = {
         ...prev,
         sessionsFinished: (prev.sessionsFinished || 0) + 1,
@@ -349,7 +360,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setState((prev) => {
       if (!(prev.missedBank || []).some((b) => b.key === key)) return prev;
       const bank = coreGradeMissedItem(prev.missedBank || [], key, rating, Date.now());
-      const next = { ...prev, missedBank: bank };
+      // Mirror into the current library entry, like recordMissed — otherwise
+      // switching materials rolls every graded box back.
+      const library = prev.currentMaterialId
+        ? prev.library.map((e) =>
+            e.id === prev.currentMaterialId ? { ...e, missedBank: bank } : e
+          )
+        : prev.library;
+      const next = { ...prev, missedBank: bank, library };
       if (saveTimer.current) clearTimeout(saveTimer.current);
       saveTimer.current = setTimeout(() => { saveAndSync(next); }, 300);
       return next;
@@ -432,13 +450,28 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [persist, state.library, state.currentMaterialId]);
 
   const renameLibraryEntry = useCallback((id: string, name: string) => {
-    const library = state.library.map((e) => e.id === id ? { ...e, name } : e);
-    persist({ library });
-  }, [persist, state.library]);
+    const library = state.library.map((e) => e.id === id ? { ...e, name, topic: name } : e);
+    // Renaming the active material must rename what Today/Study display too.
+    const patch: Partial<AppState> = { library };
+    if (id === state.currentMaterialId) patch.topic = name;
+    persist(patch);
+  }, [persist, state.library, state.currentMaterialId]);
 
   const setMaterialTopMethods = useCallback((methods: string[] | null) => {
-    persist({ materialTopMethods: methods });
-  }, [persist]);
+    setState((prev) => {
+      // Persist into the entry as well — "saved per material" must survive
+      // switching away and back.
+      const library = prev.currentMaterialId
+        ? prev.library.map((e) =>
+            e.id === prev.currentMaterialId ? { ...e, topMethods: methods } : e
+          )
+        : prev.library;
+      const next = { ...prev, materialTopMethods: methods, library };
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      saveTimer.current = setTimeout(() => saveAndSync(next), 300);
+      return next;
+    });
+  }, [saveAndSync]);
 
   const setTestDate = useCallback((date: string | null) => {
     persist({ testDate: date });
@@ -482,7 +515,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   );
 
   const resetApp = useCallback(() => {
+    // Clear BOTH debounce timers — a save armed moments before the restart
+    // would otherwise re-write the old state right after the wipe.
+    if (saveTimer.current) clearTimeout(saveTimer.current);
     if (pushTimer.current) clearTimeout(pushTimer.current);
+    cancelDailyReminder().catch(() => {});
     AsyncStorage.removeItem(STORAGE_KEY);
     AsyncStorage.removeItem(SYNC_META_KEY);
     const lastServerAt = syncMetaRef.current.updatedAt;

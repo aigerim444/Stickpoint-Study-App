@@ -34,6 +34,7 @@ export default function Pomodoro({ topic, notes, name, age, onComplete, onBack }
   const [running, setRunning] = useState(false);
   const [finished, setFinished] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const endsAtRef = useRef(0);
   // Server-chunked notes (one topic per round, bullets) + break fun facts.
   // Falls back to a raw newline split while loading or offline.
   const [aiChunks, setAiChunks] = useState<{ title: string; bullets: string[] }[] | null>(null);
@@ -59,49 +60,56 @@ export default function Pomodoro({ topic, notes, name, age, onComplete, onBack }
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, []);
 
-  const tick = useCallback(() => {
-    setTimeLeft((t) => {
-      if (t <= 1) {
-        if (timerRef.current) clearInterval(timerRef.current);
-        timerRef.current = null;
-        setRunning(false);
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        setPhase((p) => {
-          if (p === 'work') {
-            const nextRound = round + 1;
-            if (round >= 4) {
-              setRound(nextRound);
-              setTimeLeft(LONG_BREAK);
-              return 'longBreak';
-            }
-            setRound(nextRound);
-            setTimeLeft(SHORT_BREAK);
-            return 'shortBreak';
-          }
-          if (round > 4) {
-            setFinished(true);
-            return 'done';
-          }
-          setTimeLeft(WORK_SECS);
-          return 'work';
-        });
-        return 0;
+  const advancePhase = useCallback(() => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setPhase((p) => {
+      if (p === 'work') {
+        const nextRound = round + 1;
+        if (round >= 4) {
+          setRound(nextRound);
+          setTimeLeft(LONG_BREAK);
+          return 'longBreak';
+        }
+        setRound(nextRound);
+        setTimeLeft(SHORT_BREAK);
+        return 'shortBreak';
       }
-      return t - 1;
+      if (round > 4) {
+        setFinished(true);
+        return 'done';
+      }
+      setTimeLeft(WORK_SECS);
+      return 'work';
     });
   }, [round]);
+
+  // Anchor on the wall clock: browsers throttle background-tab intervals,
+  // and a pomodoro usually runs while the student works away from the tab.
+  const tick = useCallback(() => {
+    const left = Math.max(0, Math.round((endsAtRef.current - Date.now()) / 1000));
+    setTimeLeft(left);
+    if (left <= 0) {
+      if (timerRef.current) clearInterval(timerRef.current);
+      timerRef.current = null;
+      setRunning(false);
+      advancePhase();
+    }
+  }, [advancePhase]);
 
   const toggle = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     if (running) {
       if (timerRef.current) clearInterval(timerRef.current);
       timerRef.current = null;
+      // Freeze the remaining time so resume restarts from here.
+      setTimeLeft(Math.max(0, Math.round((endsAtRef.current - Date.now()) / 1000)));
       setRunning(false);
     } else {
+      endsAtRef.current = Date.now() + timeLeft * 1000;
       timerRef.current = setInterval(tick, 1000);
       setRunning(true);
     }
-  }, [running, tick]);
+  }, [running, tick, timeLeft]);
 
   const skip = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);

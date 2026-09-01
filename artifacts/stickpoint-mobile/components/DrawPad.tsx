@@ -81,6 +81,28 @@ const DrawPad = forwardRef<DrawPadHandle, Props>(function DrawPad({ onDirtyChang
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
     }
+    // A window resize rescales the CSS box but not the backing store —
+    // strokes would stretch and new ink would land offset from the cursor.
+    // Re-measure and re-rasterize the old bitmap at the new geometry.
+    const ro = new ResizeObserver(() => {
+      const newW = host.clientWidth || 600;
+      if (Math.abs(newW - canvas.width / scale) < 2) return;
+      const snapshot = canvas.toDataURL('image/png');
+      canvas.width = newW * scale;
+      canvas.height = height * scale;
+      const c2 = canvas.getContext('2d');
+      if (!c2) return;
+      c2.scale(scale, scale);
+      c2.fillStyle = '#ffffff';
+      c2.fillRect(0, 0, newW, height);
+      c2.lineCap = 'round';
+      c2.lineJoin = 'round';
+      const img = new Image();
+      img.onload = () => c2.drawImage(img, 0, 0, newW, height);
+      img.src = snapshot;
+    });
+    ro.observe(host);
+    return () => ro.disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

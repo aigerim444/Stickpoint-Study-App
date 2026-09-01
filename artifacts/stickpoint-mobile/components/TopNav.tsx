@@ -50,7 +50,7 @@ export default function TopNav() {
           return (
             <Pressable
               key={t.path}
-              onPress={() => router.navigate(t.path as never)}
+              onPress={() => router.navigate((t.path === '/' ? '/(tabs)' : t.path) as never)}
               style={[styles.tab, active && { backgroundColor: c.dark }]}>
               <Feather name={t.icon as never} size={14} color={active ? '#fff' : c.dark} />
               <Text style={[styles.tabText, { color: active ? '#fff' : c.dark }]}>{t.label}</Text>

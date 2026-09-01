@@ -75,7 +75,8 @@ export default function Quiz() {
   const goBack = () => {
     if (step === 'questions' && qi > 0) { setQi(qi - 1); return; }
     if (step === 'questions') { setStep('subject'); return; }
-    router.back();
+    if (router.canGoBack()) router.back();
+    else router.replace('/welcome');
   };
 
   // ── Results ───────────────────────────────────────────────────────────────
@@ -183,7 +184,7 @@ export default function Quiz() {
         </View>
         {/* Progress bar */}
         <View style={[styles.progressBar, { backgroundColor: c.secondary }]}>
-          <View style={[styles.progressFill, { width: `${(qi / QUIZ_QUESTIONS.length) * 100}%`, backgroundColor: c.primary }]} />
+          <View style={[styles.progressFill, { width: `${((qi + 1) / QUIZ_QUESTIONS.length) * 100}%`, backgroundColor: c.primary }]} />
         </View>
         <Text style={[styles.heading, { color: c.dark, marginTop: 8 }]}>{q.q}</Text>
         <Text style={[styles.tieHint, { color: c.muted }]}>

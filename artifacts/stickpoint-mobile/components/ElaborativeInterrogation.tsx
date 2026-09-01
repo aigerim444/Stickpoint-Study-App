@@ -19,6 +19,7 @@ interface Props {
 
 type Phase =
   | 'loading'
+  | 'gen_error'
   | 'why'
   | 'gradingWhy'
   | 'whyResult'
@@ -36,14 +37,20 @@ export default function ElaborativeInterrogation({ notes, name, age, onComplete,
   const [whyResult, setWhyResult] = useState<{ verdict: EIVerdict; feedback: string } | null>(null);
   const [connResult, setConnResult] = useState<{ verdict: EIVerdict; feedback: string; idealConnection: string } | null>(null);
 
-  useEffect(() => {
+  const generate = useCallback(() => {
+    setPhase('loading');
     eiGenerate(notes, { name, age }).then((its) => {
       if (its && its.length) {
         setItems(its);
         setPhase('why');
-      } else setPhase('done');
+      } else {
+        // Honest failure — not a "SESSION COMPLETE! 0 why questions".
+        setPhase('gen_error');
+      }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [notes, name, age]);
+  useEffect(() => { generate(); // eslint-disable-line react-hooks/exhaustive-deps
   }, []);
 
   const current = items[qi];
@@ -97,6 +104,23 @@ export default function ElaborativeInterrogation({ notes, name, age, onComplete,
           {phase === 'loading' ? 'GENERATING WHY QUESTIONS…' : 'CHECKING YOUR REASONING…'}
         </Text>
         <EtaBar key={phase} seconds={phase === 'loading' ? 18 : 8} />
+      </View>
+    );
+  }
+
+  if (phase === 'gen_error') {
+    return (
+      <View style={[styles.center, { flex: 1, gap: 14, backgroundColor: colors.background, padding: 24 }]}>
+        <Text style={[styles.heading, { color: colors.dark, textAlign: 'center' }]}>COULDN'T BUILD YOUR QUESTIONS</Text>
+        <Text style={[styles.body, { color: colors.subtle, textAlign: 'center' }]}>
+          Your notes are fine — the AI service didn't answer. Check your connection and try again.
+        </Text>
+        <Pressable onPress={generate} style={[styles.btn, { backgroundColor: colors.primary, borderColor: colors.dark, alignSelf: 'stretch' }]}>
+          <Text style={[styles.btnText, { color: '#fff' }]}>TRY AGAIN</Text>
+        </Pressable>
+        <Pressable onPress={onBack} style={{ padding: 8 }}>
+          <Text style={[styles.body, { color: colors.muted }]}>← back to methods</Text>
+        </Pressable>
       </View>
     );
   }

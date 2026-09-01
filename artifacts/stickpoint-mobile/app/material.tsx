@@ -185,6 +185,7 @@ export default function Material() {
     const tick = setInterval(() => setEtaLeft((t) => Math.max(0, t - 1)), 1000);
     setTimeout(() => clearInterval(tick), 120_000);
     const outcome = await extractConcepts(trimmed, state.name, state.age);
+    clearInterval(tick);
     if (!outcome.ok) {
       setErrorMsg(
         outcome.reason === 'rate_limited'
@@ -219,16 +220,18 @@ export default function Material() {
       <View style={[styles.center, { flex: 1, backgroundColor: c.background, paddingTop: insets.top }]}>
         <ChopCharacter size={1.4} color={c.dark} animation="bounce" />
         <View style={styles.processingBox}>
-          <ActivityIndicator size="large" color={c.primary} />
+          {!showMathOffer && <ActivityIndicator size="large" color={c.primary} />}
           <Text style={[styles.processingTitle, { color: c.dark }]}>
-            {phase === 'transcribing' ? 'CHOP IS READING YOUR PHOTO…' : 'CHOP IS READING…'}
+            {showMathOffer ? 'YOUR CARDS ARE READY!' : phase === 'transcribing' ? 'CHOP IS READING YOUR PHOTO…' : 'CHOP IS READING…'}
           </Text>
           <Text style={[styles.processingBody, { color: c.subtle }]}>
-            {phase === 'transcribing'
-              ? 'Turning the photo into text you can check and edit.'
-              : 'Building your flashcards, questions, and study plan.'}
+            {showMathOffer
+              ? 'One quick question before you start.'
+              : phase === 'transcribing'
+                ? 'Turning the photo into text you can check and edit.'
+                : 'Building your flashcards, questions, and study plan.'}
           </Text>
-          {phase === 'processing' && (
+          {phase === 'processing' && !showMathOffer && (
             <>
               <View style={[styles.etaBar, { borderColor: c.dark, backgroundColor: c.secondary }]}>
                 <View style={[styles.etaFill, { width: `${Math.min(100, ((50 - etaLeft) / 50) * 100)}%`, backgroundColor: c.primary }]} />
@@ -323,7 +326,7 @@ export default function Material() {
           <View style={[styles.dropCard, { borderColor: c.dark, backgroundColor: c.card }]}>
             <Feather name="file-text" size={34} color={c.muted} />
             <Text style={[styles.dropStatus, { color: c.subtle }]}>
-              {notes.trim() ? `${notes.length} characters ready — check them in Paste Text` : 'No PDF chosen yet'}
+              {notes.trim() ? `${notes.trim().length} characters ready — check them in Paste Text` : 'No PDF chosen yet'}
             </Text>
             <Text style={[styles.dropHint, { color: c.muted }]}>
               Chop reads the pages and turns them into editable text first.
@@ -339,7 +342,7 @@ export default function Material() {
           <View style={[styles.dropCard, { borderColor: c.dark, backgroundColor: c.card }]}>
             <Feather name="camera" size={34} color={c.muted} />
             <Text style={[styles.dropStatus, { color: c.subtle }]}>
-              {notes.trim() ? `${notes.length} characters ready — check them in Paste Text` : 'No photo chosen yet'}
+              {notes.trim() ? `${notes.trim().length} characters ready — check them in Paste Text` : 'No photo chosen yet'}
             </Text>
             <Text style={[styles.dropHint, { color: c.muted }]}>
               Snap your handwritten notes or a textbook page — Chop will read the text off it.
@@ -353,7 +356,7 @@ export default function Material() {
         )}
 
         <Text style={[styles.charCount, { color: notes.length >= 30 ? c.green : c.muted }]}>
-          {notes.length >= 30 ? `${notes.length} chars — ready!` : `${notes.length}/30 chars minimum`}
+          {notes.trim().length >= 30 ? `${notes.trim().length} chars — ready!` : `${notes.trim().length}/30 chars minimum`}
         </Text>
 
         <Pressable
@@ -366,7 +369,9 @@ export default function Material() {
           <Text style={[styles.btnText, { color: isReady ? '#fff' : c.muted }]}>LET CHOP ANALYSE →</Text>
         </Pressable>
 
-        <Pressable onPress={() => router.replace('/(tabs)')} style={styles.skipLink}>
+        <Pressable
+          onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)'))}
+          style={styles.skipLink}>
           <Text style={[styles.skipText, { color: c.muted }]}>
             {state.library && state.library.length > 0 ? 'skip — use existing material' : 'skip for now — look around first'}
           </Text>

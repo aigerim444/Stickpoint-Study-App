@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator, Alert, BackHandler, Pressable, ScrollView,
+  ActivityIndicator, Alert, BackHandler, Platform, Pressable, ScrollView,
   StyleSheet, Text, TextInput, View,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -17,6 +17,19 @@ import {
 import { Card } from '@/lib/content';
 
 const PS_CACHE_VERSION = 'ps_v1';
+
+/** RN Alert with buttons is a silent no-op on web — every confirm here
+ * (leave problem, regenerate, ...) needs the window.confirm fallback. */
+function confirmAction(title: string, message: string, confirmLabel: string, onConfirm: () => void) {
+  if (Platform.OS === 'web') {
+    if (window.confirm(message ? `${title}\n\n${message}` : title)) onConfirm();
+  } else {
+    Alert.alert(title, message, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: confirmLabel, style: 'destructive', onPress: onConfirm },
+    ]);
+  }
+}
 
 /** djb2 hash — fast, no dependencies, good enough for a cache key */
 function hashNotes(s: string): string {
@@ -261,7 +274,8 @@ export default function ProblemSets({ notes, isMath, name, age, onComplete, onBa
 
     const hasWork = sess.work.trim().length > 0;
 
-    // Android: hardware back button
+    // Android: hardware back button (web stub just logs errors — skip it)
+    if (Platform.OS === 'web') return;
     const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
       if (hasWork) {
         Alert.alert(
@@ -286,21 +300,10 @@ export default function ProblemSets({ notes, isMath, name, age, onComplete, onBa
     if (hasWork) {
       unsubscribe = navigation.addListener('beforeRemove' as any, (e: any) => {
         e.preventDefault();
-        Alert.alert(
-          'Leave this problem?',
-          'Your working will not be saved.',
-          [
-            { text: 'Stay', style: 'cancel' },
-            {
-              text: 'Leave',
-              style: 'destructive',
-              onPress: () => {
-                update({ work: '', result: null });
-                setPhase('pick');
-              },
-            },
-          ],
-        );
+        confirmAction('Leave this problem?', 'Your working will not be saved.', 'Leave', () => {
+          update({ work: '', result: null });
+          setPhase('pick');
+        });
       });
     }
 
@@ -328,7 +331,23 @@ export default function ProblemSets({ notes, isMath, name, age, onComplete, onBa
     setPhase('solve');
   }, [update]);
 
-  // Fresh problem → fresh canvas state
+  // Web refresh/close guard while the student has unsubmitted work.
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    const dirty = phase === 'solve' && (sess.work.trim().length > 0 || hasDrawn);
+    if (!dirty) return;
+    const h = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ''; };
+    window.addEventListener('beforeunload', h);
+    return () => window.removeEventListener('beforeunload', h);
+  }, [phase, sess.work, hasDrawn]);
+
+  // The pad remounts blank every time the solve screen appears (grading and
+  // marked phases unmount it), so the dirty flag must reset with it — a
+  // stale true left SUBMIT enabled over an empty canvas after a failed
+  // grade or FIX MY ERROR.
+  useEffect(() => {
+    if (phase === 'solve') setHasDrawn(false);
+  }, [phase]);
   useEffect(() => {
     setDrawAnswer('');
     setHasDrawn(false);
@@ -377,21 +396,28 @@ export default function ProblemSets({ notes, isMath, name, age, onComplete, onBa
 
   const fixIt = useCallback(() => {
     const r = sess.result;
-    const kept = r?.errLine ? r.lines.slice(0, r.errLine - 1) : [];
+    // Drawn work can't be spliced line-by-line — the server's lines are a
+    // placeholder — so a draw-mode retry starts from a clean canvas.
+    const kept = workMode === 'draw' ? [] : r?.errLine ? r.lines.slice(0, r.errLine - 1) : [];
     update({ work: kept.length ? kept.join('\n') + '\n' : '', result: null, gradeError: false, showHint: false });
     setPhase('solve');
-  }, [sess.result, update]);
+  }, [sess.result, workMode, update]);
 
   const nextProblem = useCallback(() => {
     const skill = sess.skills[sess.skillIdx];
     if (sess.pIdx + 1 >= skill.practice.length) {
       setPhase('summary');
-      // collect hard cards from errorTypes
-      const hard: Card[] = Object.entries(sess.errorTypes).map(([type]) => ({
-        question: `Fix your ${type} errors`,
-        answer: `Review: ${skill.skill}`,
-        methodTag: 'problem_sets',
-      }));
+      // Drill cards = the actual problems the student attempted but never
+      // solved, not pseudo-cards named after error types.
+      const hard: Card[] = [];
+      sess.skills.forEach((sk, si) => {
+        sk.practice.forEach((p, pi) => {
+          const key = `${si}:${pi}`;
+          if ((sess.attempts[key] || 0) > 0 && !sess.solved[key]) {
+            hard.push({ question: p.problem, answer: p.answer, methodTag: 'problem_sets' });
+          }
+        });
+      });
       onComplete(hard);
       return;
     }
@@ -401,13 +427,8 @@ export default function ProblemSets({ notes, isMath, name, age, onComplete, onBa
 
   const backToSkills = useCallback(() => {
     if (phase === 'solve' && sess.work.trim().length > 0) {
-      Alert.alert(
-        'Leave this problem?',
-        'Your working will not be saved.',
-        [
-          { text: 'Stay', style: 'cancel' },
-          { text: 'Leave', style: 'destructive', onPress: () => { update({ work: '', result: null }); setPhase('pick'); } },
-        ],
+      confirmAction('Leave this problem?', 'Your working will not be saved.', 'Leave',
+        () => { update({ work: '', result: null }); setPhase('pick'); },
       );
       return;
     }
@@ -463,13 +484,11 @@ export default function ProblemSets({ notes, isMath, name, age, onComplete, onBa
   }, [notes, name, age]);
 
   const regenerate = useCallback(() => {
-    Alert.alert(
+    confirmAction(
       'Regenerate questions?',
       'This will clear your current progress and fetch fresh questions. Continue?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Regenerate', style: 'destructive', onPress: doRegenerate },
-      ],
+      'Regenerate',
+      doRegenerate,
     );
   }, [doRegenerate]);
 
@@ -486,7 +505,7 @@ export default function ProblemSets({ notes, isMath, name, age, onComplete, onBa
       <View style={[styles.center, { flex: 1, backgroundColor: colors.background, gap: 16 }]}>
         <ActivityIndicator size="large" color={colors.primary} />
         <Text style={[styles.label, { color: colors.muted }]}>BUILDING YOUR PROBLEM SET…</Text>
-        <EtaBar seconds={30} />
+        <EtaBar seconds={45} />
         <Text style={[styles.hint, { color: colors.subtle, textAlign: 'center', paddingHorizontal: 32 }]}>
           Chop is finding the problem types in your notes and writing worked examples. This takes about a minute.
         </Text>
@@ -621,13 +640,7 @@ export default function ProblemSets({ notes, isMath, name, age, onComplete, onBa
         <Pressable
           onPress={() => {
             if (sess.stepsShown > 1) {
-              Alert.alert(
-                'Leave the worked example?',
-                '',
-                [
-                  { text: 'Stay', style: 'cancel' },
-                  { text: 'Leave', style: 'destructive', onPress: onBack },
-                ],
+              confirmAction('Leave the worked example?', '', 'Leave', onBack
               );
             } else {
               onBack();
@@ -760,13 +773,7 @@ export default function ProblemSets({ notes, isMath, name, age, onComplete, onBa
         <Pressable
           onPress={() => {
             if (sess.work.trim().length > 0) {
-              Alert.alert(
-                'Leave this problem?',
-                'Your working will not be saved.',
-                [
-                  { text: 'Stay', style: 'cancel' },
-                  { text: 'Leave', style: 'destructive', onPress: onBack },
-                ],
+              confirmAction('Leave this problem?', 'Your working will not be saved.', 'Leave', onBack
               );
             } else {
               onBack();
@@ -807,6 +814,7 @@ export default function ProblemSets({ notes, isMath, name, age, onComplete, onBa
           </View>
         ) : null}
 
+        {!(r.lines.length === 1 && r.lines[0].startsWith('(drawn work')) && (
         <View style={[styles.workReview, { borderColor: colors.secondary }]}>
           <Text style={[styles.miniLabel, { color: colors.muted }]}>YOUR WORKING</Text>
           {r.lines.map((line, i) => {
@@ -827,6 +835,7 @@ export default function ProblemSets({ notes, isMath, name, age, onComplete, onBa
             );
           })}
         </View>
+        )}
 
         {!correct && (
           <Pressable onPress={fixIt} style={[styles.btn, { backgroundColor: colors.yellow, borderColor: colors.dark }]}>

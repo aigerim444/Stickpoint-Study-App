@@ -26,9 +26,11 @@ export default function ProgressTab() {
   // account card, which otherwise sits below the fold.
   const { focus } = useLocalSearchParams<{ focus?: string }>();
   const scrollRef = useRef<ScrollView>(null);
-  const accountRef = useRef<View>(null);
   const accountY = useRef(0);
   const scrollToAccount = () => {
+    // Consume the param — otherwise every later re-layout of the content
+    // above yanks the scroll position back down to the account card.
+    router.setParams({ focus: '' });
     // Web: the DOM knows exactly where the section is; RN's onLayout y can
     // be stale because position-only changes don't re-fire onLayout on web.
     if (Platform.OS === 'web' && typeof document !== 'undefined') {
@@ -55,6 +57,14 @@ export default function ProgressTab() {
   const [notifHour, setNotifHour] = useState(state.notificationHour ?? 20);
   const [notifMinute, setNotifMinute] = useState(state.notificationMinute ?? 0);
 
+  // Resync once storage loads — a direct /progress load on web otherwise
+  // shows (and can silently save) the 8:00 PM default over the real time.
+  useEffect(() => {
+    setNotifHour(state.notificationHour ?? 20);
+    setNotifMinute(state.notificationMinute ?? 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.loaded]);
+
   const adjustHour = (delta: number) => setNotifHour((h) => (h + delta + 24) % 24);
   const adjustMinute = (delta: number) => setNotifMinute((m) => (m + delta + 60) % 60);
 
@@ -72,10 +82,9 @@ export default function ProgressTab() {
       if (scheduled) {
         setNotificationPreference(true, notifHour, notifMinute);
       } else {
-        Alert.alert(
-          'Permission needed',
-          'Allow notifications in your device settings to receive daily study reminders.',
-        );
+        const msg = 'Notifications are blocked. Allow them in your browser or device settings to get daily study reminders.';
+        if (Platform.OS === 'web') window.alert(msg);
+        else Alert.alert('Permission needed', msg);
       }
     } else {
       await cancelDailyReminder();
@@ -88,10 +97,9 @@ export default function ProgressTab() {
     if (scheduled) {
       setNotificationPreference(true, notifHour, notifMinute);
     } else {
-      Alert.alert(
-        'Permission needed',
-        'Allow notifications in your device settings to receive daily study reminders.',
-      );
+      const msg = 'Notifications are blocked. Allow them in your browser or device settings to get daily study reminders.';
+      if (Platform.OS === 'web') window.alert(msg);
+      else Alert.alert('Permission needed', msg);
     }
   };
 
@@ -223,7 +231,7 @@ export default function ProgressTab() {
                 <Text style={[styles.missedQ, { color: c.dark }]}>{item.question}</Text>
                 <Text style={[styles.missedA, { color: c.subtle }]}>{item.answer}</Text>
                 <Text style={[styles.missedMeta, { color: c.muted }]}>
-                  missed {item.misses}× · box {item.box + 1}
+                  missed {item.misses}× · box {(item.box || 0) + 1}
                 </Text>
               </View>
               <View style={styles.gradeButtons}>
@@ -353,7 +361,6 @@ export default function ProgressTab() {
       {/* Account & sync */}
       {accountsEnabled && (
         <View
-          ref={accountRef}
           nativeID="account-section"
           onLayout={(e) => {
             accountY.current = e.nativeEvent.layout.y;
@@ -365,6 +372,9 @@ export default function ProgressTab() {
         </View>
       )}
 
+      {/* Local notifications don't exist on web — hide the dead control. */}
+      {Platform.OS !== 'web' && (
+      <>
       <Text style={[styles.sectionLabel, { color: c.dark }]}>DAILY REMINDER</Text>
       <View style={[styles.card, { borderColor: c.dark }]}>
         {/* Toggle row */}
@@ -441,6 +451,8 @@ export default function ProgressTab() {
           </>
         )}
       </View>
+      </>
+      )}
       <Pressable onPress={() => router.push('/privacy')} style={{ alignSelf: 'center', paddingVertical: 8 }}>
         <Text style={{ fontSize: 12, fontWeight: '700', color: c.muted }}>Privacy & your data</Text>
       </Pressable>

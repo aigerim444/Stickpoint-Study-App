@@ -31,6 +31,14 @@ export default function Welcome() {
   const [name, setNameInput] = useState('');
   const [age, setAgeInput] = useState('');
   const [error, setError] = useState('');
+  // Prefill for an already-onboarded visitor (browser back / refresh) so
+  // re-running this screen edits rather than silently blanking the profile.
+  React.useEffect(() => {
+    if (!state.loaded) return;
+    setNameInput((v) => v || state.name);
+    setAgeInput((v) => v || (state.age ? String(state.age) : ''));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.loaded]);
 
   // Step 2: notification opt-in
   const [step, setStep] = useState<1 | 2>(1);
@@ -48,6 +56,13 @@ export default function Welcome() {
     if (!ageNum || ageNum < 8 || ageNum > 80) { setError('Enter a valid age (8–80)'); return; }
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setName(trimmed, ageNum);
+    if (Platform.OS === 'web') {
+      // Local notifications don't exist on web — the reminder step would be
+      // a dead control. Straight to the quiz.
+      setNotificationPreference(false, notifHour, notifMinute);
+      router.push('/quiz');
+      return;
+    }
     setStep(2);
   };
 
@@ -58,11 +73,9 @@ export default function Welcome() {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setNotificationPreference(true, notifHour, notifMinute);
     } else {
-      Alert.alert(
-        'Permission needed',
-        'Notifications were blocked. You can turn them on later in Settings → Daily Reminder.',
-        [{ text: 'OK' }],
-      );
+      const msg = 'Notifications were blocked. You can turn them on later in Progress → Daily Reminder.';
+      if (Platform.OS === 'web') window.alert(msg);
+      else Alert.alert('Permission needed', msg, [{ text: 'OK' }]);
       setNotificationPreference(false, notifHour, notifMinute);
     }
     router.push('/quiz');
@@ -176,6 +189,11 @@ export default function Welcome() {
           onPress={finishWithoutReminder}
           style={({ pressed }) => [styles.skipBtn, { opacity: pressed ? 0.6 : 1 }]}>
           <Text style={[styles.skipText, { color: c.muted }]}>Skip for now</Text>
+        </Pressable>
+        <Pressable
+          onPress={() => setStep(1)}
+          style={({ pressed }) => [styles.skipBtn, { opacity: pressed ? 0.6 : 1 }]}>
+          <Text style={[styles.skipText, { color: c.muted }]}>← Fix my name or age</Text>
         </Pressable>
       </ScrollView>
     );
