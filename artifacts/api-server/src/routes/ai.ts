@@ -51,14 +51,20 @@ function endpoint<S extends z.ZodTypeAny>(
       return;
     }
     // Signed-in students get a durable daily budget on top of the IP limit.
+    // Quota bookkeeping must FAIL OPEN: a database hiccup here must never
+    // block a study request the AI could have served.
     if (req.user) {
-      await ensureUserRow(req.user);
-      const quota = await checkAiQuota(req.user.id);
-      if (!quota.allowed) {
-        res.status(429).json({
-          error: "Daily AI limit reached — Chop needs a rest. Come back tomorrow!",
-        });
-        return;
+      try {
+        await ensureUserRow(req.user);
+        const quota = await checkAiQuota(req.user.id);
+        if (!quota.allowed) {
+          res.status(429).json({
+            error: "Daily AI limit reached — Chop needs a rest. Come back tomorrow!",
+          });
+          return;
+        }
+      } catch (err) {
+        req.log.warn({ err }, "quota check failed — allowing request");
       }
     }
     try {
