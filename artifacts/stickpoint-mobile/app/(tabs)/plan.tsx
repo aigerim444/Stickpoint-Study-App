@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -72,11 +72,16 @@ export default function PlanTab() {
     const key = iso(viewYear, viewMonth, day);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (state.testDate === key) {
-      Alert.alert('Remove test date?', 'Clear this test from your plan?', [
-        { text: 'Keep it', style: 'cancel' },
-        { text: 'Remove', style: 'destructive', onPress: () => setTestDate(null) },
-      ]);
+      if (Platform.OS === 'web') {
+        if (window.confirm('Remove this test date from your plan?')) setTestDate(null);
+      } else {
+        Alert.alert('Remove test date?', 'Clear this test from your plan?', [
+          { text: 'Keep it', style: 'cancel' },
+          { text: 'Remove', style: 'destructive', onPress: () => setTestDate(null) },
+        ]);
+      }
     } else {
+      // Tapping any other future day simply moves the test there.
       setTestDate(key);
     }
   };

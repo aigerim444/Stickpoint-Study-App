@@ -12,6 +12,7 @@ import ChopCharacter from '@/components/ChopCharacter';
 import PixelText from '@/components/PixelText';
 import { extractConcepts, transcribeMaterial, TranscribeMediaType } from '@/lib/api';
 import colors from '@/constants/colors';
+import { SAMPLE_CARDS, SAMPLE_MATERIAL, SAMPLE_TOPIC } from '@/lib/sampleMaterial';
 
 type Phase = 'input' | 'transcribing' | 'processing' | 'error';
 
@@ -223,6 +224,18 @@ export default function Material() {
           Paste your class notes, a textbook excerpt, or any study material. The more detail, the better Chop can help.
         </Text>
 
+        <Pressable
+          onPress={() => {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            setMaterial(SAMPLE_MATERIAL, SAMPLE_TOPIC, SAMPLE_CARDS, false);
+            router.replace('/(tabs)');
+          }}
+          style={[styles.sampleBtn, { borderColor: c.dark, backgroundColor: c.purpleLight }]}>
+          <Text style={[styles.sampleBtnText, { color: c.dark }]}>
+            🧪 Just looking? Try a sample: Easy Chemistry
+          </Text>
+        </Pressable>
+
         <Pressable onPress={pickPhoto} style={[styles.photoBtn, { borderColor: c.dark, backgroundColor: c.card }]}>
           <Text style={[styles.photoBtnText, { color: c.dark }]}>
             {Platform.OS === 'web'
@@ -274,6 +287,11 @@ export default function Material() {
 }
 
 const styles = StyleSheet.create({
+  sampleBtn: {
+    borderWidth: 2.5, padding: 13, alignItems: 'center',
+    boxShadow: '3px 3px 0px #201E2E',
+  },
+  sampleBtnText: { fontWeight: '800', fontSize: 13 },
   headingPixel: { fontSize: 13, lineHeight: 22, marginTop: 4 },
   dropOverlay: {
     position: 'absolute', top: 12, left: 12, right: 12, bottom: 12,

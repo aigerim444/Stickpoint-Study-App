@@ -7,6 +7,7 @@ import { useApp, useEffectiveMethods } from '@/context/AppContext';
 import { dayKey, featherIcon, getMethodById } from '@/lib/content';
 import ChopCharacter from '@/components/ChopCharacter';
 import colors from '@/constants/colors';
+import { SAMPLE_CARDS, SAMPLE_MATERIAL, SAMPLE_TOPIC } from '@/lib/sampleMaterial';
 
 const c = colors.light;
 
@@ -18,7 +19,7 @@ const c = colors.light;
 export default function TodayTab() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { state, dueMissed } = useApp();
+  const { state, dueMissed, setMaterial } = useApp();
   const effectiveMethods = useEffectiveMethods(state);
 
   const hasMaterial = state.concepts && state.concepts.length > 0;
@@ -107,6 +108,15 @@ export default function TodayTab() {
           <Feather name="chevron-right" size={20} color={c.muted} />
         </Pressable>
       )}
+      {!hasMaterial && (
+        <Pressable
+          onPress={() => setMaterial(SAMPLE_MATERIAL, SAMPLE_TOPIC, SAMPLE_CARDS, false)}
+          style={styles.sampleLink}>
+          <Text style={[styles.sampleLinkText, { color: c.primary }]}>
+            🧪 or try a sample first — Easy Chemistry
+          </Text>
+        </Pressable>
+      )}
 
       {hasMaterial && (
         <>
@@ -177,6 +187,8 @@ export default function TodayTab() {
 }
 
 const styles = StyleSheet.create({
+  sampleLink: { alignSelf: 'center', paddingVertical: 2 },
+  sampleLinkText: { fontWeight: '800', fontSize: 13 },
   container: { padding: 20, gap: 14 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
   greeting: { fontWeight: '900', fontSize: 10, letterSpacing: 2 },
