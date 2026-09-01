@@ -4,6 +4,7 @@ import {
   StyleSheet, Text, TextInput, View,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import EtaBar from '@/components/EtaBar';
 import * as Haptics from 'expo-haptics';
 import { useColors } from '@/hooks/useColors';
 import { FeynmanGradeResult, feynmanConcepts, gradeFeynman } from '@/lib/api';
@@ -120,6 +121,7 @@ export default function Feynman({ cards, notes, name, age, onComplete, onBack }:
         <Text style={[styles.label, { color: colors.muted }]}>
           {phase === 'loading' ? 'PICKING YOUR CONCEPTS…' : 'CHOP IS CHECKING…'}
         </Text>
+        <EtaBar key={phase} seconds={phase === 'loading' ? 15 : 8} />
       </View>
     );
   }

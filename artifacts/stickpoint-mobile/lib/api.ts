@@ -370,6 +370,26 @@ export async function gradeProblemStep(
   });
 }
 
+export async function markProblemDrawing(
+  skillName: string,
+  problem: string,
+  correctAnswer: string,
+  imageBase64: string,
+  drawAnswer: string,
+  name: string,
+  age: number | null,
+): Promise<PsGradeResult | null> {
+  return post<PsGradeResult>('/ps-mark-drawing', {
+    skill: skillName,
+    problem,
+    answer: correctAnswer,
+    imageBase64,
+    ...(drawAnswer.trim() ? { drawAnswer: drawAnswer.trim() } : {}),
+    name,
+    age,
+  });
+}
+
 // ─── Practice Testing ────────────────────────────────────────────────────────
 
 export interface PTQuestion {

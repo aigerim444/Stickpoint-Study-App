@@ -4,6 +4,7 @@ import {
   StyleSheet, Text, TextInput, View,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import EtaBar from '@/components/EtaBar';
 import * as Haptics from 'expo-haptics';
 import { useColors } from '@/hooks/useColors';
 import { EIItem, EIVerdict, eiGenerate, eiGradeConnection, eiGradeWhy } from '@/lib/api';
@@ -95,6 +96,7 @@ export default function ElaborativeInterrogation({ notes, name, age, onComplete,
         <Text style={[styles.label, { color: colors.muted }]}>
           {phase === 'loading' ? 'GENERATING WHY QUESTIONS…' : 'CHECKING YOUR REASONING…'}
         </Text>
+        <EtaBar key={phase} seconds={phase === 'loading' ? 18 : 8} />
       </View>
     );
   }

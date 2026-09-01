@@ -4,6 +4,7 @@ import {
   StyleSheet, Text, TextInput, View,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import EtaBar from '@/components/EtaBar';
 import * as Haptics from 'expo-haptics';
 import { useColors } from '@/hooks/useColors';
 import { gradeSelfExplain, seChunks } from '@/lib/api';
@@ -83,6 +84,7 @@ export default function SelfExplanation({ notes, name, age, onComplete, onBack }
       <View style={[styles.center, { flex: 1, gap: 14, backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color={colors.primary} />
         <Text style={[styles.label, { color: colors.muted }]}>SPLITTING YOUR NOTES…</Text>
+        <EtaBar seconds={12} />
       </View>
     );
   }

@@ -96,6 +96,11 @@ export default function ProgressTab() {
   };
 
   const due = dueMissed();
+  // Shaky = still in the early Leitner boxes; sorted by how often they trip
+  // the student up so the worst offenders lead.
+  const shakyItems = (state.missedBank || [])
+    .filter((b) => (b.box || 0) < 2)
+    .sort((a, b) => (b.misses || 0) - (a.misses || 0));
   const methodsTriedCount = Object.keys(state.methodsTried || {}).length;
   const ptHistory = state.ptHistory || [];
   const lastPt = ptHistory[ptHistory.length - 1];
@@ -241,11 +246,49 @@ export default function ProgressTab() {
         </>
       )}
 
-      {/* All missed bank */}
-      {(state.missedBank || []).length > 0 && due.length === 0 && (
+      {/* What keeps tripping you up — shaky items, drillable any time */}
+      {due.length === 0 && shakyItems.length > 0 && (
+        <>
+          <Text style={[styles.sectionLabel, { color: c.red }]}>WHAT KEEPS TRIPPING YOU UP</Text>
+          <Text style={[styles.shakyHint, { color: c.muted }]}>
+            Nothing's due for review right now, but these are the items you keep missing — drill them any time.
+          </Text>
+          <Pressable
+            onPress={() =>
+              setDrillCards(
+                shakyItems.slice(0, 20).map((b) => ({
+                  question: b.question,
+                  answer: b.answer,
+                  methodTag: 'missed · ' + (b.source || 'review'),
+                  srKey: b.key,
+                })),
+              )
+            }
+            style={[styles.drillBtn, { backgroundColor: c.primary, borderColor: c.dark }]}>
+            <Feather name="zap" size={16} color="#fff" />
+            <Text style={styles.drillBtnText}>DRILL THESE {Math.min(shakyItems.length, 20)} AS FLASHCARDS</Text>
+          </Pressable>
+          {shakyItems.slice(0, 6).map((item) => (
+            <View key={item.key} style={[styles.missedCard, { borderColor: c.dark }]}>
+              <View style={{ flex: 1, gap: 4 }}>
+                <Text style={[styles.missedQ, { color: c.dark }]}>{item.question}</Text>
+                <Text style={[styles.missedMeta, { color: c.muted }]}>
+                  missed {item.misses}× · {item.source || 'review'}
+                </Text>
+              </View>
+            </View>
+          ))}
+          {shakyItems.length > 6 && (
+            <Text style={[styles.moreLabel, { color: c.muted }]}>+{shakyItems.length - 6} more shaky items</Text>
+          )}
+        </>
+      )}
+
+      {/* All mastered, nothing due */}
+      {(state.missedBank || []).length > 0 && due.length === 0 && shakyItems.length === 0 && (
         <View style={[styles.allClearCard, { borderColor: c.green, backgroundColor: c.greenLight }]}>
           <Feather name="check-circle" size={24} color={c.green} />
-          <Text style={[styles.allClearText, { color: c.dark }]}>No cards due! Check back tomorrow.</Text>
+          <Text style={[styles.allClearText, { color: c.dark }]}>Everything's mastered and nothing's due. Nice.</Text>
         </View>
       )}
 
@@ -461,6 +504,7 @@ const styles = StyleSheet.create({
   heading: { fontWeight: '900', fontSize: 24, lineHeight: 32 },
   sectionLabel: { fontWeight: '900', fontSize: 10, letterSpacing: 1.5, marginTop: 4 },
   statsRow: { flexDirection: 'row', gap: 10 },
+  shakyHint: { fontSize: 12, fontWeight: '700', lineHeight: 18 },
   statBox: {
     flex: 1, borderWidth: 3, padding: 14, alignItems: 'center', gap: 2,
   },

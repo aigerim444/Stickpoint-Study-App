@@ -3,6 +3,7 @@ import {
   ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import EtaBar from '@/components/EtaBar';
 import * as Haptics from 'expo-haptics';
 import { useColors } from '@/hooks/useColors';
 import { buildMCQ, Card } from '@/lib/content';
@@ -175,6 +176,7 @@ export default function PracticeTest({ cards, notes, name, age, onComplete, onBa
         <Text style={[styles.label, { color: colors.muted }]}>
           {phase === 'loading' ? 'WRITING YOUR TEST…' : 'GRADING YOUR ANSWERS…'}
         </Text>
+        <EtaBar key={phase} seconds={phase === 'loading' ? 25 : 10} />
       </View>
     );
   }

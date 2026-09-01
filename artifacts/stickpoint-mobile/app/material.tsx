@@ -10,6 +10,7 @@ import * as Haptics from 'expo-haptics';
 import * as ImagePicker from 'expo-image-picker';
 import { useApp } from '@/context/AppContext';
 import ChopCharacter from '@/components/ChopCharacter';
+import MathDetectModal, { MATH_TOP3 } from '@/components/MathDetectModal';
 import PixelText from '@/components/PixelText';
 import { extractConcepts, transcribeMaterial, TranscribeMediaType } from '@/lib/api';
 import colors from '@/constants/colors';
@@ -20,7 +21,8 @@ type Phase = 'input' | 'transcribing' | 'processing' | 'error';
 export default function Material() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { state, setMaterial } = useApp();
+  const { state, setMaterial, setMaterialTopMethods } = useApp();
+  const [showMathOffer, setShowMathOffer] = useState(false);
   const [notes, setNotes] = useState('');
   const [mode, setMode] = useState<'paste' | 'pdf' | 'photo'>('paste');
   const [etaLeft, setEtaLeft] = useState(0);
@@ -197,6 +199,18 @@ export default function Material() {
     const result = outcome.result;
     setMaterial(trimmed, result.topic, result.cards, result.isMath);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    if (result.isMath) {
+      // The prototype's math-detect moment: offer the procedural top 3
+      // before landing on the Study tab.
+      setShowMathOffer(true);
+    } else {
+      router.replace('/(tabs)');
+    }
+  };
+
+  const chooseMathTop3 = (useMathTop3: boolean) => {
+    setShowMathOffer(false);
+    if (useMathTop3) setMaterialTopMethods([...MATH_TOP3]);
     router.replace('/(tabs)');
   };
 
@@ -225,6 +239,7 @@ export default function Material() {
             </>
           )}
         </View>
+        <MathDetectModal visible={showMathOffer} onChoose={chooseMathTop3} />
       </View>
     );
   }

@@ -4,6 +4,7 @@ import {
   StyleSheet, Text, TextInput, View,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import EtaBar from '@/components/EtaBar';
 import * as Haptics from 'expo-haptics';
 import { useColors } from '@/hooks/useColors';
 import { CEItem, ceGenerate, ceGrade, ceNewExample } from '@/lib/api';
@@ -107,6 +108,7 @@ export default function ConcreteExamples({ notes, name, age, onComplete, onBack 
               ? 'INVENTING A FRESH EXAMPLE…'
               : 'CHECKING YOUR CONNECTION…'}
         </Text>
+        <EtaBar key={phase} seconds={phase === 'loading' ? 18 : 8} />
       </View>
     );
   }

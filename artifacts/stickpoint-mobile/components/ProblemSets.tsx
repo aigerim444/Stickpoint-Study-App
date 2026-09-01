@@ -6,11 +6,13 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import EtaBar from '@/components/EtaBar';
+import DrawPad, { DrawPadHandle } from '@/components/DrawPad';
 import { useNavigation } from 'expo-router';
 import { useColors } from '@/hooks/useColors';
 import {
   generateProblemSets, gradeProblemStep,
-  PsSkill, PsFigure, PsGradeResult,
+  PsSkill, PsFigure, PsGradeResult, markProblemDrawing,
 } from '@/lib/api';
 import { Card } from '@/lib/content';
 
@@ -166,6 +168,10 @@ export default function ProblemSets({ notes, isMath, name, age, onComplete, onBa
   const colors = useColors();
   const navigation = useNavigation();
   const [phase, setPhase] = useState<Phase>('gen');
+  const [workMode, setWorkMode] = useState<'type' | 'draw'>('type');
+  const [drawAnswer, setDrawAnswer] = useState('');
+  const [hasDrawn, setHasDrawn] = useState(false);
+  const padRef = useRef<DrawPadHandle>(null);
   const [sess, setSess] = useState<SessionState>({
     skills: [], skillIdx: 0, stepsShown: 1, pIdx: 0,
     work: '', result: null, attempts: {}, solved: {}, errorTypes: {},
@@ -322,15 +328,32 @@ export default function ProblemSets({ notes, isMath, name, age, onComplete, onBa
     setPhase('solve');
   }, [update]);
 
+  // Fresh problem → fresh canvas state
+  useEffect(() => {
+    setDrawAnswer('');
+    setHasDrawn(false);
+  }, [sess.pIdx, sess.skillIdx]);
+
   // ── SOLVE ─────────────────────────────────────────────────────────────────
   const submit = useCallback(async () => {
-    const lines = sess.work.split('\n').map((l) => l.trim()).filter(Boolean);
-    if (!lines.length) return;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setPhase('grading');
     const skill = sess.skills[sess.skillIdx];
     const prob = skill.practice[sess.pIdx];
-    const res = await gradeProblemStep(skill.skill, prob.problem, prob.answer, lines, name, age);
+    let res: PsGradeResult | null;
+    if (workMode === 'draw') {
+      // Snapshot the strokes BEFORE leaving the phase — the canvas
+      // unmounts as soon as we switch to 'grading'.
+      const img = padRef.current?.toPngBase64();
+      if (!img) return;
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      setPhase('grading');
+      res = await markProblemDrawing(skill.skill, prob.problem, prob.answer, img, drawAnswer, name, age);
+    } else {
+      const lines = sess.work.split('\n').map((l) => l.trim()).filter(Boolean);
+      if (!lines.length) return;
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      setPhase('grading');
+      res = await gradeProblemStep(skill.skill, prob.problem, prob.answer, lines, name, age);
+    }
     if (!res) {
       update({ gradeError: true });
       setPhase('solve');
@@ -350,7 +373,7 @@ export default function ProblemSets({ notes, isMath, name, age, onComplete, onBa
     setPhase('marked');
     // Persist progress so ✓ DONE badges survive across sessions
     saveProgress(notes, { solved, errorTypes, attempts });
-  }, [sess, name, age, notes, update]);
+  }, [sess, workMode, drawAnswer, name, age, notes, update]);
 
   const fixIt = useCallback(() => {
     const r = sess.result;
@@ -463,6 +486,7 @@ export default function ProblemSets({ notes, isMath, name, age, onComplete, onBa
       <View style={[styles.center, { flex: 1, backgroundColor: colors.background, gap: 16 }]}>
         <ActivityIndicator size="large" color={colors.primary} />
         <Text style={[styles.label, { color: colors.muted }]}>BUILDING YOUR PROBLEM SET…</Text>
+        <EtaBar seconds={30} />
         <Text style={[styles.hint, { color: colors.subtle, textAlign: 'center', paddingHorizontal: 32 }]}>
           Chop is finding the problem types in your notes and writing worked examples. This takes about a minute.
         </Text>
@@ -621,7 +645,10 @@ export default function ProblemSets({ notes, isMath, name, age, onComplete, onBa
     return (
       <View style={[styles.center, { flex: 1, gap: 14, backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={[styles.label, { color: colors.muted }]}>CHOP IS MARKING…</Text>
+        <Text style={[styles.label, { color: colors.muted }]}>
+          {workMode === 'draw' ? 'CHOP IS READING YOUR HANDWRITING…' : 'CHOP IS MARKING…'}
+        </Text>
+        <EtaBar seconds={workMode === 'draw' ? 14 : 8} />
       </View>
     );
   }
@@ -629,7 +656,7 @@ export default function ProblemSets({ notes, isMath, name, age, onComplete, onBa
   if (phase === 'solve') {
     const skill = sess.skills[sess.skillIdx];
     const prob = skill.practice[sess.pIdx];
-    const canSubmit = sess.work.split('\n').some((l) => l.trim().length > 0);
+    const canSubmit = workMode === 'draw' ? hasDrawn : sess.work.split('\n').some((l) => l.trim().length > 0);
     return (
       <ScrollView contentContainerStyle={[styles.container, { paddingBottom: 40 }]} keyboardShouldPersistTaps="handled">
         <View style={styles.phaseRow}>
@@ -650,22 +677,58 @@ export default function ProblemSets({ notes, isMath, name, age, onComplete, onBa
           {prob.figure && <Figure fig={prob.figure} />}
         </View>
 
-        <Text style={[styles.hint, { color: colors.subtle }]}>
-          Write one step per line. Press submit when done.
-        </Text>
+        {/* TYPE / DRAW input modes — the prototype had both */}
+        <View style={styles.inputModeRow}>
+          <Pressable
+            onPress={() => setWorkMode('type')}
+            style={[styles.inputModeBtn, { borderColor: colors.dark, backgroundColor: workMode === 'type' ? colors.dark : colors.card }]}>
+            <Feather name="type" size={13} color={workMode === 'type' ? '#fff' : colors.dark} />
+            <Text style={[styles.inputModeText, { color: workMode === 'type' ? '#fff' : colors.dark }]}>TYPE</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => setWorkMode('draw')}
+            style={[styles.inputModeBtn, { borderColor: colors.dark, backgroundColor: workMode === 'draw' ? colors.dark : colors.card }]}>
+            <Feather name="edit-3" size={13} color={workMode === 'draw' ? '#fff' : colors.dark} />
+            <Text style={[styles.inputModeText, { color: workMode === 'draw' ? '#fff' : colors.dark }]}>DRAW</Text>
+          </Pressable>
+        </View>
 
-        <TextInput
-          style={[styles.workInput, { borderColor: colors.dark, color: colors.dark, backgroundColor: colors.card }]}
-          value={sess.work}
-          onChangeText={(t) => update({ work: t, gradeError: false })}
-          multiline
-          placeholder={'Step 1\nStep 2\nStep 3…'}
-          placeholderTextColor={colors.muted}
-          textAlignVertical="top"
-          autoFocus
-          autoCorrect={false}
-          autoCapitalize="none"
-        />
+        {workMode === 'type' ? (
+          <>
+            <Text style={[styles.hint, { color: colors.subtle }]}>
+              Write one step per line. Chop checks every line, not just the answer.
+            </Text>
+            <TextInput
+              style={[styles.workInput, { borderColor: colors.dark, color: colors.dark, backgroundColor: colors.card }]}
+              value={sess.work}
+              onChangeText={(t) => update({ work: t, gradeError: false })}
+              multiline
+              placeholder={'Step 1\nStep 2\nStep 3…'}
+              placeholderTextColor={colors.muted}
+              textAlignVertical="top"
+              autoFocus
+              autoCorrect={false}
+              autoCapitalize="none"
+            />
+          </>
+        ) : (
+          <>
+            <Text style={[styles.hint, { color: colors.subtle }]}>
+              Draw your work below. Chop reads your handwriting and checks each step.
+            </Text>
+            <DrawPad ref={padRef} onDirtyChange={setHasDrawn} />
+            <Text style={[styles.miniLabel, { color: colors.muted }]}>YOUR FINAL ANSWER (OPTIONAL)</Text>
+            <TextInput
+              style={[styles.finalAnswerInput, { borderColor: colors.dark, color: colors.dark, backgroundColor: colors.card }]}
+              value={drawAnswer}
+              onChangeText={setDrawAnswer}
+              placeholder="e.g.  x = -2  or  x = -3"
+              placeholderTextColor={colors.muted}
+              autoCorrect={false}
+              autoCapitalize="none"
+            />
+          </>
+        )}
 
         {!sess.showHint && prob.hint ? (
           <Pressable
@@ -866,6 +929,13 @@ const styles = StyleSheet.create({
     borderWidth: 3, padding: 14, fontSize: 15, fontWeight: '600', minHeight: 160,
     lineHeight: 24, fontFamily: 'monospace',
   },
+  inputModeRow: { flexDirection: 'row', gap: 8 },
+  inputModeBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    borderWidth: 2.5, paddingVertical: 9, paddingHorizontal: 16,
+  },
+  inputModeText: { fontWeight: '900', fontSize: 12 },
+  finalAnswerInput: { borderWidth: 3, padding: 12, fontSize: 15, fontWeight: '700' },
   hintBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 2, paddingHorizontal: 14, paddingVertical: 10, alignSelf: 'flex-start' },
   hintBtnText: { fontWeight: '900', fontSize: 12, letterSpacing: 0.5 },
   hintCard: { borderWidth: 3, padding: 14, gap: 6 },
