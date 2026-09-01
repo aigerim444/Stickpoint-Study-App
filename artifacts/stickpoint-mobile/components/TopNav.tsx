@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { usePathname, useRouter } from 'expo-router';
 import { useApp } from '@/context/AppContext';
@@ -29,14 +29,21 @@ export default function TopNav() {
   const router = useRouter();
   const pathname = usePathname();
   const { state, account } = useApp();
+  // The bar only fits everything on a truly wide window — shed the logo,
+  // then the chips, before the tabs themselves ever crowd.
+  const { width } = useWindowDimensions();
+  const showLogo = width >= 1000;
+  const showChips = width >= 860;
 
   if (!TAB_PATHS.includes(pathname)) return null;
 
   return (
     <View style={[styles.bar, { borderBottomColor: c.dark }]}>
-      <View style={styles.logoRow}>
-        <PixelText style={styles.logo}>STICKPOINT</PixelText>
-      </View>
+      {showLogo && (
+        <View style={styles.logoRow}>
+          <PixelText style={styles.logo}>STICKPOINT</PixelText>
+        </View>
+      )}
       <View style={styles.tabs}>
         {TABS.map((t) => {
           const active = pathname === t.path;
@@ -52,14 +59,18 @@ export default function TopNav() {
         })}
       </View>
       <View style={styles.chips}>
-        <View style={[styles.chip, { borderColor: c.dark }]}>
-          <Ionicons name="flame" size={13} color="#FF6B4A" />
-          <Text style={styles.chipText}>{state.streak || 0}</Text>
-        </View>
-        <View style={[styles.chip, { borderColor: c.dark }]}>
-          <Feather name="star" size={12} color="#BA8A00" />
-          <Text style={styles.chipText}>{state.xp || 0}</Text>
-        </View>
+        {showChips && (
+          <View style={[styles.chip, { borderColor: c.dark }]}>
+            <Ionicons name="flame" size={13} color="#FF6B4A" />
+            <Text style={styles.chipText}>{state.streak || 0}</Text>
+          </View>
+        )}
+        {showChips && (
+          <View style={[styles.chip, { borderColor: c.dark }]}>
+            <Feather name="star" size={12} color="#BA8A00" />
+            <Text style={styles.chipText}>{state.xp || 0}</Text>
+          </View>
+        )}
         {accountsEnabled && !account && (
           <Pressable
             onPress={() => router.navigate('/progress?focus=account' as never)}

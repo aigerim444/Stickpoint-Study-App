@@ -11,6 +11,15 @@ import colors from '@/constants/colors';
 
 const c = colors.light;
 
+/** "2026-09-17" → "Sep 17" — the storage format isn't for humans. */
+function fmtTestDate(key: string | null): string {
+  if (!key) return '';
+  const [y, m, d] = key.split('-').map(Number);
+  if (!y || !m || !d) return key ?? '';
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return `${MONTHS[m - 1]} ${d}`;
+}
+
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December',
@@ -148,7 +157,7 @@ export default function PlanTab() {
             <Text style={[styles.countdownBody, { color: c.subtle }]}>
               {daysToTest <= 0
                 ? "You put in the work. Go show it."
-                : `until your test on ${state.testDate}. Tap the marked day to change it.`}
+                : `until your test on ${fmtTestDate(state.testDate)}. Tap the marked day to change it.`}
             </Text>
           </>
         )}
