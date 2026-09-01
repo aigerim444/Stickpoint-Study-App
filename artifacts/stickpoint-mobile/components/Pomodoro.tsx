@@ -190,7 +190,7 @@ export default function Pomodoro({ topic, notes, name, age, onComplete, onBack }
           <Text style={[styles.breakLabel, { color: colors.green }]}>BREAK TIME</Text>
           <Text style={[styles.breakBody, { color: colors.dark }]}>Step away from your screen. Breathe. No phones.</Text>
           {!!funFact && (
-            <Text style={[styles.breakBody, { color: colors.dark }]}>💡 {funFact}</Text>
+            <Text style={[styles.breakBody, { color: colors.dark }]}>{funFact}</Text>
           )}
         </View>
       )}

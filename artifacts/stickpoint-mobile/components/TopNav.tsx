@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { usePathname, useRouter } from 'expo-router';
 import { useApp } from '@/context/AppContext';
 import { accountsEnabled } from '@/lib/supabase';
@@ -53,10 +53,12 @@ export default function TopNav() {
       </View>
       <View style={styles.chips}>
         <View style={[styles.chip, { borderColor: c.dark }]}>
-          <Text style={styles.chipText}>🔥 {state.streak || 0}</Text>
+          <Ionicons name="flame" size={13} color="#FF6B4A" />
+          <Text style={styles.chipText}>{state.streak || 0}</Text>
         </View>
         <View style={[styles.chip, { borderColor: c.dark }]}>
-          <Text style={styles.chipText}>⭐ {state.xp || 0}</Text>
+          <Feather name="star" size={12} color="#BA8A00" />
+          <Text style={styles.chipText}>{state.xp || 0}</Text>
         </View>
         {accountsEnabled && !account && (
           <Pressable
@@ -92,6 +94,9 @@ const styles = StyleSheet.create({
   },
   tabText: { fontWeight: '900', fontSize: 12, letterSpacing: 0.5 },
   chips: { flexDirection: 'row', gap: 8 },
-  chip: { borderWidth: 2, paddingVertical: 4, paddingHorizontal: 9, backgroundColor: '#fff' },
+  chip: {
+    borderWidth: 2, paddingVertical: 4, paddingHorizontal: 9, backgroundColor: '#fff',
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+  },
   chipText: { fontWeight: '900', fontSize: 12, color: '#201E2E' },
 });

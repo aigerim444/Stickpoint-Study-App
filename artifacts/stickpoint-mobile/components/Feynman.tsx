@@ -198,7 +198,7 @@ export default function Feynman({ cards, notes, name, age, onComplete, onBack }:
             {improved ? `${firstScore} → ${result.score}` : `${result.score}/5`}
           </Text>
           <Text style={[styles.feedback, { color: colors.dark }]}>
-            {improved ? '🎉 Loop closed — your rewrite beat your first try.' : result.feedback}
+            {improved ? 'Loop closed — your rewrite beat your first try.' : result.feedback}
           </Text>
         </View>
         {!!result.gotRight && (

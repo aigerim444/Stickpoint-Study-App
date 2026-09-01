@@ -250,7 +250,7 @@ export default function ProgressTab() {
       )}
 
       {/* Methods tried */}
-      <Text style={[styles.sectionLabel, { color: c.dark }]}>⭐ YOUR TOP 3 METHODS</Text>
+      <Text style={[styles.sectionLabel, { color: c.dark }]}>YOUR TOP 3 METHODS</Text>
       <TopMethodsEditor />
 
       <Text style={[styles.sectionLabel, { color: c.dark }]}>METHODS TRIED</Text>

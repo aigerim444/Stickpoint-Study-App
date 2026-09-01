@@ -676,7 +676,7 @@ export default function ProblemSets({ notes, isMath, name, age, onComplete, onBa
           </Pressable>
         ) : sess.showHint && prob.hint ? (
           <View style={[styles.hintCard, { borderColor: colors.yellow, backgroundColor: '#FFF3DE' }]}>
-            <Text style={[styles.miniLabel, { color: colors.dark }]}>💡 HINT</Text>
+            <Text style={[styles.miniLabel, { color: colors.dark }]}>HINT</Text>
             <Text style={[styles.hintText, { color: colors.dark }]}>{prob.hint}</Text>
           </View>
         ) : null}
@@ -816,7 +816,7 @@ export default function ProblemSets({ notes, isMath, name, age, onComplete, onBa
 
       {topErrors.length === 0 && (
         <View style={[styles.card, { borderColor: colors.primary }]}>
-          <Text style={[styles.body, { color: colors.dark }]}>No errors this session — nice work! 🎉</Text>
+          <Text style={[styles.body, { color: colors.dark }]}>No errors this session — nice work!</Text>
         </View>
       )}
 

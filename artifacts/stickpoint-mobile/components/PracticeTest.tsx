@@ -219,13 +219,13 @@ export default function PracticeTest({ cards, notes, name, age, onComplete, onBa
       <ScrollView contentContainerStyle={[styles.container, { paddingBottom: 40 }]}>
         {crushed && (
           <View style={[styles.crushCard, { borderColor: colors.dark }]}>
-            <PixelText style={styles.crushTitle}>🔥 YOU CRUSHED IT!</PixelText>
+            <PixelText style={styles.crushTitle}>YOU CRUSHED IT!</PixelText>
             <PixelText style={styles.crushScore}>{score}/{results.length}</PixelText>
             <Text style={[styles.crushBody, { color: colors.subtle }]}>
               Know someone who should study smarter too?
             </Text>
             <Pressable onPress={share} style={[styles.crushShare, { backgroundColor: colors.primary, borderColor: colors.dark }]}>
-              <Text style={styles.crushShareText}>🔗 SHARE STICKPOINT</Text>
+              <Text style={styles.crushShareText}>SHARE STICKPOINT</Text>
             </Pressable>
           </View>
         )}

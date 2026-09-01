@@ -1,3 +1,4 @@
+import { Feather } from '@expo/vector-icons';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator, Alert, KeyboardAvoidingView, Platform,
@@ -270,13 +271,13 @@ export default function Material() {
           }}
           style={[styles.sampleBtn, { borderColor: c.dark, backgroundColor: c.purpleLight }]}>
           <Text style={[styles.sampleBtnText, { color: c.dark }]}>
-            🧪 Just looking? Try a sample: Easy Chemistry
+            Just looking? Try a sample: Easy Chemistry
           </Text>
         </Pressable>
 
         {/* Mode tabs — the prototype's PASTE TEXT / PDF / PHOTO */}
         <View style={styles.modeRow}>
-          {([['paste', '✍️ PASTE TEXT'], ['pdf', '📄 PDF'], ['photo', '📷 PHOTO']] as const).map(([m, label]) => (
+          {([['paste', 'edit-3', 'PASTE TEXT'], ['pdf', 'file-text', 'PDF'], ['photo', 'camera', 'PHOTO']] as const).map(([m, icon, label]) => (
             <Pressable
               key={m}
               onPress={() => setMode(m)}
@@ -284,7 +285,10 @@ export default function Material() {
                 styles.modeTab,
                 { borderColor: c.dark, backgroundColor: mode === m ? c.primary : c.card },
               ]}>
-              <Text style={[styles.modeTabText, { color: mode === m ? '#fff' : c.dark }]}>{label}</Text>
+              <View style={styles.modeTabInner}>
+                <Feather name={icon} size={13} color={mode === m ? '#fff' : c.dark} />
+                <Text style={[styles.modeTabText, { color: mode === m ? '#fff' : c.dark }]}>{label}</Text>
+              </View>
             </Pressable>
           ))}
         </View>
@@ -302,7 +306,7 @@ export default function Material() {
         )}
         {mode === 'pdf' && (
           <View style={[styles.dropCard, { borderColor: c.dark, backgroundColor: c.card }]}>
-            <Text style={styles.dropEmojiSm}>📄</Text>
+            <Feather name="file-text" size={34} color={c.muted} />
             <Text style={[styles.dropStatus, { color: c.subtle }]}>
               {notes.trim() ? `${notes.length} characters ready — check them in Paste Text` : 'No PDF chosen yet'}
             </Text>
@@ -318,7 +322,7 @@ export default function Material() {
         )}
         {mode === 'photo' && (
           <View style={[styles.dropCard, { borderColor: c.dark, backgroundColor: c.card }]}>
-            <Text style={styles.dropEmojiSm}>📷</Text>
+            <Feather name="camera" size={34} color={c.muted} />
             <Text style={[styles.dropStatus, { color: c.subtle }]}>
               {notes.trim() ? `${notes.length} characters ready — check them in Paste Text` : 'No photo chosen yet'}
             </Text>
@@ -355,7 +359,7 @@ export default function Material() {
       </ScrollView>
       {dragging && (
         <View style={[styles.dropOverlay, { borderColor: c.primary }]} pointerEvents="none">
-          <Text style={styles.dropEmoji}>📄</Text>
+          <Feather name="file-plus" size={44} color={c.primary} />
           <Text style={[styles.dropTitle, { color: c.primary }]}>Drop it!</Text>
           <Text style={[styles.dropSub, { color: c.dark }]}>Photo, PDF, or text file — Chop will read it.</Text>
         </View>
@@ -367,6 +371,7 @@ export default function Material() {
 const styles = StyleSheet.create({
   modeRow: { flexDirection: 'row', gap: 8 },
   modeTab: { flex: 1, borderWidth: 3, paddingVertical: 11, alignItems: 'center' },
+  modeTabInner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
   modeTabText: { fontWeight: '900', fontSize: 12 },
   dropCard: {
     borderWidth: 3, borderStyle: 'dashed', padding: 26, alignItems: 'center', gap: 8,

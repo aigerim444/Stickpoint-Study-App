@@ -255,7 +255,7 @@ export default function StudyTab() {
       {hasMaterial && (
         <>
           {/* Top recommended methods */}
-          <Text style={[styles.sectionLabel, { color: c.primary }]}>⚡ RECOMMENDED FOR YOU</Text>
+          <Text style={[styles.sectionLabel, { color: c.primary }]}>RECOMMENDED FOR YOU</Text>
           {topThree.map((id) => {
             const m = getMethodById(id);
             if (!m) return null;

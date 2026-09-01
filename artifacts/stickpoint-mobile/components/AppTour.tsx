@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useApp } from '@/context/AppContext';
@@ -9,7 +10,7 @@ import colors from '@/constants/colors';
 const c = colors.light;
 
 interface Step {
-  emoji: string;
+  icon: string;
   title: string;
   body: string;
   /** Tab to show behind the card while this step is up. */
@@ -18,37 +19,37 @@ interface Step {
 
 const STEPS: Step[] = [
   {
-    emoji: '🎯',
+    icon: 'sun',
     title: 'TODAY',
     body: "Your daily plan lives here — your next study step, your streak, and anything due for review. Open this first every session.",
     route: '/(tabs)/today',
   },
   {
-    emoji: '📖',
+    icon: 'zap',
     title: 'STUDY',
     body: 'Your personalised study methods. The top ones are ranked for how YOUR brain learns, straight from your quiz answers.',
     route: '/(tabs)',
   },
   {
-    emoji: '🗓',
+    icon: 'calendar',
     title: 'PLAN',
     body: 'Set your test date and see your study history on the calendar. Chop shows how many days you have left to prepare.',
     route: '/(tabs)/plan',
   },
   {
-    emoji: '📈',
+    icon: 'bar-chart-2',
     title: 'PROGRESS',
     body: 'Mastered vs still-shaky items, your drill deck, practice-test scores, and your profile settings all live here.',
     route: '/(tabs)/progress',
   },
   {
-    emoji: '📚',
+    icon: 'book',
     title: 'LIBRARY',
     body: 'Every study set you make is saved. Add new notes any time — paste, photo, or PDF — and switch between subjects.',
     route: '/(tabs)/library',
   },
   {
-    emoji: '🔥',
+    icon: 'flame',
     title: 'YOUR STREAK',
     body: 'Study every day to build your streak — even 10 minutes counts. Turn on the daily reminder in Progress so Chop can nudge you.',
     route: '/(tabs)/today',
@@ -97,7 +98,11 @@ export default function AppTour() {
       <View style={styles.backdrop}>
         <View style={[styles.card, { borderColor: c.dark }]}>
           <View style={styles.headRow}>
-            <Text style={styles.emoji}>{step.emoji}</Text>
+            {step.icon === 'flame' ? (
+              <Ionicons name="flame" size={22} color={c.accent} />
+            ) : (
+              <Feather name={step.icon as never} size={20} color={c.dark} />
+            )}
             <PixelText style={styles.title}>{step.title}</PixelText>
             <Text style={[styles.counter, { color: c.muted }]}>{idx + 1} / {STEPS.length}</Text>
           </View>
@@ -146,7 +151,6 @@ const styles = StyleSheet.create({
     boxShadow: '6px 6px 0px #201E2E',
   },
   headRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  emoji: { fontSize: 20 },
   title: { fontSize: 13, lineHeight: 20, flex: 1 },
   counter: { fontSize: 12, fontWeight: '800' },
   body: { fontSize: 14, fontWeight: '700', lineHeight: 21 },

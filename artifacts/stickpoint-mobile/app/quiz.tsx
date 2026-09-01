@@ -15,7 +15,7 @@ type Step = 'subject' | 'questions' | 'results';
 type Answer = number | number[] | null;
 
 const RANK_COLORS = ['#453F8C', '#FF6B4A', '#2DD4A7'];
-const RANK_LABELS = ['🥇', '🥈', '🥉'];
+const RANK_LABELS = ['#1', '#2', '#3'];
 
 /**
  * The diagnostic quiz, matching the original prototype's flow: no
@@ -87,7 +87,7 @@ export default function Quiz() {
           <ChopCharacter size={0.8} color={c.dark} animation="celebrate" />
           <View style={[styles.resultBubble, { borderColor: c.dark }]}>
             <Text style={[styles.resultBubbleText, { color: c.dark }]}>
-              Nice, {state.name}! Here's what Chop found 🎉
+              Nice, {state.name}! Here's what Chop found
             </Text>
           </View>
         </View>
@@ -107,7 +107,7 @@ export default function Quiz() {
                 </View>
               </View>
               <Text style={[styles.resultWhy, { color: c.subtle }]}>{m.whyWorks}</Text>
-              <Text style={[styles.resultEvidence, { color: c.muted }]}>📚 {m.evidence}</Text>
+              <Text style={[styles.resultEvidence, { color: c.muted }]}>{m.evidence}</Text>
             </View>
           );
         })}
