@@ -7,6 +7,8 @@ import * as Haptics from 'expo-haptics';
 import { useColors } from '@/hooks/useColors';
 import { buildMCQ, Card } from '@/lib/content';
 import { PTQuestion, generatePracticeTest, gradePracticeTestSA } from '@/lib/api';
+import PixelText from '@/components/PixelText';
+import { Platform, Share } from 'react-native';
 
 interface Props {
   cards: Card[];
@@ -203,8 +205,30 @@ export default function PracticeTest({ cards, notes, name, age, onComplete, onBa
   if (phase === 'review' && results) {
     const pct = Math.round((score / results.length) * 100);
     const scoreColor = pct >= 70 ? colors.green : pct >= 50 ? colors.yellow : colors.red;
+    const crushed = pct >= 80;
+    const share = () => {
+      const msg = `I scored ${score}/${results.length} on my Stickpoint practice test 🔥 It finds the study method that actually works for your brain: https://stickpoint-study.vercel.app`;
+      if (Platform.OS === 'web') {
+        if (navigator.share) navigator.share({ text: msg }).catch(() => {});
+        else navigator.clipboard?.writeText(msg).catch(() => {});
+      } else {
+        Share.share({ message: msg });
+      }
+    };
     return (
       <ScrollView contentContainerStyle={[styles.container, { paddingBottom: 40 }]}>
+        {crushed && (
+          <View style={[styles.crushCard, { borderColor: colors.dark }]}>
+            <PixelText style={styles.crushTitle}>🔥 YOU CRUSHED IT!</PixelText>
+            <PixelText style={styles.crushScore}>{score}/{results.length}</PixelText>
+            <Text style={[styles.crushBody, { color: colors.subtle }]}>
+              Know someone who should study smarter too?
+            </Text>
+            <Pressable onPress={share} style={[styles.crushShare, { backgroundColor: colors.primary, borderColor: colors.dark }]}>
+              <Text style={styles.crushShareText}>🔗 SHARE STICKPOINT</Text>
+            </Pressable>
+          </View>
+        )}
         <View style={[styles.scoreCard, { borderColor: scoreColor }]}>
           <Text style={[styles.scoreNum, { color: scoreColor }]}>{score}/{results.length}</Text>
           <Text style={[styles.scorePct, { color: colors.dark }]}>{pct}%</Text>
@@ -229,6 +253,23 @@ export default function PracticeTest({ cards, notes, name, age, onComplete, onBa
               </Text>
               {!!r.explanation && (
                 <Text style={[styles.reviewExplain, { color: colors.subtle }]}>{r.explanation}</Text>
+              )}
+              {r.type === 'short_answer' && r.verdict !== 'correct' && r.yours !== '- (no answer)' && (
+                <Pressable
+                  onPress={() =>
+                    setResults((prev) =>
+                      prev
+                        ? prev.map((row, j) =>
+                            j === i ? { ...row, verdict: 'correct' as Verdict, explanation: '' } : row,
+                          )
+                        : prev,
+                    )
+                  }
+                  style={[styles.overrideBtn, { borderColor: colors.dark, backgroundColor: colors.card }]}>
+                  <Text style={[styles.overrideText, { color: colors.dark }]}>
+                    ✓ ACTUALLY, I WAS RIGHT
+                  </Text>
+                </Pressable>
               )}
             </View>
           );
@@ -314,6 +355,20 @@ export default function PracticeTest({ cards, notes, name, age, onComplete, onBa
 }
 
 const styles = StyleSheet.create({
+  crushCard: {
+    borderWidth: 4, padding: 20, alignItems: 'center', gap: 10, backgroundColor: '#FFFCF6',
+    boxShadow: '6px 6px 0px #201E2E',
+  },
+  crushTitle: { fontSize: 12, lineHeight: 20, color: '#FF6B4A' },
+  crushScore: { fontSize: 26, lineHeight: 34, color: '#7C5CFC' },
+  crushBody: { fontSize: 13, fontWeight: '700', textAlign: 'center' },
+  crushShare: {
+    borderWidth: 3, paddingVertical: 12, paddingHorizontal: 20,
+    boxShadow: '3px 3px 0px #201E2E',
+  },
+  crushShareText: { color: '#fff', fontWeight: '900', fontSize: 13 },
+  overrideBtn: { borderWidth: 2, paddingVertical: 8, alignItems: 'center', marginTop: 6 },
+  overrideText: { fontWeight: '900', fontSize: 11, letterSpacing: 0.5 },
   center: { alignItems: 'center', justifyContent: 'center', gap: 14 },
   container: { padding: 20, gap: 12 },
   label: { fontWeight: '800', fontSize: 13, letterSpacing: 1 },
