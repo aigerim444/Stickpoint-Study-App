@@ -95,9 +95,9 @@
       }
 
       .sheet {
-        max-width: 720px;
+        width: min(92vw, 1080px);
         margin: 0 auto;
-        padding: 28px 24px 64px;
+        padding: clamp(24px, 4vw, 48px) 0 clamp(48px, 8vw, 88px);
       }
 
       /* ── Document header ── */
@@ -456,6 +456,44 @@
         margin: 0;
       }
 
+      @media (min-width: 900px) {
+        .hero {
+          display: flex;
+          align-items: flex-start;
+          gap: 56px;
+        }
+        .hero-text {
+          flex: 1 1 auto;
+          min-width: 0;
+        }
+        .hero .doodle {
+          order: 2;
+          flex: none;
+          width: 150px;
+          margin-top: 54px;
+        }
+        .headline {
+          font-size: 72px;
+          max-width: 13ch;
+        }
+        .dek {
+          max-width: 58ch;
+        }
+        .research-copy {
+          max-width: 72ch;
+        }
+        .checklist {
+          grid-template-columns: repeat(3, 1fr);
+        }
+        .process-item {
+          grid-template-columns: 110px 1fr;
+          gap: 28px;
+        }
+        .entry-form-wrap {
+          max-width: 520px;
+        }
+      }
+
       @media (max-width: 600px) {
         .headline {
           font-size: 40px;
@@ -502,6 +540,7 @@
               stroke-linecap="round"
             />
           </svg>
+          <div class="hero-text">
           <p class="eyebrow">A note before the diagnostic</p>
           <h1 class="headline">
             Most students were never taught
@@ -554,6 +593,7 @@
                 </p>
               </div>
             </div>
+          </div>
           </div>
         </section>
 
