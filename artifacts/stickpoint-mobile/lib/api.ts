@@ -48,12 +48,32 @@ export interface ExtractResult {
   isMath: boolean;
 }
 
+export type ExtractOutcome =
+  | { ok: true; result: ExtractResult }
+  | { ok: false; reason: 'rate_limited' | 'unavailable' | 'unreadable' };
+
 export async function extractConcepts(
   material: string,
   name: string,
   age: number | null,
-): Promise<ExtractResult | null> {
-  return post<ExtractResult>('/extract-cards', { material, name, age });
+): Promise<ExtractOutcome> {
+  try {
+    const res = await apiFetch('/ai/extract-cards', {
+      method: 'POST',
+      body: JSON.stringify({ material, name, age }),
+    });
+    if (res.status === 429) return { ok: false, reason: 'rate_limited' };
+    if (res.status === 502) return { ok: false, reason: 'unreadable' };
+    if (!res.ok || !(res.headers.get('content-type') || '').includes('application/json')) {
+      return { ok: false, reason: 'unavailable' };
+    }
+    const result = (await res.json()) as ExtractResult;
+    return result.cards?.length
+      ? { ok: true, result }
+      : { ok: false, reason: 'unreadable' };
+  } catch {
+    return { ok: false, reason: 'unavailable' };
+  }
 }
 
 // ─── Blurting ────────────────────────────────────────────────────────────────

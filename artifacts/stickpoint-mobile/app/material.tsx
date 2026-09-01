@@ -181,12 +181,19 @@ export default function Material() {
     setEtaLeft(50);
     const tick = setInterval(() => setEtaLeft((t) => Math.max(0, t - 1)), 1000);
     setTimeout(() => clearInterval(tick), 120_000);
-    const result = await extractConcepts(trimmed, state.name, state.age);
-    if (!result) {
-      setErrorMsg("Chop couldn't read those notes. Make sure there's enough content and try again.");
+    const outcome = await extractConcepts(trimmed, state.name, state.age);
+    if (!outcome.ok) {
+      setErrorMsg(
+        outcome.reason === 'rate_limited'
+          ? "Chop's a little overwhelmed — you've made a lot of requests in a row. Your notes are fine; wait a minute and try again."
+          : outcome.reason === 'unavailable'
+            ? "Chop's AI isn't reachable right now — your notes are fine. Check your connection and try again in a moment."
+            : "Chop couldn't turn those notes into cards. Try adding a bit more detail, then try again.",
+      );
       setPhase('error');
       return;
     }
+    const result = outcome.result;
     setMaterial(trimmed, result.topic, result.cards, result.isMath);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     router.replace('/(tabs)');

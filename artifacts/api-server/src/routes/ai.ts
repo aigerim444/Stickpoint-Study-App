@@ -21,7 +21,7 @@ import {
 
 const router: IRouter = Router();
 
-router.use(rateLimit({ windowMs: 60_000, max: 30 }));
+router.use(rateLimit({ windowMs: 60_000, max: 60 }));
 router.use(optionalAuth);
 
 // Student calibration accepted by every endpoint.
