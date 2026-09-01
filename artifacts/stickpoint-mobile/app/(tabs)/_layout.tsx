@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform } from 'react-native';
+import { Platform, useWindowDimensions } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { isLiquidGlassAvailable } from 'expo-glass-effect';
 import { Tabs } from 'expo-router';
@@ -37,6 +37,9 @@ function NativeTabLayout() {
 }
 
 function ClassicTabLayout() {
+  const { width } = useWindowDimensions();
+  // Wide web gets the TopNav (rendered by WebFrame) — hide the phone bar.
+  const topNavActive = Platform.OS === 'web' && width > 680;
   return (
     <Tabs
       screenOptions={{
@@ -44,7 +47,9 @@ function ClassicTabLayout() {
         tabBarActiveTintColor: '#fff',
         tabBarInactiveTintColor: c.dark,
         tabBarActiveBackgroundColor: c.dark,
-        tabBarLabelPosition: 'beside-icon',
+        // The bar only shows at phone widths now (TopNav covers wide web),
+        // and five beside-icon labels don't fit 375px without truncating.
+        tabBarLabelPosition: 'below-icon',
         tabBarStyle: {
           position: 'absolute',
           backgroundColor: '#FFFCF6',
@@ -52,11 +57,13 @@ function ClassicTabLayout() {
           borderTopColor: c.dark,
           elevation: 0,
           height: Platform.OS === 'web' ? 64 : 84,
+          display: topNavActive ? 'none' : 'flex',
         },
         tabBarLabelStyle: {
           fontWeight: '900',
-          fontSize: 10,
+          fontSize: 9,
           letterSpacing: 0,
+          marginTop: 3,
         },
         tabBarItemStyle: {
           marginHorizontal: 2,

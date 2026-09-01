@@ -1,6 +1,7 @@
 import React from 'react';
 import { Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import TopNav from '@/components/TopNav';
 
 /**
  * The prototype's phone-shaped stage: on wide web windows the app renders
@@ -20,7 +21,10 @@ export default function WebFrame({ children }: { children: React.ReactNode }) {
       start={{ x: 0.2, y: 0 }}
       end={{ x: 0.9, y: 1 }}
       style={styles.backdrop}>
-      <View style={styles.card}>{children}</View>
+      <View style={styles.card}>
+        <TopNav />
+        {children}
+      </View>
     </LinearGradient>
   );
 }
