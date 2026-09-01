@@ -62,6 +62,7 @@ function RootLayoutNav() {
         <Stack.Screen name="index" />
         <Stack.Screen name="welcome" options={{ gestureEnabled: false }} />
         <Stack.Screen name="quiz" />
+        <Stack.Screen name="save-progress" />
         <Stack.Screen name="material" options={{ gestureEnabled: false }} />
         <Stack.Screen name="(tabs)" options={{ gestureEnabled: false }} />
       </Stack>

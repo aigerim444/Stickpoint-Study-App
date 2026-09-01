@@ -112,11 +112,11 @@ export default function Quiz() {
           );
         })}
         <Pressable
-          onPress={() => router.replace('/material')}
+          onPress={() => router.replace('/save-progress' as never)}
           style={({ pressed }) => [styles.btn, { backgroundColor: c.accent, borderColor: c.dark, opacity: pressed ? 0.85 : 1 }]}>
           <Text style={styles.btnText}>ADD MY STUDY MATERIAL →</Text>
         </Pressable>
-        <Pressable onPress={() => router.replace('/(tabs)')} style={{ alignSelf: 'center', paddingVertical: 4 }}>
+        <Pressable onPress={() => router.replace('/save-progress?next=tabs' as never)} style={{ alignSelf: 'center', paddingVertical: 4 }}>
           <Text style={[styles.backText, { color: c.muted }]}>look around first</Text>
         </Pressable>
       </ScrollView>
