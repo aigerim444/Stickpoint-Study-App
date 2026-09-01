@@ -144,11 +144,28 @@
         font-weight: 600;
       }
       .nav-links a {
+        position: relative;
         color: var(--ink-soft);
         text-decoration: none;
+        transition: color 0.15s ease;
+      }
+      .nav-links a::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: -4px;
+        height: 2px;
+        background: var(--accent);
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 0.2s ease;
       }
       .nav-links a:hover {
         color: var(--ink);
+      }
+      .nav-links a:hover::after {
+        transform: scaleX(1);
       }
       .nav-badge {
         font-size: 12px;
@@ -181,6 +198,21 @@
         filter: blur(60px);
         pointer-events: none;
         z-index: 0;
+        animation: blobDrift 24s ease-in-out infinite;
+      }
+      @keyframes blobDrift {
+        0%,
+        100% {
+          transform: translate(0, 0) scale(1);
+        }
+        50% {
+          transform: translate(2%, -3%) scale(1.06);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .hero-glow {
+          animation: none;
+        }
       }
       .hero {
         position: relative;
@@ -210,6 +242,23 @@
         height: 7px;
         border-radius: 50%;
         background: var(--coral);
+        animation: dotPulse 2.2s ease-out infinite;
+      }
+      @keyframes dotPulse {
+        0% {
+          box-shadow: 0 0 0 0 color-mix(in srgb, var(--coral) 55%, transparent);
+        }
+        70% {
+          box-shadow: 0 0 0 7px transparent;
+        }
+        100% {
+          box-shadow: 0 0 0 0 transparent;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .pill-badge .dot {
+          animation: none;
+        }
       }
       .headline {
         font-size: 52px;
@@ -240,6 +289,11 @@
         border-radius: 999px;
         padding: 6px 6px 6px 22px;
         box-shadow: 0 8px 24px rgba(20, 15, 45, 0.06);
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      }
+      .capture-pill:focus-within {
+        border-color: var(--accent);
+        box-shadow: 0 8px 24px rgba(20, 15, 45, 0.1);
       }
       .capture-pill input[type="email"] {
         flex: 1;
@@ -267,10 +321,21 @@
         align-items: center;
         justify-content: center;
         cursor: pointer;
+        transition: transform 0.15s ease;
+      }
+      .capture-submit:hover:not(:disabled) {
+        transform: scale(1.06);
+      }
+      .capture-submit:active:not(:disabled) {
+        transform: scale(0.96);
       }
       .capture-submit svg {
         width: 17px;
         height: 17px;
+        transition: transform 0.2s ease;
+      }
+      .capture-submit:hover:not(:disabled) svg {
+        transform: translateX(2px);
       }
       .capture-submit:disabled {
         opacity: 0.5;
@@ -333,9 +398,25 @@
         padding: 26px;
         text-align: left;
         box-shadow: 0 8px 24px rgba(20, 15, 45, 0.06);
+        opacity: 0;
+        transform: translateY(8px) scale(0.98);
       }
       .success-card.show {
         display: block;
+        animation: successIn 0.35s ease forwards;
+      }
+      @keyframes successIn {
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .success-card.show {
+          animation: none;
+          opacity: 1;
+          transform: none;
+        }
       }
       .capture.hide-form .capture-pill,
       .capture.hide-form .capture-error {
@@ -422,6 +503,12 @@
         border: 1px solid var(--border);
         border-radius: 18px;
         padding: 26px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+      }
+      .step-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 14px 28px rgba(20, 15, 45, 0.08);
+        border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
       }
       .step-badge {
         width: 34px;
@@ -458,6 +545,12 @@
         border: 1px solid var(--border);
         border-radius: 18px;
         padding: 26px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+      }
+      .research-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 14px 28px rgba(20, 15, 45, 0.08);
+        border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
       }
       .quote-mark {
         font-family: "Manrope", sans-serif;
@@ -495,12 +588,22 @@
         border: 1px solid var(--border);
         border-radius: 16px;
         padding: 18px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+      }
+      .checklist li:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 22px rgba(20, 15, 45, 0.07);
+        border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
+      }
+      .checklist li:hover .check-badge {
+        transform: scale(1.12);
       }
       .check-badge {
         flex: none;
         width: 24px;
         height: 24px;
         border-radius: 50%;
+        transition: transform 0.2s ease;
         background: var(--accent);
         display: flex;
         align-items: center;
@@ -523,20 +626,74 @@
       /* ── FAQ ── */
       .faq-item {
         border-bottom: 1px solid var(--border);
-        padding: 20px 0;
+        padding: 6px 0;
       }
       .faq-item:first-child {
         border-top: 1px solid var(--border);
       }
+      .faq-trigger {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        background: none;
+        border: none;
+        padding: 14px 0;
+        margin: 0;
+        cursor: pointer;
+        text-align: left;
+        color: inherit;
+        font-family: inherit;
+      }
       .faq-q {
         font-weight: 700;
         font-size: 15px;
-        margin: 0 0 6px;
+        margin: 0;
+      }
+      .faq-icon {
+        flex: none;
+        position: relative;
+        width: 16px;
+        height: 16px;
+      }
+      .faq-icon::before,
+      .faq-icon::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        background: var(--ink-soft);
+        transform: translate(-50%, -50%);
+        transition: transform 0.25s ease, opacity 0.25s ease;
+      }
+      .faq-icon::before {
+        width: 12px;
+        height: 2px;
+      }
+      .faq-icon::after {
+        width: 2px;
+        height: 12px;
+      }
+      .faq-item[data-open="true"] .faq-icon::after {
+        transform: translate(-50%, -50%) rotate(90deg);
+        opacity: 0;
+      }
+      .faq-answer-wrap {
+        display: grid;
+        grid-template-rows: 0fr;
+        transition: grid-template-rows 0.3s ease;
+      }
+      .faq-item[data-open="true"] .faq-answer-wrap {
+        grid-template-rows: 1fr;
+      }
+      .faq-answer-inner {
+        overflow: hidden;
       }
       .faq-a {
         font-size: 14px;
         color: var(--ink-soft);
-        margin: 0;
+        margin: 0 0 18px;
       }
 
       /* ── Final CTA ── */
@@ -573,6 +730,47 @@
         color: var(--ink-soft);
         max-width: 48ch;
         margin: 0;
+      }
+
+      /* ── Scroll reveal ── */
+      .reveal {
+        opacity: 0;
+        transform: translateY(14px);
+        transition: opacity 0.5s ease, transform 0.5s ease;
+      }
+      .reveal.in {
+        opacity: 1;
+        transform: none;
+      }
+      .steps .reveal:nth-child(2),
+      .research-grid .reveal:nth-child(2) {
+        transition-delay: 0.08s;
+      }
+      .steps .reveal:nth-child(3) {
+        transition-delay: 0.16s;
+      }
+      .checklist .reveal:nth-child(2) {
+        transition-delay: 0.05s;
+      }
+      .checklist .reveal:nth-child(3) {
+        transition-delay: 0.1s;
+      }
+      .checklist .reveal:nth-child(4) {
+        transition-delay: 0.15s;
+      }
+      .checklist .reveal:nth-child(5) {
+        transition-delay: 0.2s;
+      }
+      .checklist .reveal:nth-child(6) {
+        transition-delay: 0.25s;
+      }
+      .check-badge svg path {
+        stroke-dasharray: 20;
+        stroke-dashoffset: 20;
+        transition: stroke-dashoffset 0.4s ease 0.15s;
+      }
+      .reveal.in .check-badge svg path {
+        stroke-dashoffset: 0;
       }
 
       @media (max-width: 860px) {
@@ -896,38 +1094,67 @@
             <span class="eyebrow">FAQ</span>
             <h2 class="section-title">Questions</h2>
           </div>
-          <div class="faq-item">
-            <p class="faq-q">Who is Stickpoint for?</p>
-            <p class="faq-a">
-              Any student who studies hard but feels like it is not
-              sticking, or does not know where to start. That includes
-              high schoolers working toward the grades to get into
-              college, and college students who assumed they would have
-              figured out how to study by now. Stickpoint works with
-              whatever you are already studying: your own notes, readings,
-              and problem sets.
-            </p>
+          <div class="faq-item" data-open="true">
+            <button type="button" class="faq-trigger" aria-expanded="true">
+              <span class="faq-q">Who is Stickpoint for?</span>
+              <span class="faq-icon" aria-hidden="true"></span>
+            </button>
+            <div class="faq-answer-wrap">
+              <div class="faq-answer-inner">
+                <p class="faq-a">
+                  Any student who studies hard but feels like it is not
+                  sticking, or does not know where to start. That includes
+                  high schoolers working toward the grades to get into
+                  college, and college students who assumed they would
+                  have figured out how to study by now. Stickpoint works
+                  with whatever you are already studying: your own notes,
+                  readings, and problem sets.
+                </p>
+              </div>
+            </div>
           </div>
-          <div class="faq-item">
-            <p class="faq-q">When does it launch?</p>
-            <p class="faq-a">
-              We are in active development. Waitlist members get early
-              access before the public launch, first.
-            </p>
+          <div class="faq-item" data-open="false">
+            <button type="button" class="faq-trigger" aria-expanded="false">
+              <span class="faq-q">When does it launch?</span>
+              <span class="faq-icon" aria-hidden="true"></span>
+            </button>
+            <div class="faq-answer-wrap">
+              <div class="faq-answer-inner">
+                <p class="faq-a">
+                  We are in active development. Waitlist members get early
+                  access before the public launch, first.
+                </p>
+              </div>
+            </div>
           </div>
-          <div class="faq-item">
-            <p class="faq-q">Will it cost anything?</p>
-            <p class="faq-a">
-              Pricing is not finalized. Early waitlist members will hear
-              about launch pricing first and get the best available offer.
-            </p>
+          <div class="faq-item" data-open="false">
+            <button type="button" class="faq-trigger" aria-expanded="false">
+              <span class="faq-q">Will it cost anything?</span>
+              <span class="faq-icon" aria-hidden="true"></span>
+            </button>
+            <div class="faq-answer-wrap">
+              <div class="faq-answer-inner">
+                <p class="faq-a">
+                  Pricing is not finalized. Early waitlist members will
+                  hear about launch pricing first and get the best
+                  available offer.
+                </p>
+              </div>
+            </div>
           </div>
-          <div class="faq-item">
-            <p class="faq-q">What do you do with my email?</p>
-            <p class="faq-a">
-              It is only used to tell you about Stickpoint's launch and
-              early access. No spam, never sold, never shared.
-            </p>
+          <div class="faq-item" data-open="false">
+            <button type="button" class="faq-trigger" aria-expanded="false">
+              <span class="faq-q">What do you do with my email?</span>
+              <span class="faq-icon" aria-hidden="true"></span>
+            </button>
+            <div class="faq-answer-wrap">
+              <div class="faq-answer-inner">
+                <p class="faq-a">
+                  It is only used to tell you about Stickpoint's launch
+                  and early access. No spam, never sold, never shared.
+                </p>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -1106,6 +1333,49 @@
             }, 1800);
           });
         });
+
+      // FAQ accordion: one answer open at a time, keyboard-accessible via
+      // native <button> semantics and aria-expanded.
+      document.querySelectorAll(".faq-trigger").forEach((trigger) => {
+        trigger.addEventListener("click", () => {
+          const item = trigger.closest(".faq-item");
+          const isOpen = item.getAttribute("data-open") === "true";
+          item
+            .closest("section")
+            .querySelectorAll(".faq-item")
+            .forEach((other) => {
+              other.setAttribute("data-open", "false");
+              other.querySelector(".faq-trigger").setAttribute("aria-expanded", "false");
+            });
+          item.setAttribute("data-open", String(!isOpen));
+          trigger.setAttribute("aria-expanded", String(!isOpen));
+        });
+      });
+
+      // Scroll reveal: cards and section intros fade/slide up into place
+      // once, the first time they enter the viewport. Skipped entirely
+      // for users who asked for reduced motion.
+      const prefersReducedMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+      ).matches;
+      if (!prefersReducedMotion && "IntersectionObserver" in window) {
+        const revealTargets = document.querySelectorAll(
+          ".section-head, .step-card, .research-card, .checklist li, .faq-item, .final-cta"
+        );
+        revealTargets.forEach((el) => el.classList.add("reveal"));
+        const io = new IntersectionObserver(
+          (entries, observer) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add("in");
+                observer.unobserve(entry.target);
+              }
+            });
+          },
+          { threshold: 0.15, rootMargin: "0px 0px -40px 0px" }
+        );
+        revealTargets.forEach((el) => io.observe(el));
+      }
     </script>
   </body>
 </html>
