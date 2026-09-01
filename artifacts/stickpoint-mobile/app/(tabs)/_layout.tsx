@@ -7,6 +7,7 @@ import { Tabs } from 'expo-router';
 import { Icon, Label, NativeTabs } from 'expo-router/unstable-native-tabs';
 import { SymbolView } from 'expo-symbols';
 import colors from '@/constants/colors';
+import AppTour from '@/components/AppTour';
 
 const c = colors.light;
 
@@ -145,6 +146,11 @@ function ClassicTabLayout() {
 }
 
 export default function TabLayout() {
-  if (isLiquidGlassAvailable()) return <NativeTabLayout />;
-  return <ClassicTabLayout />;
+  const layout = isLiquidGlassAvailable() ? <NativeTabLayout /> : <ClassicTabLayout />;
+  return (
+    <>
+      {layout}
+      <AppTour />
+    </>
+  );
 }

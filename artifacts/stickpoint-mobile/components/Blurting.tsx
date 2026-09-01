@@ -41,6 +41,15 @@ export default function Blurting({ topic, notes, name, age, onComplete, onBack }
   }, []);
   const currentTopic = topics[topicIdx] || topic;
 
+  // The prototype's elapsed-time chip while writing.
+  const [elapsed, setElapsed] = useState(0);
+  useEffect(() => {
+    if (phase !== 'write') return;
+    setElapsed(0);
+    const t = setInterval(() => setElapsed((e) => e + 1), 1000);
+    return () => clearInterval(t);
+  }, [phase, topicIdx]);
+
   const submit = useCallback(async () => {
     if (!blurt.trim()) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -148,10 +157,17 @@ export default function Blurting({ topic, notes, name, age, onComplete, onBack }
 
   return (
     <ScrollView contentContainerStyle={[styles.container, { paddingBottom: 40 }]} keyboardShouldPersistTaps="handled">
-      <View style={[styles.topicBadge, { backgroundColor: colors.purpleLight, borderColor: colors.dark }]}>
-        <Text style={[styles.topicText, { color: colors.primary }]}>
-          TOPIC {topicIdx + 1}/{topics.length}: {currentTopic.toUpperCase()}
-        </Text>
+      <View style={styles.topicRow}>
+        <View style={[styles.topicBadge, { backgroundColor: colors.purpleLight, borderColor: colors.dark, flex: 1 }]}>
+          <Text style={[styles.topicText, { color: colors.primary }]}>
+            TOPIC {topicIdx + 1}/{topics.length}: {currentTopic.toUpperCase()}
+          </Text>
+        </View>
+        <View style={[styles.timerChip, { borderColor: colors.dark, backgroundColor: '#FFF3D6' }]}>
+          <Text style={[styles.timerText, { color: colors.dark }]}>
+            ⏱ {Math.floor(elapsed / 60)}:{String(elapsed % 60).padStart(2, '0')}
+          </Text>
+        </View>
       </View>
       <Text style={[styles.heading, { color: colors.dark }]}>Write everything you know</Text>
       <Text style={[styles.body, { color: colors.subtle }]}>
@@ -186,6 +202,9 @@ export default function Blurting({ topic, notes, name, age, onComplete, onBack }
 }
 
 const styles = StyleSheet.create({
+  topicRow: { flexDirection: 'row', gap: 8, alignItems: 'stretch' },
+  timerChip: { borderWidth: 2, paddingHorizontal: 10, alignItems: 'center', justifyContent: 'center' },
+  timerText: { fontWeight: '900', fontSize: 12 },
   center: { alignItems: 'center', justifyContent: 'center' },
   container: { padding: 20, gap: 14 },
   label: { fontWeight: '800', fontSize: 13, letterSpacing: 1 },

@@ -69,6 +69,13 @@ export interface AppState {
   activeMethod: string;
   materialTopMethods: string[] | null;
 
+  // Rewards
+  xp: number;
+
+  // Preferences
+  tourSeen: boolean;
+  soundOn: boolean;
+
   // Planning
   testDate: string | null; // YYYY-MM-DD
 
@@ -102,6 +109,9 @@ const defaultState: AppState = {
   ptHistory: [],
   activeMethod: 'active_recall',
   materialTopMethods: null,
+  xp: 0,
+  tourSeen: false,
+  soundOn: true,
   testDate: null,
   notificationsEnabled: false,
   notificationHour: 20,
@@ -126,6 +136,11 @@ interface AppContextValue {
   renameLibraryEntry: (id: string, name: string) => void;
   setMaterialTopMethods: (methods: string[] | null) => void;
   setTestDate: (date: string | null) => void;
+  addXp: (n: number) => void;
+  setTourSeen: (seen: boolean) => void;
+  setSoundOn: (on: boolean) => void;
+  /** Manually toggle a past/today day as studied (the prototype's MARK STUDIED mode). */
+  toggleStudiedDay: (key: string) => void;
   setNotificationPreference: (enabled: boolean, hour: number, minute: number) => void;
   resetApp: () => void;
   dueMissed: () => MissedItem[];
@@ -429,6 +444,36 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     persist({ testDate: date });
   }, [persist]);
 
+  const addXp = useCallback((n: number) => {
+    setState((prev) => {
+      const next = { ...prev, xp: (prev.xp || 0) + n };
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      saveTimer.current = setTimeout(() => saveAndSync(next), 300);
+      return next;
+    });
+  }, [saveAndSync]);
+
+  const setTourSeen = useCallback((seen: boolean) => {
+    persist({ tourSeen: seen });
+  }, [persist]);
+
+  const setSoundOn = useCallback((on: boolean) => {
+    persist({ soundOn: on });
+  }, [persist]);
+
+  const toggleStudiedDay = useCallback((key: string) => {
+    setState((prev) => {
+      const has = prev.studiedDates.includes(key);
+      const studiedDates = has
+        ? prev.studiedDates.filter((d) => d !== key)
+        : [...prev.studiedDates, key];
+      const next = { ...prev, studiedDates, streak: computeStreak(studiedDates, Date.now()) };
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      saveTimer.current = setTimeout(() => saveAndSync(next), 300);
+      return next;
+    });
+  }, [saveAndSync]);
+
   const setNotificationPreference = useCallback(
     (enabled: boolean, hour: number, minute: number) => {
       persist({ notificationsEnabled: enabled, notificationHour: hour, notificationMinute: minute });
@@ -455,6 +500,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       recordMissed, gradeMissedItem, addPtResult, markStudiedToday,
       addToLibrary, switchMaterial, deleteFromLibrary, renameLibraryEntry,
       setMaterialTopMethods, setTestDate, setNotificationPreference, resetApp, dueMissed,
+      addXp, setTourSeen, setSoundOn, toggleStudiedDay,
       account: accountsEnabled ? account : null,
     }}>
       {children}

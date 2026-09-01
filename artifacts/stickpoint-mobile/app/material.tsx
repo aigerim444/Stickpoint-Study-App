@@ -21,6 +21,8 @@ export default function Material() {
   const router = useRouter();
   const { state, setMaterial } = useApp();
   const [notes, setNotes] = useState('');
+  const [mode, setMode] = useState<'paste' | 'pdf' | 'photo'>('paste');
+  const [etaLeft, setEtaLeft] = useState(0);
   const [phase, setPhase] = useState<Phase>('input');
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -52,14 +54,14 @@ export default function Material() {
 
   const [dragging, setDragging] = useState(false);
 
-  const pickFile = () => {
+  const pickFile = (accept?: string) => {
     if (Platform.OS !== 'web') {
       pickPhoto();
       return;
     }
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = 'image/png,image/jpeg,image/webp,application/pdf,text/plain,.txt,.md';
+    input.accept = accept || 'image/png,image/jpeg,image/webp,application/pdf,text/plain,.txt,.md';
     input.onchange = () => {
       const f = input.files?.[0];
       if (f) handleDroppedFile(f);
@@ -86,6 +88,7 @@ export default function Material() {
         return;
       }
       setNotes((prev) => (prev.trim() ? prev.trimEnd() + '\n\n' + result.text : result.text));
+      setMode('paste');
       setPhase('input');
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     },
@@ -175,6 +178,9 @@ export default function Material() {
     if (trimmed.length < 30) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setPhase('processing');
+    setEtaLeft(50);
+    const tick = setInterval(() => setEtaLeft((t) => Math.max(0, t - 1)), 1000);
+    setTimeout(() => clearInterval(tick), 120_000);
     const result = await extractConcepts(trimmed, state.name, state.age);
     if (!result) {
       setErrorMsg("Chop couldn't read those notes. Make sure there's enough content and try again.");
@@ -200,6 +206,16 @@ export default function Material() {
               ? 'Turning the photo into text you can check and edit.'
               : 'Building your flashcards, questions, and study plan.'}
           </Text>
+          {phase === 'processing' && (
+            <>
+              <View style={[styles.etaBar, { borderColor: c.dark, backgroundColor: c.secondary }]}>
+                <View style={[styles.etaFill, { width: `${Math.min(100, ((50 - etaLeft) / 50) * 100)}%`, backgroundColor: c.primary }]} />
+              </View>
+              <Text style={[styles.etaText, { color: c.primary }]}>
+                {etaLeft > 0 ? `about ${etaLeft} seconds left` : 'almost there…'}
+              </Text>
+            </>
+          )}
         </View>
       </View>
     );
@@ -251,24 +267,64 @@ export default function Material() {
           </Text>
         </Pressable>
 
-        <Pressable onPress={pickFile} style={[styles.photoBtn, { borderColor: c.dark, backgroundColor: c.card }]}>
-          <Text style={[styles.photoBtnText, { color: c.dark }]}>
-            {Platform.OS === 'web'
-              ? '📎  Import a file — photo, PDF, or text (or just drop it anywhere)'
-              : '📷  Import photo of notes'}
-          </Text>
-        </Pressable>
+        {/* Mode tabs — the prototype's PASTE TEXT / PDF / PHOTO */}
+        <View style={styles.modeRow}>
+          {([['paste', '✍️ PASTE TEXT'], ['pdf', '📄 PDF'], ['photo', '📷 PHOTO']] as const).map(([m, label]) => (
+            <Pressable
+              key={m}
+              onPress={() => setMode(m)}
+              style={[
+                styles.modeTab,
+                { borderColor: c.dark, backgroundColor: mode === m ? c.primary : c.card },
+              ]}>
+              <Text style={[styles.modeTabText, { color: mode === m ? '#fff' : c.dark }]}>{label}</Text>
+            </Pressable>
+          ))}
+        </View>
 
-        <TextInput
-          style={[styles.noteInput, { borderColor: c.dark, color: c.dark, backgroundColor: c.card }]}
-          value={notes}
-          onChangeText={setNotes}
-          multiline
-          placeholder={`Paste or type your notes here...\n\nExample:\n- Mitosis is cell division that produces two identical daughter cells\n- Phases: prophase, metaphase, anaphase, telophase\n- Used for growth and repair, not reproduction`}
-          placeholderTextColor={c.muted}
-          textAlignVertical="top"
-          autoFocus
-        />
+        {mode === 'paste' && (
+          <TextInput
+            style={[styles.noteInput, { borderColor: c.dark, color: c.dark, backgroundColor: c.card }]}
+            value={notes}
+            onChangeText={setNotes}
+            multiline
+            placeholder={`Paste or type your notes here...\n\nExample:\n- Mitosis is cell division that produces two identical daughter cells\n- Phases: prophase, metaphase, anaphase, telophase\n- Used for growth and repair, not reproduction`}
+            placeholderTextColor={c.muted}
+            textAlignVertical="top"
+          />
+        )}
+        {mode === 'pdf' && (
+          <View style={[styles.dropCard, { borderColor: c.dark, backgroundColor: c.card }]}>
+            <Text style={styles.dropEmojiSm}>📄</Text>
+            <Text style={[styles.dropStatus, { color: c.subtle }]}>
+              {notes.trim() ? `${notes.length} characters ready — check them in Paste Text` : 'No PDF chosen yet'}
+            </Text>
+            <Text style={[styles.dropHint, { color: c.muted }]}>
+              Chop reads the pages and turns them into editable text first.
+            </Text>
+            <Pressable
+              onPress={() => (Platform.OS === 'web' ? pickFile('application/pdf,.pdf') : notify('Coming soon', 'PDF import arrives with the phone app — use the website for now.'))}
+              style={[styles.chooseBtn, { backgroundColor: c.primary, borderColor: c.dark }]}>
+              <Text style={styles.chooseBtnText}>CHOOSE PDF</Text>
+            </Pressable>
+          </View>
+        )}
+        {mode === 'photo' && (
+          <View style={[styles.dropCard, { borderColor: c.dark, backgroundColor: c.card }]}>
+            <Text style={styles.dropEmojiSm}>📷</Text>
+            <Text style={[styles.dropStatus, { color: c.subtle }]}>
+              {notes.trim() ? `${notes.length} characters ready — check them in Paste Text` : 'No photo chosen yet'}
+            </Text>
+            <Text style={[styles.dropHint, { color: c.muted }]}>
+              Snap your handwritten notes or a textbook page — Chop will read the text off it.
+            </Text>
+            <Pressable
+              onPress={() => (Platform.OS === 'web' ? pickFile('image/png,image/jpeg,image/webp') : pickPhoto())}
+              style={[styles.chooseBtn, { backgroundColor: c.primary, borderColor: c.dark }]}>
+              <Text style={styles.chooseBtnText}>CHOOSE PHOTO</Text>
+            </Pressable>
+          </View>
+        )}
 
         <Text style={[styles.charCount, { color: notes.length >= 30 ? c.green : c.muted }]}>
           {notes.length >= 30 ? `${notes.length} chars — ready!` : `${notes.length}/30 chars minimum`}
@@ -302,6 +358,24 @@ export default function Material() {
 }
 
 const styles = StyleSheet.create({
+  modeRow: { flexDirection: 'row', gap: 8 },
+  modeTab: { flex: 1, borderWidth: 3, paddingVertical: 11, alignItems: 'center' },
+  modeTabText: { fontWeight: '900', fontSize: 12 },
+  dropCard: {
+    borderWidth: 3, borderStyle: 'dashed', padding: 26, alignItems: 'center', gap: 8,
+    minHeight: 220, justifyContent: 'center',
+  },
+  dropEmojiSm: { fontSize: 32 },
+  dropStatus: { fontWeight: '800', fontSize: 13, textAlign: 'center' },
+  dropHint: { fontWeight: '700', fontSize: 11, textAlign: 'center', maxWidth: 260, lineHeight: 16 },
+  chooseBtn: {
+    borderWidth: 3, paddingVertical: 11, paddingHorizontal: 22, marginTop: 4,
+    boxShadow: '3px 3px 0px #201E2E',
+  },
+  chooseBtnText: { color: '#fff', fontWeight: '900', fontSize: 13 },
+  etaBar: { width: 260, height: 14, borderWidth: 2, overflow: 'hidden', marginTop: 10 },
+  etaFill: { height: '100%' },
+  etaText: { fontWeight: '800', fontSize: 13, marginTop: 6 },
   sampleBtn: {
     borderWidth: 2.5, padding: 13, alignItems: 'center',
     boxShadow: '3px 3px 0px #201E2E',

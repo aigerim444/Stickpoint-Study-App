@@ -89,6 +89,10 @@ export default function TodayTab() {
           <Text style={[styles.chipNum, { color: c.dark }]}>{due.length}</Text>
           <Text style={[styles.chipLabel, { color: c.muted }]}>DUE TO DRILL</Text>
         </View>
+        <View style={[styles.chip, { borderColor: c.dark, backgroundColor: (state.xp || 0) > 0 ? colors.light.purpleLight : c.card }]}>
+          <Text style={[styles.chipNum, { color: c.dark }]}>{state.xp || 0}⭐</Text>
+          <Text style={[styles.chipLabel, { color: c.muted }]}>XP EARNED</Text>
+        </View>
       </View>
 
       {/* No material yet */}

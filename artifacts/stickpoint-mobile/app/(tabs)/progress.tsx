@@ -9,6 +9,8 @@ import { scheduleDaily, cancelDailyReminder } from '@/lib/notifications';
 import AccountCard from '@/components/AccountCard';
 import PixelText from '@/components/PixelText';
 import ActiveRecall from '@/components/ActiveRecall';
+import ProfileCard from '@/components/ProfileCard';
+import TopMethodsEditor from '@/components/TopMethodsEditor';
 import { accountsEnabled } from '@/lib/supabase';
 import { useRouter } from 'expo-router';
 
@@ -105,6 +107,18 @@ export default function ProgressTab() {
         <StatBox label="STREAK" value={`${state.streak || 0}d`} color={c.accent} />
         <StatBox label="SESSIONS" value={String(state.sessionsFinished || 0)} color={c.primary} />
         <StatBox label="METHODS" value={`${methodsTriedCount}/${METHODS.length}`} color={c.green} />
+      </View>
+      <View style={{ flexDirection: 'row', gap: 10 }}>
+        <StatBox
+          label="MASTERED"
+          value={String((state.missedBank || []).filter((b) => (b.box || 0) >= 2).length)}
+          color={c.primary}
+        />
+        <StatBox
+          label="STILL SHAKY"
+          value={String((state.missedBank || []).filter((b) => (b.box || 0) < 2).length)}
+          color={c.red}
+        />
       </View>
 
       {/* Practice test history */}
@@ -206,6 +220,9 @@ export default function ProgressTab() {
       )}
 
       {/* Methods tried */}
+      <Text style={[styles.sectionLabel, { color: c.dark }]}>⭐ YOUR TOP 3 METHODS</Text>
+      <TopMethodsEditor />
+
       <Text style={[styles.sectionLabel, { color: c.dark }]}>METHODS TRIED</Text>
       <View style={styles.methodsGrid}>
         {METHODS.map((m) => {
@@ -256,6 +273,10 @@ export default function ProgressTab() {
       )}
 
       {/* Notification settings */}
+      {/* Profile & preferences (the prototype's ME tab) */}
+      <Text style={[styles.sectionLabel, { color: c.dark }]}>MY PROFILE</Text>
+      <ProfileCard />
+
       {/* Account & sync */}
       {accountsEnabled && (
         <>

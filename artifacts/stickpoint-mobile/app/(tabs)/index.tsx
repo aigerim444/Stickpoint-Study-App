@@ -17,6 +17,7 @@ import SelfExplanation from '@/components/SelfExplanation';
 import ElaborativeInterrogation from '@/components/ElaborativeInterrogation';
 import ProblemSets from '@/components/ProblemSets';
 import ConcreteExamples from '@/components/ConcreteExamples';
+import { playSound } from '@/lib/sound';
 import ChopCharacter from '@/components/ChopCharacter';
 import PixelText from '@/components/PixelText';
 import colors from '@/constants/colors';
@@ -25,7 +26,7 @@ const c = colors.light;
 
 export default function StudyTab() {
   const insets = useSafeAreaInsets();
-  const { state, setActiveMethod, recordSession, recordMissed, addPtResult } = useApp();
+  const { state, setActiveMethod, recordSession, recordMissed, addPtResult, addXp } = useApp();
   const [activeSession, setActiveSession] = useState<string | null>(null);
 
   const effectiveMethods = useEffectiveMethods(state);
@@ -53,6 +54,9 @@ export default function StudyTab() {
   const endSession = useCallback((hardCards?: Card[], ptScore?: number, ptTotal?: number) => {
     if (activeSession) {
       recordSession(activeSession);
+      // The prototype's XP: every finished session earns stars, test scores add more.
+      addXp(10 + (ptScore ?? 0));
+      if (state.soundOn) playSound('complete');
       if (hardCards?.length) {
         recordMissed(hardCards.map(c => ({ question: c.question, answer: c.answer })), activeSession);
       }
@@ -61,7 +65,7 @@ export default function StudyTab() {
       }
     }
     setActiveSession(null);
-  }, [activeSession, recordSession, recordMissed, addPtResult]);
+  }, [activeSession, recordSession, recordMissed, addPtResult, addXp, state.soundOn]);
 
   const goBack = useCallback(() => setActiveSession(null), []);
 

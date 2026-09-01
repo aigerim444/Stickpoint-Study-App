@@ -26,7 +26,8 @@ const iso = (y: number, m: number, d: number) =>
  */
 export default function PlanTab() {
   const insets = useSafeAreaInsets();
-  const { state, setTestDate } = useApp();
+  const { state, setTestDate, toggleStudiedDay } = useApp();
+  const [calMode, setCalMode] = useState<'test' | 'studied'>('test');
   const now = new Date();
   const [viewYear, setViewYear] = useState(now.getFullYear());
   const [viewMonth, setViewMonth] = useState(now.getMonth());
@@ -68,6 +69,14 @@ export default function PlanTab() {
 
   const onDayPress = (day: number) => {
     const pressed = new Date(viewYear, viewMonth, day).getTime();
+    if (calMode === 'studied') {
+      // The prototype's MARK STUDIED mode: record days you studied offline.
+      // Only the past and today — you can't have studied tomorrow yet.
+      if (pressed > todayStart) return;
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      toggleStudiedDay(dayKey(pressed));
+      return;
+    }
     if (pressed < todayStart) return; // past days are history, not plans
     const key = iso(viewYear, viewMonth, day);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -91,6 +100,20 @@ export default function PlanTab() {
       style={{ flex: 1, backgroundColor: c.background }}
       contentContainerStyle={[styles.container, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 100 }]}>
       <PixelText style={styles.headingPixel}>PLAN</PixelText>
+
+      {/* Calendar mode — tap days to set the test, or to mark offline study */}
+      <View style={styles.modeRow}>
+        <Pressable
+          onPress={() => setCalMode('test')}
+          style={[styles.modeBtn, { borderColor: c.dark, backgroundColor: calMode === 'test' ? c.red : c.card }]}>
+          <Text style={[styles.modeBtnText, { color: calMode === 'test' ? '#fff' : c.dark }]}>🎯 SET TEST DAY</Text>
+        </Pressable>
+        <Pressable
+          onPress={() => setCalMode('studied')}
+          style={[styles.modeBtn, { borderColor: c.dark, backgroundColor: calMode === 'studied' ? c.green : c.card }]}>
+          <Text style={[styles.modeBtnText, { color: calMode === 'studied' ? '#12291f' : c.dark }]}>✅ MARK STUDIED</Text>
+        </Pressable>
+      </View>
 
       {/* Test countdown */}
       <View
@@ -190,6 +213,10 @@ export default function PlanTab() {
 }
 
 const styles = StyleSheet.create({
+  modeRow: { flexDirection: 'row', gap: 10 },
+  modeBtn: { flex: 1, borderWidth: 3, paddingVertical: 12, alignItems: 'center',
+    boxShadow: '3px 3px 0px #201E2E' },
+  modeBtnText: { fontWeight: '900', fontSize: 12 },
   headingPixel: { fontSize: 18, lineHeight: 28 },
   container: { padding: 20, gap: 14 },
   heading: { fontWeight: '900', fontSize: 26 },
