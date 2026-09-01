@@ -208,6 +208,7 @@ export default function StudyTab() {
           </View>
           <ProblemSets
             notes={state.material}
+            isMath={state.isMath}
             name={state.name}
             age={state.age}
             onComplete={(hard) => endSession(hard)}

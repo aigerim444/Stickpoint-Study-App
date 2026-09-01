@@ -87,6 +87,8 @@ async function clearProgress(notes: string): Promise<void> {
 
 interface Props {
   notes: string;
+  /** The material's math verdict from extraction — prose skips the doomed API call. */
+  isMath?: boolean;
   name: string;
   age: number | null;
   onComplete: (hard: Card[]) => void;
@@ -107,6 +109,7 @@ interface SessionState {
   errorTypes: Record<string, number>;
   gradeError: boolean;
   notMath: boolean;
+  aiDown?: boolean;
   showHint: boolean;
 }
 
@@ -159,14 +162,14 @@ function Figure({ fig }: { fig: PsFigure }) {
   return null;
 }
 
-export default function ProblemSets({ notes, name, age, onComplete, onBack }: Props) {
+export default function ProblemSets({ notes, isMath, name, age, onComplete, onBack }: Props) {
   const colors = useColors();
   const navigation = useNavigation();
   const [phase, setPhase] = useState<Phase>('gen');
   const [sess, setSess] = useState<SessionState>({
     skills: [], skillIdx: 0, stepsShown: 1, pIdx: 0,
     work: '', result: null, attempts: {}, solved: {}, errorTypes: {},
-    gradeError: false, notMath: false, showHint: false,
+    gradeError: false, notMath: false, showHint: false, aiDown: false,
   });
   const generatedRef = useRef(false);
 
@@ -190,9 +193,20 @@ export default function ProblemSets({ notes, name, age, onComplete, onBack }: Pr
         return;
       }
 
+      // The extraction already judged this material prose — don't burn a
+      // long generation call that will come back not_math.
+      if (isMath === false) {
+        setSess((s) => ({ ...s, notMath: true }));
+        setPhase('gen_error');
+        return;
+      }
+
       const res = await generateProblemSets(notes, name, age);
       if (res === 'not_math') {
         setSess((s) => ({ ...s, notMath: true }));
+        setPhase('gen_error');
+      } else if (res === 'unavailable') {
+        setSess((s) => ({ ...s, aiDown: true }));
         setPhase('gen_error');
       } else if (!res) {
         setPhase('gen_error');
@@ -413,6 +427,9 @@ export default function ProblemSets({ notes, name, age, onComplete, onBack }: Pr
     if (res === 'not_math') {
       setSess((s) => ({ ...s, notMath: true }));
       setPhase('gen_error');
+    } else if (res === 'unavailable') {
+      setSess((s) => ({ ...s, aiDown: true }));
+      setPhase('gen_error');
     } else if (!res) {
       setPhase('gen_error');
     } else {
@@ -456,16 +473,32 @@ export default function ProblemSets({ notes, name, age, onComplete, onBack }: Pr
   if (phase === 'gen_error') {
     return (
       <ScrollView contentContainerStyle={[styles.container, { paddingBottom: 40 }]}>
-        <View style={[styles.card, { borderColor: colors.red }]}>
+        <View style={[styles.card, { borderColor: sess.notMath ? colors.yellow : colors.red }]}>
           <Text style={[styles.heading, { color: colors.dark }]}>
-            {sess.notMath ? 'These notes look like prose' : 'Couldn\'t build a problem set'}
+            {sess.notMath
+              ? "These notes don't have problems to solve"
+              : sess.aiDown
+                ? "Chop's AI isn't reachable"
+                : "Couldn't build a problem set"}
           </Text>
           <Text style={[styles.body, { color: colors.subtle }]}>
             {sess.notMath
-              ? 'Problem Sets works best when your notes have equations or procedures to practise. Try Active Recall or Blurting for vocabulary-heavy material.'
-              : 'Something went wrong generating your problem set. Check your connection and try again.'}
+              ? 'Problem Sets is built for math and problem-based science, where there are steps to work through. For these notes, Active Recall, Blurting, or Feynman will serve you better.'
+              : sess.aiDown
+                ? 'Your notes are fine — the AI service is not answering right now. Check your connection, or try again in a bit.'
+                : 'Something went wrong generating your problem set. Try again.'}
           </Text>
         </View>
+        {sess.notMath && (
+          <Pressable
+            onPress={() => {
+              setSess((s) => ({ ...s, notMath: false }));
+              doRegenerate();
+            }}
+            style={[styles.btn, { backgroundColor: colors.card, borderColor: colors.dark }]}>
+            <Text style={[styles.btnText, { color: colors.dark }]}>THINK THERE ARE PROBLEMS? TRY ANYWAY</Text>
+          </Pressable>
+        )}
         <Pressable onPress={onBack} style={[styles.btn, { backgroundColor: colors.primary, borderColor: colors.dark }]}>
           <Text style={[styles.btnText, { color: '#fff' }]}>BACK TO METHODS</Text>
         </Pressable>

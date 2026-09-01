@@ -302,15 +302,25 @@ export async function generateProblemSets(
   material: string,
   name: string,
   age: number | null,
-): Promise<PsGenerateResult | null | 'not_math'> {
-  const r = await post<{ notMath: boolean; skills: PsSkill[] }>('/ps-generate', {
-    material,
-    name,
-    age,
-  });
-  if (!r) return null;
-  if (r.notMath) return 'not_math';
-  return { skills: r.skills };
+): Promise<PsGenerateResult | null | 'not_math' | 'unavailable'> {
+  try {
+    const res = await apiFetch('/ai/ps-generate', {
+      method: 'POST',
+      body: JSON.stringify({ material, name, age }),
+    });
+    // 502 = the server reached Claude but the reply was unusable — a real
+    // generation failure worth retrying. Anything else non-ok (or a static
+    // host answering with HTML) means the AI service isn't reachable.
+    if (res.status === 502) return null;
+    if (!res.ok || !(res.headers.get('content-type') || '').includes('application/json')) {
+      return 'unavailable';
+    }
+    const r = (await res.json()) as { notMath: boolean; skills: PsSkill[] };
+    if (r.notMath) return 'not_math';
+    return r.skills?.length ? { skills: r.skills } : null;
+  } catch {
+    return 'unavailable';
+  }
 }
 
 export interface PsGradeResult {
