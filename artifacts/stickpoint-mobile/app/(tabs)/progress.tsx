@@ -135,8 +135,8 @@ export default function ProgressTab() {
       {/* Stats row */}
       <View style={styles.statsRow}>
         <StatBox label="STREAK" value={`${state.streak || 0}d`} color={c.accent} />
-        <StatBox label="SESSIONS" value={String(state.sessionsFinished || 0)} color={c.primary} />
-        <StatBox label="METHODS" value={`${methodsTriedCount}/${METHODS.length}`} color={c.green} />
+        <StatBox label="SESSIONS" value={String(state.sessionsFinished || 0)} color={c.green} />
+        <StatBox label="METHODS" value={`${methodsTriedCount}/${METHODS.length}`} color={c.dark} />
       </View>
       <View style={{ flexDirection: 'row', gap: 10 }}>
         <StatBox
@@ -427,7 +427,7 @@ export default function ProgressTab() {
 
 function StatBox({ label, value, color }: { label: string; value: string; color: string }) {
   return (
-    <View style={[styles.statBox, { borderColor: c.dark, boxShadow: `4px 4px 0px ${color}` }]}>
+    <View style={[styles.statBox, { borderColor: c.dark }]}>
       <Text style={[styles.statValue, { color }]}>{value}</Text>
       <Text style={[styles.statLabel, { color: c.muted }]}>{label}</Text>
     </View>
@@ -455,7 +455,7 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', gap: 10 },
   statBox: {
     flex: 1, borderWidth: 3, padding: 14, alignItems: 'center', gap: 2,
-    boxShadow: '4px 4px 0px #201E2E',
+    backgroundColor: '#fff',
   },
   statValue: { fontWeight: '900', fontSize: 24 },
   statLabel: { fontWeight: '800', fontSize: 9, letterSpacing: 1.5 },
