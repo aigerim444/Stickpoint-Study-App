@@ -285,7 +285,7 @@ export default function ProgressTab() {
               {state.studiedDates.length} total days studied
             </Text>
             <Text style={[styles.studyDaysSub, { color: c.muted }]}>
-              {(state.studiedDates || []).slice(-5).join(' · ')}
+              {(state.studiedDates || []).slice(-5).map(fmtDayKey).join(' · ')}
             </Text>
           </View>
         </>
@@ -423,6 +423,14 @@ export default function ProgressTab() {
       </Pressable>
     </ScrollView>
   );
+}
+
+/** "2026-8-30" (the storage key format) → "Aug 30". */
+function fmtDayKey(key: string): string {
+  const [y, m, d] = key.split('-').map(Number);
+  if (!y || !m || !d) return key;
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return `${MONTHS[m - 1]} ${d}`;
 }
 
 function StatBox({ label, value, color }: { label: string; value: string; color: string }) {

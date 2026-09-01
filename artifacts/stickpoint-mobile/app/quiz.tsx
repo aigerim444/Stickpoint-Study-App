@@ -14,7 +14,7 @@ import colors from '@/constants/colors';
 type Step = 'subject' | 'questions' | 'results';
 type Answer = number | number[] | null;
 
-const RANK_COLORS = ['#7C5CFC', '#FF6B4A', '#2DD4A7'];
+const RANK_COLORS = ['#453F8C', '#FF6B4A', '#2DD4A7'];
 const RANK_LABELS = ['🥇', '🥈', '🥉'];
 
 /**

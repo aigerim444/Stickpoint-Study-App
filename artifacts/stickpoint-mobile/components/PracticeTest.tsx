@@ -360,7 +360,7 @@ const styles = StyleSheet.create({
     boxShadow: '6px 6px 0px #201E2E',
   },
   crushTitle: { fontSize: 12, lineHeight: 20, color: '#FF6B4A' },
-  crushScore: { fontSize: 26, lineHeight: 34, color: '#7C5CFC' },
+  crushScore: { fontSize: 26, lineHeight: 34, color: '#453F8C' },
   crushBody: { fontSize: 13, fontWeight: '700', textAlign: 'center' },
   crushShare: {
     borderWidth: 3, paddingVertical: 12, paddingHorizontal: 20,

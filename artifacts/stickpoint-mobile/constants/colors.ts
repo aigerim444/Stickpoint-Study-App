@@ -1,6 +1,6 @@
 /**
  * Stickpoint brand colors — matches the web app's visual identity exactly.
- * Dark navy #201E2E, purple #7C5CFC, orange #FF6B4A, cream backgrounds.
+ * Dark navy #201E2E, purple #453F8C, orange #FF6B4A, cream backgrounds.
  */
 const colors = {
   light: {
@@ -10,7 +10,7 @@ const colors = {
     cardAlt: '#FFFCF6',
 
     // Brand
-    primary: '#7C5CFC',
+    primary: '#453F8C',
     primaryForeground: '#ffffff',
     accent: '#FF6B4A',
     accentForeground: '#ffffff',
@@ -19,7 +19,7 @@ const colors = {
     red: '#FF5A5F',
     redLight: '#FFD9DA',
     greenLight: '#C9F5E5',
-    purpleLight: '#EDE7FF',
+    purpleLight: '#E3E1F2',
     yellowLight: '#FFF3DE',
 
     // Text
@@ -35,7 +35,7 @@ const colors = {
 
     // Compatibility tokens
     text: '#201E2E',
-    tint: '#7C5CFC',
+    tint: '#453F8C',
     secondary: '#FFF3DE',
     secondaryForeground: '#201E2E',
     mutedForeground: '#8a8194',
