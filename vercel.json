@@ -1,20 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "node artifacts/api-server/build.vercel.mjs && pnpm --filter @workspace/stickpoint-mobile run export:web",
-  "outputDirectory": "artifacts/stickpoint-mobile/dist",
-  "functions": {
-    "api/index.js": {
-      "maxDuration": 120
-    }
-  },
-  "rewrites": [
-    {
-      "source": "/api/:path*",
-      "destination": "/api"
-    },
-    {
-      "source": "/((?!api|.*\\..*).*)",
-      "destination": "/index.html"
-    }
-  ]
+  "installCommand": "",
+  "buildCommand": "mkdir -p public && cp waitlist.html public/index.html",
+  "outputDirectory": "public"
 }

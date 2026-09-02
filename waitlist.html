@@ -1,0 +1,976 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stickpoint Waitlist</title>
+    <meta
+      name="description"
+      content="Stickpoint is an AI study companion that figures out where your studying breaks down and coaches you through a method that actually works. Join the waitlist for early access."
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23F7F6F1'/%3E%3Ccircle cx='50' cy='24' r='12' fill='none' stroke='%231A1820' stroke-width='9' stroke-linecap='round'/%3E%3Cpath d='M50,36 L50,64 M27,46 L73,46 M50,64 L29,92 M50,64 L71,92' fill='none' stroke='%231A1820' stroke-width='9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"
+    />
+    <meta property="og:title" content="Stickpoint Waitlist" />
+    <meta
+      property="og:description"
+      content="Most students were never taught how to study. Stickpoint figures out what's not working and coaches you through a method that actually sticks."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Archivo:wght@600;700;800&family=Source+Sans+3:wght@400;500;600;700&display=swap"
+    />
+    <style>
+      :root {
+        --bg: #f7f6f1;
+        --white: #ffffff;
+        --ink: #1a1820;
+        --ink-soft: #57515f;
+        --line: #ddd8ca;
+        --accent: #1f4d3a;
+        --accent-strong: #163a2b;
+        --danger: #a3372b;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Source Sans 3", system-ui, sans-serif;
+        line-height: 1.6;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition: none !important;
+        }
+      }
+      a {
+        color: var(--ink);
+      }
+      a,
+      button {
+        cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 6' width='24' height='24' shape-rendering='crispEdges'%3E%3Crect x='0' y='0' width='1' height='1' fill='%231A1820'/%3E%3Crect x='0' y='1' width='1' height='1' fill='%231A1820'/%3E%3Crect x='1' y='1' width='1' height='1' fill='%231A1820'/%3E%3Crect x='0' y='2' width='1' height='1' fill='%231A1820'/%3E%3Crect x='1' y='2' width='1' height='1' fill='%231A1820'/%3E%3Crect x='2' y='2' width='1' height='1' fill='%231A1820'/%3E%3Crect x='0' y='3' width='1' height='1' fill='%231A1820'/%3E%3Crect x='1' y='3' width='1' height='1' fill='%231A1820'/%3E%3Crect x='2' y='3' width='1' height='1' fill='%231A1820'/%3E%3Crect x='3' y='3' width='1' height='1' fill='%231A1820'/%3E%3Crect x='0' y='4' width='1' height='1' fill='%231A1820'/%3E%3Crect x='1' y='4' width='1' height='1' fill='%231A1820'/%3E%3Crect x='0' y='5' width='1' height='1' fill='%231A1820'/%3E%3C/svg%3E")
+            0 0,
+          pointer;
+      }
+      button:disabled {
+        cursor: default;
+      }
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      h1,
+      h2,
+      h3 {
+        font-family: "Archivo", system-ui, sans-serif;
+      }
+      .pixel {
+        font-family: "Press Start 2P", "Archivo", sans-serif;
+      }
+
+      .wrap {
+        width: min(92vw, 980px);
+        margin: 0 auto;
+      }
+
+      /* ── Header ── */
+      .header {
+        padding: 28px 0 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .brand svg {
+        width: 24px;
+        height: 24px;
+        flex: none;
+      }
+      .brand-word {
+        font-size: 13px;
+        line-height: 1;
+        color: var(--ink);
+      }
+      .status-tag {
+        font-family: "Source Sans 3", sans-serif;
+        font-weight: 700;
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+
+      /* ── Tabs ── */
+      .tabbar {
+        display: flex;
+        border: 1px solid var(--line);
+        margin-bottom: 32px;
+      }
+      .tab-btn {
+        flex: 1;
+        padding: 13px 4px;
+        border: none;
+        border-right: 1px solid var(--line);
+        background: var(--white);
+        color: var(--ink-soft);
+        font-family: "Source Sans 3", sans-serif;
+        font-weight: 700;
+        font-size: 13px;
+        text-align: center;
+        transition: background-color 0.15s ease, color 0.15s ease;
+      }
+      .tab-btn:last-child {
+        border-right: none;
+      }
+      .tab-btn:hover {
+        color: var(--ink);
+      }
+      .tab-btn[aria-selected="true"] {
+        background: var(--ink);
+        color: var(--bg);
+      }
+
+      .panel {
+        padding-bottom: 56px;
+      }
+      .panel[hidden] {
+        display: none;
+      }
+
+      /* ── Shared bits ── */
+      .eyebrow {
+        display: block;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin: 0 0 12px;
+      }
+      .headline {
+        font-size: 34px;
+        font-weight: 800;
+        line-height: 1.5;
+        letter-spacing: -0.005em;
+        margin: 0 0 18px;
+      }
+      .headline .pixel {
+        font-size: 0.62em;
+        color: var(--accent);
+        display: inline;
+        white-space: nowrap;
+      }
+      .panel-title {
+        font-size: 26px;
+        font-weight: 800;
+        margin: 0 0 10px;
+      }
+      .panel-sub {
+        font-size: 15px;
+        color: var(--ink-soft);
+        max-width: 54ch;
+        margin: 0 0 30px;
+      }
+      .dek {
+        font-size: 16px;
+        color: var(--ink-soft);
+        max-width: 54ch;
+        margin: 0 0 28px;
+      }
+
+      /* ── Button ── */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "Source Sans 3", sans-serif;
+        font-weight: 700;
+        font-size: 14px;
+        color: var(--bg);
+        background: var(--ink);
+        border: none;
+        padding: 13px 22px;
+        transition: background-color 0.15s ease;
+      }
+      .btn:hover:not(:disabled) {
+        background: var(--accent-strong);
+      }
+      .btn:disabled {
+        opacity: 0.55;
+        cursor: default;
+      }
+
+      /* ── Sign up form ── */
+      .capture {
+        max-width: 540px;
+        margin-bottom: 36px;
+      }
+      .capture-row {
+        display: flex;
+        border: 1.5px solid var(--ink);
+        margin-bottom: 10px;
+      }
+      .capture-row input[type="email"] {
+        flex: 1;
+        min-width: 0;
+        font-family: "Source Sans 3", sans-serif;
+        font-size: 15px;
+        color: var(--ink);
+        background: var(--white);
+        border: none;
+        padding: 13px 14px;
+        outline: none;
+      }
+      .capture-row input::placeholder {
+        color: var(--ink-soft);
+      }
+      .capture-row .btn {
+        border-left: 1.5px solid var(--ink);
+      }
+      .capture-hint {
+        font-size: 12.5px;
+        color: var(--ink-soft);
+        margin: 0;
+      }
+      .capture-error {
+        display: none;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: var(--danger);
+        margin: 10px 0 0;
+      }
+
+      .proof {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 40px;
+      }
+      .avatar-stack {
+        display: flex;
+      }
+      .avatar-stack span {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        border: 2px solid var(--bg);
+        background: var(--ink-soft);
+        margin-left: -6px;
+      }
+      .avatar-stack span:first-child {
+        margin-left: 0;
+      }
+      .proof-text {
+        font-size: 13px;
+        color: var(--ink-soft);
+      }
+
+      .success-box {
+        display: none;
+        border: 1.5px solid var(--ink);
+        padding: 22px;
+        max-width: 540px;
+        margin-bottom: 36px;
+      }
+      .success-box.show {
+        display: block;
+      }
+      .capture.hide-form .capture-row,
+      .capture.hide-form .capture-hint,
+      .capture.hide-form .capture-error {
+        display: none;
+      }
+      .success-title {
+        font-family: "Archivo", sans-serif;
+        font-weight: 800;
+        font-size: 16px;
+        margin: 0 0 4px;
+      }
+      .success-sub {
+        font-size: 13.5px;
+        color: var(--ink-soft);
+        margin: 0 0 16px;
+      }
+      .share-label {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--ink-soft);
+        margin: 0 0 10px;
+      }
+      .share-row {
+        display: flex;
+        gap: 18px;
+        flex-wrap: wrap;
+      }
+      .share-btn {
+        border: none;
+        background: none;
+        color: var(--ink);
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 0;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+      .share-btn:hover {
+        color: var(--accent-strong);
+      }
+
+      /* ── Legal block ── */
+      .legal {
+        border-top: 1px solid var(--line);
+        padding-top: 20px;
+      }
+      .legal h4 {
+        font-family: "Archivo", sans-serif;
+        font-size: 13px;
+        margin: 0 0 8px;
+      }
+      .legal p {
+        font-size: 13px;
+        color: var(--ink-soft);
+        margin: 0 0 16px;
+      }
+      .legal p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* ── How it works ── */
+      .steps {
+        list-style: none;
+        margin: 0 0 32px;
+        padding: 0;
+      }
+      .step-row {
+        display: flex;
+        gap: 20px;
+        padding: 22px 0;
+        border-top: 1px solid var(--line);
+      }
+      .steps li:last-child .step-row {
+        padding-bottom: 0;
+      }
+      .step-num {
+        flex: none;
+        font-family: "Archivo", sans-serif;
+        font-weight: 800;
+        font-size: 14px;
+        color: var(--accent);
+        width: 24px;
+      }
+      .step-body h3 {
+        font-size: 16px;
+        font-weight: 700;
+        margin: 0 0 6px;
+      }
+      .step-body p {
+        font-size: 14.5px;
+        color: var(--ink-soft);
+        margin: 0;
+        max-width: 56ch;
+      }
+
+      /* ── Research ── */
+      .research-list {
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+        margin-bottom: 32px;
+      }
+      .research-quote p.quote {
+        font-size: 16px;
+        font-style: italic;
+        line-height: 1.65;
+        margin: 0 0 10px;
+      }
+      .research-quote p.quote::before {
+        content: "\201C";
+        font-style: normal;
+      }
+      .research-quote p.quote::after {
+        content: "\201D";
+        font-style: normal;
+      }
+      .research-cite {
+        font-size: 12.5px;
+        color: var(--ink-soft);
+        line-height: 1.6;
+        margin: 0;
+      }
+
+      /* ── FAQ ── */
+      .faq-item {
+        border-bottom: 1px solid var(--line);
+      }
+      .faq-item:first-child {
+        border-top: 1px solid var(--line);
+      }
+      .faq-trigger {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        background: none;
+        border: none;
+        padding: 16px 0;
+        margin: 0;
+        text-align: left;
+        color: inherit;
+        font-family: inherit;
+      }
+      .faq-q {
+        font-weight: 700;
+        font-size: 15px;
+        margin: 0;
+      }
+      .faq-icon {
+        flex: none;
+        position: relative;
+        width: 14px;
+        height: 14px;
+      }
+      .faq-icon::before,
+      .faq-icon::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        background: var(--ink-soft);
+        transform: translate(-50%, -50%);
+        transition: transform 0.2s ease, opacity 0.2s ease;
+      }
+      .faq-icon::before {
+        width: 12px;
+        height: 1.5px;
+      }
+      .faq-icon::after {
+        width: 1.5px;
+        height: 12px;
+      }
+      .faq-item[data-open="true"] .faq-icon::after {
+        opacity: 0;
+      }
+      .faq-answer-wrap {
+        display: grid;
+        grid-template-rows: 0fr;
+        transition: grid-template-rows 0.25s ease;
+      }
+      .faq-item[data-open="true"] .faq-answer-wrap {
+        grid-template-rows: 1fr;
+      }
+      .faq-answer-inner {
+        overflow: hidden;
+      }
+      .faq-a {
+        font-size: 14px;
+        color: var(--ink-soft);
+        max-width: 60ch;
+        margin: 0 0 16px;
+      }
+
+      /* ── Footer ── */
+      .footer {
+        padding: 24px 0 48px;
+        border-top: 1px solid var(--line);
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+      .footer .brand {
+        align-items: flex-start;
+      }
+      .footer .brand svg {
+        margin-top: 2px;
+      }
+      .footer-links {
+        display: flex;
+        gap: 16px;
+        font-size: 12.5px;
+      }
+      .footer-links a {
+        color: var(--ink-soft);
+      }
+      .footer-links a:hover {
+        color: var(--ink);
+      }
+      .footer-note {
+        font-size: 12.5px;
+        color: var(--ink-soft);
+        max-width: 44ch;
+        margin: 8px 0 0;
+      }
+
+      @media (max-width: 560px) {
+        .headline {
+          font-size: 26px;
+        }
+        .panel-title {
+          font-size: 21px;
+        }
+        .tab-btn {
+          font-size: 10.5px;
+          padding: 11px 2px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="header">
+        <div class="brand">
+          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <circle cx="50" cy="24" r="12" stroke="#1A1820" stroke-width="9" stroke-linecap="round" />
+            <path
+              d="M50,36 L50,64 M27,46 L73,46 M50,64 L29,92 M50,64 L71,92"
+              stroke="#1A1820"
+              stroke-width="9"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span class="brand-word pixel">STICKPOINT</span>
+        </div>
+        <span class="status-tag">Pre-launch</span>
+      </header>
+
+      <nav class="tabbar" role="tablist" aria-label="Waitlist page sections">
+        <button
+          type="button"
+          class="tab-btn"
+          role="tab"
+          data-tab="signup"
+          aria-selected="true"
+          aria-controls="panel-signup"
+        >
+          Sign up
+        </button>
+        <button
+          type="button"
+          class="tab-btn"
+          role="tab"
+          data-tab="how"
+          aria-selected="false"
+          aria-controls="panel-how"
+        >
+          How it works
+        </button>
+        <button
+          type="button"
+          class="tab-btn"
+          role="tab"
+          data-tab="research"
+          aria-selected="false"
+          aria-controls="panel-research"
+        >
+          Research
+        </button>
+        <button
+          type="button"
+          class="tab-btn"
+          role="tab"
+          data-tab="faq"
+          aria-selected="false"
+          aria-controls="panel-faq"
+        >
+          FAQ
+        </button>
+      </nav>
+
+      <main>
+        <!-- ══════════ SIGN UP ══════════ -->
+        <section class="panel" id="panel-signup" data-panel="signup" role="tabpanel">
+          <span class="eyebrow">Early access waitlist</span>
+          <h1 class="headline">
+            Most students were never taught
+            <span class="pixel">how to study</span>
+          </h1>
+          <p class="dek">
+            Stickpoint is an AI study companion that finds where your
+            studying breaks down and coaches you through a method that
+            actually works for you, whether you are a high schooler chasing
+            better grades for college or a college student still guessing.
+          </p>
+
+          <div class="capture" id="hero-capture">
+            <form
+              class="capture-form"
+              id="waitlist-form"
+              action="https://formspree.io/f/mwlkovov"
+              method="POST"
+            >
+              <div class="capture-row">
+                <input
+                  type="email"
+                  name="email"
+                  id="waitlist-email"
+                  placeholder="you@school.edu"
+                  required
+                  autocomplete="email"
+                  aria-label="Email address"
+                />
+                <button type="submit" class="btn">Join waitlist</button>
+              </div>
+              <p class="capture-hint">No spam. One email, sent the day we open up.</p>
+              <p class="capture-error">That did not go through. Try again in a moment.</p>
+            </form>
+
+            <div class="success-box" id="success-box">
+              <p class="success-title">You are on the list</p>
+              <p class="success-sub">
+                We will email you the moment Stickpoint opens up. Know a
+                friend who needs this too?
+              </p>
+              <p class="share-label">Share it</p>
+              <div class="share-row">
+                <button type="button" class="share-btn" id="copy-link-btn">Copy link</button>
+                <a class="share-btn" id="share-x" href="#" target="_blank" rel="noopener">Share on X</a>
+                <a class="share-btn" id="share-email" href="#">Email a friend</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="proof">
+            <div class="avatar-stack" aria-hidden="true">
+              <span></span><span></span><span></span><span></span>
+            </div>
+            <p class="proof-text">Join the students already on the list</p>
+          </div>
+
+          <div class="legal">
+            <h4>Privacy, short version</h4>
+            <p>
+              Joining only collects your email, stored by our form
+              processor Formspree, used solely to notify you about launch
+              and early access. We do not sell, rent, or share it. Email us
+              anytime to have it removed.
+            </p>
+            <h4>Terms of the waitlist</h4>
+            <p>
+              Signing up reserves your place in line. It is not a purchase
+              or a guarantee of a specific launch date. Features, pricing,
+              and timeline are subject to change while Stickpoint is still
+              in development.
+            </p>
+          </div>
+        </section>
+
+        <!-- ══════════ HOW IT WORKS ══════════ -->
+        <section class="panel" id="panel-how" data-panel="how" role="tabpanel" hidden>
+          <span class="eyebrow">How it works</span>
+          <h2 class="panel-title">Three steps to studying smarter</h2>
+          <p class="panel-sub">
+            No generic study tips. Stickpoint figures out how you actually
+            learn, then coaches you through your own material.
+          </p>
+          <ol class="steps">
+            <li>
+              <div class="step-row">
+                <span class="step-num">01</span>
+                <div class="step-body">
+                  <h3>Take the two-minute diagnostic</h3>
+                  <p>
+                    A short quiz finds where you get stuck when you study,
+                    not just which subject, but how you actually learn.
+                  </p>
+                </div>
+              </div>
+            </li>
+            <li>
+              <div class="step-row">
+                <span class="step-num">02</span>
+                <div class="step-body">
+                  <h3>Get matched to a real study method</h3>
+                  <p>
+                    Active recall, practice testing, the Feynman technique,
+                    spaced repetition. Stickpoint picks the one backed by
+                    research that fits how you learn.
+                  </p>
+                </div>
+              </div>
+            </li>
+            <li>
+              <div class="step-row">
+                <span class="step-num">03</span>
+                <div class="step-body">
+                  <h3>Study your own material, coached</h3>
+                  <p>
+                    Upload your notes and Stickpoint generates flashcards,
+                    practice tests, and graded explanations, then drills
+                    what you keep missing until it sticks.
+                  </p>
+                </div>
+              </div>
+            </li>
+          </ol>
+          <button type="button" class="btn go-signup">Join waitlist</button>
+        </section>
+
+        <!-- ══════════ RESEARCH ══════════ -->
+        <section class="panel" id="panel-research" data-panel="research" role="tabpanel" hidden>
+          <span class="eyebrow">Backed by research</span>
+          <h2 class="panel-title">You are not the only one guessing</h2>
+          <p class="panel-sub">
+            This is not only a high school problem. Two widely cited
+            findings back that up.
+          </p>
+          <div class="research-list">
+            <div class="research-quote">
+              <p class="quote">
+                A survey of college students found that most default to
+                rereading their notes and textbooks when studying alone,
+                and few spontaneously test themselves on the material,
+                even though retrieval practice is one of the most
+                effective ways to actually learn something.
+              </p>
+              <p class="research-cite">
+                Karpicke, J. D., Butler, A. C., and Roediger, H. L.
+                "Metacognitive strategies in student learning: do students
+                practise retrieval when they study on their own?"
+                <em>Memory</em>, 2009.
+              </p>
+            </div>
+            <div class="research-quote">
+              <p class="quote">
+                A wider review of study techniques reached a similar
+                conclusion: the two strategies students reach for most,
+                rereading and highlighting, are among the least effective
+                for long-term learning, while techniques like practice
+                testing and spaced practice work far better and are rarely
+                taught.
+              </p>
+              <p class="research-cite">
+                Dunlosky, J., Rawson, K. A., Marsh, E. J., Nathan, M. J.,
+                and Willingham, D. T. "Improving students' learning with
+                effective learning techniques."
+                <em>Psychological Science in the Public Interest</em>,
+                2013.
+              </p>
+            </div>
+          </div>
+          <button type="button" class="btn go-signup">Join waitlist</button>
+        </section>
+
+        <!-- ══════════ FAQ ══════════ -->
+        <section class="panel" id="panel-faq" data-panel="faq" role="tabpanel" hidden>
+          <span class="eyebrow">FAQ</span>
+          <h2 class="panel-title">Questions</h2>
+          <div class="faq-item" data-open="true">
+            <button type="button" class="faq-trigger" aria-expanded="true">
+              <span class="faq-q">Who is Stickpoint for?</span>
+              <span class="faq-icon" aria-hidden="true"></span>
+            </button>
+            <div class="faq-answer-wrap">
+              <div class="faq-answer-inner">
+                <p class="faq-a">
+                  Any student who studies hard but feels like it is not
+                  sticking, or does not know where to start. That includes
+                  high schoolers working toward the grades to get into
+                  college, and college students who assumed they would
+                  have figured out how to study by now. Stickpoint works
+                  with whatever you are already studying: your own notes,
+                  readings, and problem sets.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="faq-item" data-open="false">
+            <button type="button" class="faq-trigger" aria-expanded="false">
+              <span class="faq-q">When does it launch?</span>
+              <span class="faq-icon" aria-hidden="true"></span>
+            </button>
+            <div class="faq-answer-wrap">
+              <div class="faq-answer-inner">
+                <p class="faq-a">
+                  We are in active development. Waitlist members get early
+                  access before the public launch, first.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="faq-item" data-open="false">
+            <button type="button" class="faq-trigger" aria-expanded="false">
+              <span class="faq-q">Will it cost anything?</span>
+              <span class="faq-icon" aria-hidden="true"></span>
+            </button>
+            <div class="faq-answer-wrap">
+              <div class="faq-answer-inner">
+                <p class="faq-a">
+                  Pricing is not finalized. Early waitlist members will
+                  hear about launch pricing first and get the best
+                  available offer.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="faq-item" data-open="false">
+            <button type="button" class="faq-trigger" aria-expanded="false">
+              <span class="faq-q">What do you do with my email?</span>
+              <span class="faq-icon" aria-hidden="true"></span>
+            </button>
+            <div class="faq-answer-wrap">
+              <div class="faq-answer-inner">
+                <p class="faq-a">
+                  It is only used to tell you about Stickpoint's launch and
+                  early access. See the privacy note on the sign up tab for
+                  details.
+                </p>
+              </div>
+            </div>
+          </div>
+          <button type="button" class="btn go-signup" style="margin-top: 24px">
+            Join waitlist
+          </button>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <div class="brand">
+          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <circle cx="50" cy="24" r="12" stroke="#1A1820" stroke-width="9" stroke-linecap="round" />
+            <path
+              d="M50,36 L50,64 M27,46 L73,46 M50,64 L29,92 M50,64 L71,92"
+              stroke="#1A1820"
+              stroke-width="9"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <div>
+            <span class="brand-word pixel">STICKPOINT</span>
+            <p class="footer-note">
+              Built with students' privacy in mind. We collect the minimum
+              needed to run the app and never sell personal data.
+            </p>
+          </div>
+        </div>
+        <div class="footer-links">
+          <a href="#" class="go-signup">Privacy</a>
+          <a href="#" class="go-signup">Terms</a>
+          <a href="#" data-tab-link="faq">FAQ</a>
+        </div>
+      </footer>
+    </div>
+
+    <script>
+      // ── Tabs ──────────────────────────────────────────────────────────
+      const tabButtons = Array.from(document.querySelectorAll(".tab-btn"));
+      const panels = Array.from(document.querySelectorAll(".panel"));
+
+      function activateTab(name) {
+        tabButtons.forEach((btn) => {
+          const active = btn.dataset.tab === name;
+          btn.setAttribute("aria-selected", String(active));
+        });
+        panels.forEach((panel) => {
+          panel.hidden = panel.dataset.panel !== name;
+        });
+        history.replaceState(null, "", "#" + name);
+      }
+
+      tabButtons.forEach((btn) => {
+        btn.addEventListener("click", () => activateTab(btn.dataset.tab));
+      });
+      document.querySelectorAll(".go-signup, [data-tab-link]").forEach((el) => {
+        el.addEventListener("click", (e) => {
+          e.preventDefault();
+          activateTab(el.dataset.tabLink || "signup");
+        });
+      });
+
+      const startTab = ["signup", "how", "research", "faq"].includes(
+        location.hash.slice(1)
+      )
+        ? location.hash.slice(1)
+        : "signup";
+      activateTab(startTab);
+
+      // ── Waitlist form (Formspree AJAX) ──────────────────────────────────
+      const captureEl = document.getElementById("hero-capture");
+      const captureForm = document.getElementById("waitlist-form");
+      const captureError = captureEl.querySelector(".capture-error");
+      const successBox = document.getElementById("success-box");
+
+      captureForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        captureError.style.display = "none";
+        const submitBtn = captureForm.querySelector("button");
+        submitBtn.disabled = true;
+
+        try {
+          const res = await fetch(captureForm.action, {
+            method: "POST",
+            body: new FormData(captureForm),
+            headers: { Accept: "application/json" },
+          });
+          if (!res.ok) throw new Error("request failed");
+          captureEl.classList.add("hide-form");
+          successBox.classList.add("show");
+        } catch (err) {
+          captureError.style.display = "block";
+          submitBtn.disabled = false;
+        }
+      });
+
+      const shareText =
+        "I just joined the Stickpoint waitlist, an AI study companion that actually teaches you how to study. Join me:";
+      document.getElementById("share-x").href =
+        "https://twitter.com/intent/tweet?text=" +
+        encodeURIComponent(shareText) +
+        "&url=" +
+        encodeURIComponent(location.href);
+      document.getElementById("share-email").href =
+        "mailto:?subject=" +
+        encodeURIComponent("Join me on the Stickpoint waitlist") +
+        "&body=" +
+        encodeURIComponent(shareText + " " + location.href);
+      document
+        .getElementById("copy-link-btn")
+        .addEventListener("click", async function () {
+          const original = this.textContent;
+          try {
+            await navigator.clipboard.writeText(location.href);
+            this.textContent = "Copied";
+          } catch (err) {
+            this.textContent = "Copy failed";
+          }
+          setTimeout(() => {
+            this.textContent = original;
+          }, 1800);
+        });
+
+      // ── FAQ accordion ────────────────────────────────────────────────
+      document.querySelectorAll(".faq-trigger").forEach((trigger) => {
+        trigger.addEventListener("click", () => {
+          const item = trigger.closest(".faq-item");
+          const isOpen = item.getAttribute("data-open") === "true";
+          item
+            .closest(".panel")
+            .querySelectorAll(".faq-item")
+            .forEach((other) => {
+              other.setAttribute("data-open", "false");
+              other.querySelector(".faq-trigger").setAttribute("aria-expanded", "false");
+            });
+          item.setAttribute("data-open", String(!isOpen));
+          trigger.setAttribute("aria-expanded", String(!isOpen));
+        });
+      });
+    </script>
+  </body>
+</html>
