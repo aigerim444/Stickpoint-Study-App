@@ -26,9 +26,11 @@ export default function ProgressTab() {
   // account card, which otherwise sits below the fold.
   const { focus } = useLocalSearchParams<{ focus?: string }>();
   const scrollRef = useRef<ScrollView>(null);
-  const accountRef = useRef<View>(null);
   const accountY = useRef(0);
   const scrollToAccount = () => {
+    // Consume the param — otherwise every later re-layout of the content
+    // above yanks the scroll position back down to the account card.
+    router.setParams({ focus: '' });
     // Web: the DOM knows exactly where the section is; RN's onLayout y can
     // be stale because position-only changes don't re-fire onLayout on web.
     if (Platform.OS === 'web' && typeof document !== 'undefined') {
@@ -55,6 +57,14 @@ export default function ProgressTab() {
   const [notifHour, setNotifHour] = useState(state.notificationHour ?? 20);
   const [notifMinute, setNotifMinute] = useState(state.notificationMinute ?? 0);
 
+  // Resync once storage loads — a direct /progress load on web otherwise
+  // shows (and can silently save) the 8:00 PM default over the real time.
+  useEffect(() => {
+    setNotifHour(state.notificationHour ?? 20);
+    setNotifMinute(state.notificationMinute ?? 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.loaded]);
+
   const adjustHour = (delta: number) => setNotifHour((h) => (h + delta + 24) % 24);
   const adjustMinute = (delta: number) => setNotifMinute((m) => (m + delta + 60) % 60);
 
@@ -72,10 +82,9 @@ export default function ProgressTab() {
       if (scheduled) {
         setNotificationPreference(true, notifHour, notifMinute);
       } else {
-        Alert.alert(
-          'Permission needed',
-          'Allow notifications in your device settings to receive daily study reminders.',
-        );
+        const msg = 'Notifications are blocked. Allow them in your browser or device settings to get daily study reminders.';
+        if (Platform.OS === 'web') window.alert(msg);
+        else Alert.alert('Permission needed', msg);
       }
     } else {
       await cancelDailyReminder();
@@ -88,14 +97,18 @@ export default function ProgressTab() {
     if (scheduled) {
       setNotificationPreference(true, notifHour, notifMinute);
     } else {
-      Alert.alert(
-        'Permission needed',
-        'Allow notifications in your device settings to receive daily study reminders.',
-      );
+      const msg = 'Notifications are blocked. Allow them in your browser or device settings to get daily study reminders.';
+      if (Platform.OS === 'web') window.alert(msg);
+      else Alert.alert('Permission needed', msg);
     }
   };
 
   const due = dueMissed();
+  // Shaky = still in the early Leitner boxes; sorted by how often they trip
+  // the student up so the worst offenders lead.
+  const shakyItems = (state.missedBank || [])
+    .filter((b) => (b.box || 0) < 2)
+    .sort((a, b) => (b.misses || 0) - (a.misses || 0));
   const methodsTriedCount = Object.keys(state.methodsTried || {}).length;
   const ptHistory = state.ptHistory || [];
   const lastPt = ptHistory[ptHistory.length - 1];
@@ -135,8 +148,8 @@ export default function ProgressTab() {
       {/* Stats row */}
       <View style={styles.statsRow}>
         <StatBox label="STREAK" value={`${state.streak || 0}d`} color={c.accent} />
-        <StatBox label="SESSIONS" value={String(state.sessionsFinished || 0)} color={c.primary} />
-        <StatBox label="METHODS" value={`${methodsTriedCount}/${METHODS.length}`} color={c.yellow} />
+        <StatBox label="SESSIONS" value={String(state.sessionsFinished || 0)} color={c.dark} />
+        <StatBox label="METHODS" value={`${methodsTriedCount}/${METHODS.length}`} color={c.dark} />
       </View>
       <View style={{ flexDirection: 'row', gap: 10 }}>
         <StatBox
@@ -218,7 +231,7 @@ export default function ProgressTab() {
                 <Text style={[styles.missedQ, { color: c.dark }]}>{item.question}</Text>
                 <Text style={[styles.missedA, { color: c.subtle }]}>{item.answer}</Text>
                 <Text style={[styles.missedMeta, { color: c.muted }]}>
-                  missed {item.misses}× · box {item.box + 1}
+                  missed {item.misses}× · box {(item.box || 0) + 1}
                 </Text>
               </View>
               <View style={styles.gradeButtons}>
@@ -241,16 +254,54 @@ export default function ProgressTab() {
         </>
       )}
 
-      {/* All missed bank */}
-      {(state.missedBank || []).length > 0 && due.length === 0 && (
+      {/* What keeps tripping you up — shaky items, drillable any time */}
+      {due.length === 0 && shakyItems.length > 0 && (
+        <>
+          <Text style={[styles.sectionLabel, { color: c.red }]}>WHAT KEEPS TRIPPING YOU UP</Text>
+          <Text style={[styles.shakyHint, { color: c.muted }]}>
+            Nothing's due for review right now, but these are the items you keep missing — drill them any time.
+          </Text>
+          <Pressable
+            onPress={() =>
+              setDrillCards(
+                shakyItems.slice(0, 20).map((b) => ({
+                  question: b.question,
+                  answer: b.answer,
+                  methodTag: 'missed · ' + (b.source || 'review'),
+                  srKey: b.key,
+                })),
+              )
+            }
+            style={[styles.drillBtn, { backgroundColor: c.primary, borderColor: c.dark }]}>
+            <Feather name="zap" size={16} color="#fff" />
+            <Text style={styles.drillBtnText}>DRILL THESE {Math.min(shakyItems.length, 20)} AS FLASHCARDS</Text>
+          </Pressable>
+          {shakyItems.slice(0, 6).map((item) => (
+            <View key={item.key} style={[styles.missedCard, { borderColor: c.dark }]}>
+              <View style={{ flex: 1, gap: 4 }}>
+                <Text style={[styles.missedQ, { color: c.dark }]}>{item.question}</Text>
+                <Text style={[styles.missedMeta, { color: c.muted }]}>
+                  missed {item.misses}× · {item.source || 'review'}
+                </Text>
+              </View>
+            </View>
+          ))}
+          {shakyItems.length > 6 && (
+            <Text style={[styles.moreLabel, { color: c.muted }]}>+{shakyItems.length - 6} more shaky items</Text>
+          )}
+        </>
+      )}
+
+      {/* All mastered, nothing due */}
+      {(state.missedBank || []).length > 0 && due.length === 0 && shakyItems.length === 0 && (
         <View style={[styles.allClearCard, { borderColor: c.green, backgroundColor: c.greenLight }]}>
           <Feather name="check-circle" size={24} color={c.green} />
-          <Text style={[styles.allClearText, { color: c.dark }]}>No cards due! Check back tomorrow.</Text>
+          <Text style={[styles.allClearText, { color: c.dark }]}>Everything's mastered and nothing's due. Nice.</Text>
         </View>
       )}
 
       {/* Methods tried */}
-      <Text style={[styles.sectionLabel, { color: c.dark }]}>⭐ YOUR TOP 3 METHODS</Text>
+      <Text style={[styles.sectionLabel, { color: c.dark }]}>YOUR TOP 3 METHODS</Text>
       <TopMethodsEditor />
 
       <Text style={[styles.sectionLabel, { color: c.dark }]}>METHODS TRIED</Text>
@@ -310,7 +361,6 @@ export default function ProgressTab() {
       {/* Account & sync */}
       {accountsEnabled && (
         <View
-          ref={accountRef}
           nativeID="account-section"
           onLayout={(e) => {
             accountY.current = e.nativeEvent.layout.y;
@@ -322,6 +372,9 @@ export default function ProgressTab() {
         </View>
       )}
 
+      {/* Local notifications don't exist on web — hide the dead control. */}
+      {Platform.OS !== 'web' && (
+      <>
       <Text style={[styles.sectionLabel, { color: c.dark }]}>DAILY REMINDER</Text>
       <View style={[styles.card, { borderColor: c.dark }]}>
         {/* Toggle row */}
@@ -398,6 +451,8 @@ export default function ProgressTab() {
           </>
         )}
       </View>
+      </>
+      )}
       <Pressable onPress={() => router.push('/privacy')} style={{ alignSelf: 'center', paddingVertical: 8 }}>
         <Text style={{ fontSize: 12, fontWeight: '700', color: c.muted }}>Privacy & your data</Text>
       </Pressable>
@@ -435,7 +490,7 @@ function fmtDayKey(key: string): string {
 
 function StatBox({ label, value, color }: { label: string; value: string; color: string }) {
   return (
-    <View style={[styles.statBox, { borderColor: c.dark, boxShadow: `4px 4px 0px ${color}` }]}>
+    <View style={[styles.statBox, { borderColor: c.dark }]}>
       <Text style={[styles.statValue, { color }]}>{value}</Text>
       <Text style={[styles.statLabel, { color: c.muted }]}>{label}</Text>
     </View>
@@ -461,8 +516,10 @@ const styles = StyleSheet.create({
   heading: { fontWeight: '900', fontSize: 24, lineHeight: 32 },
   sectionLabel: { fontWeight: '900', fontSize: 10, letterSpacing: 1.5, marginTop: 4 },
   statsRow: { flexDirection: 'row', gap: 10 },
+  shakyHint: { fontSize: 12, fontWeight: '700', lineHeight: 18 },
   statBox: {
     flex: 1, borderWidth: 3, padding: 14, alignItems: 'center', gap: 2,
+    boxShadow: '4px 4px 0px #201E2E',
   },
   statValue: { fontWeight: '900', fontSize: 24 },
   statLabel: { fontWeight: '800', fontSize: 9, letterSpacing: 1.5 },

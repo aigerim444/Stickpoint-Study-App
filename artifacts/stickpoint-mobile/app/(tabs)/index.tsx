@@ -48,7 +48,7 @@ export default function StudyTab() {
     if (typeof params.start === 'string' && params.start && !activeSession) {
       const id = params.start;
       router.setParams({ start: '' });
-      startMethod(id);
+      if (getMethodById(id)) startMethod(id);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.start]);
@@ -66,10 +66,16 @@ export default function StudyTab() {
         addPtResult(ptScore, ptTotal);
       }
     }
-    setActiveSession(null);
+    // Deliberately does NOT clear the session: the child's completion
+    // summary must stay on screen. The child's own back CTA exits.
   }, [activeSession, recordSession, recordMissed, addPtResult, addXp, state.soundOn]);
 
   const goBack = useCallback(() => setActiveSession(null), []);
+
+  useEffect(() => {
+    setActiveSession(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.currentMaterialId]);
 
   const hasMaterial = state.concepts && state.concepts.length > 0;
 
@@ -101,7 +107,7 @@ export default function StudyTab() {
             notes={state.material}
             name={state.name}
             age={state.age}
-            onComplete={() => endSession()}
+            onComplete={() => { endSession(); goBack(); }}
             onBack={goBack}
           />
         </View>
@@ -135,7 +141,7 @@ export default function StudyTab() {
             notes={state.material}
             name={state.name}
             age={state.age}
-            onComplete={(hard, score, total) => endSession(hard, score, total)}
+            onComplete={(hard, score, total) => { endSession(hard, score, total); goBack(); }}
             onBack={goBack}
           />
         </View>
@@ -152,7 +158,7 @@ export default function StudyTab() {
             notes={state.material}
             name={state.name}
             age={state.age}
-            onComplete={() => endSession()}
+            onComplete={() => { endSession(); goBack(); }}
             onBack={goBack}
           />
         </View>
@@ -184,7 +190,7 @@ export default function StudyTab() {
             notes={state.material}
             name={state.name}
             age={state.age}
-            onComplete={() => endSession()}
+            onComplete={() => { endSession(); goBack(); }}
             onBack={goBack}
           />
         </View>
@@ -255,7 +261,7 @@ export default function StudyTab() {
       {hasMaterial && (
         <>
           {/* Top recommended methods */}
-          <Text style={[styles.sectionLabel, { color: c.primary }]}>⚡ RECOMMENDED FOR YOU</Text>
+          <Text style={[styles.sectionLabel, { color: c.primary }]}>RECOMMENDED FOR YOU</Text>
           {topThree.map((id) => {
             const m = getMethodById(id);
             if (!m) return null;

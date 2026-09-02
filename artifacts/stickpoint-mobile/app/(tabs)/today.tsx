@@ -3,7 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTabContentPadding } from '@/hooks/useTabContentPadding';
 import { useRouter } from 'expo-router';
-import { Feather } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { useApp, useEffectiveMethods } from '@/context/AppContext';
 import { accountsEnabled } from '@/lib/supabase';
 import { dayKey, featherIcon, getMethodById } from '@/lib/content';
@@ -66,7 +66,7 @@ export default function TodayTab() {
             {greeting}{state.name ? `, ${state.name.toUpperCase()}` : ''}
           </Text>
           <Text style={[styles.heading, { color: c.dark }]}>
-            {studiedToday ? 'You showed up today 🎉' : "Today's plan"}
+            {studiedToday ? 'You showed up today!' : "Today's plan"}
           </Text>
         </View>
         <ChopCharacter size={0.9} color={c.dark} animation={studiedToday ? 'celebrate' : 'bounce'} />
@@ -75,14 +75,19 @@ export default function TodayTab() {
       {/* Stat chips */}
       <View style={styles.chipRow}>
         <View style={[styles.chip, { borderColor: c.dark, backgroundColor: state.streak > 0 ? '#FFF3D6' : c.card }]}>
-          <Text style={[styles.chipNum, { color: c.dark }]}>{state.streak}🔥</Text>
+          <View style={styles.chipNumRow}>
+            <Text style={[styles.chipNum, { color: c.dark }]}>{state.streak}</Text>
+            <Ionicons name="flame" size={18} color={c.accent} />
+          </View>
           <Text style={[styles.chipLabel, { color: c.muted }]}>DAY STREAK</Text>
         </View>
         {daysToTest != null && (
           <View style={[styles.chip, { borderColor: c.dark, backgroundColor: daysToTest <= 3 ? colors.light.redLight : c.card }]}>
-            <Text style={[styles.chipNum, { color: daysToTest <= 3 ? c.red : c.dark }]}>
-              {daysToTest <= 0 ? '🎓' : daysToTest}
-            </Text>
+            {daysToTest <= 0 ? (
+              <Feather name="award" size={20} color={c.red} style={{ marginVertical: 3 }} />
+            ) : (
+              <Text style={[styles.chipNum, { color: daysToTest <= 3 ? c.red : c.dark }]}>{daysToTest}</Text>
+            )}
             <Text style={[styles.chipLabel, { color: c.muted }]}>
               {daysToTest <= 0 ? 'TEST DAY!' : daysToTest === 1 ? 'DAY TO TEST' : 'DAYS TO TEST'}
             </Text>
@@ -93,7 +98,10 @@ export default function TodayTab() {
           <Text style={[styles.chipLabel, { color: c.muted }]}>DUE TO DRILL</Text>
         </View>
         <View style={[styles.chip, { borderColor: c.dark, backgroundColor: (state.xp || 0) > 0 ? colors.light.purpleLight : c.card }]}>
-          <Text style={[styles.chipNum, { color: c.dark }]}>{state.xp || 0}⭐</Text>
+          <View style={styles.chipNumRow}>
+          <Text style={[styles.chipNum, { color: c.dark }]}>{state.xp || 0}</Text>
+          <Feather name="star" size={16} color={c.yellow} />
+        </View>
           <Text style={[styles.chipLabel, { color: c.muted }]}>XP EARNED</Text>
         </View>
       </View>
@@ -120,14 +128,14 @@ export default function TodayTab() {
           onPress={() => setMaterial(SAMPLE_MATERIAL, SAMPLE_TOPIC, SAMPLE_CARDS, false)}
           style={styles.sampleLink}>
           <Text style={[styles.sampleLinkText, { color: c.primary }]}>
-            🧪 or try a sample first — Easy Chemistry
+            or try a sample first — Easy Chemistry
           </Text>
         </Pressable>
       )}
 
       {hasMaterial && (
         <>
-          <Text style={[styles.sectionLabel, { color: c.primary }]}>⚡ YOUR NEXT STEP</Text>
+          <Text style={[styles.sectionLabel, { color: c.primary }]}>YOUR NEXT STEP</Text>
 
           {/* Step 1: drill due items */}
           {due.length > 0 && (
@@ -225,6 +233,7 @@ const styles = StyleSheet.create({
     boxShadow: '3px 3px 0px #201E2E',
   },
   chipNum: { fontSize: 20, fontWeight: '900' },
+  chipNumRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   chipLabel: { fontSize: 9, fontWeight: '900', letterSpacing: 1 },
   sectionLabel: { fontSize: 11, fontWeight: '900', letterSpacing: 1.5, marginTop: 6 },
   stepCard: {

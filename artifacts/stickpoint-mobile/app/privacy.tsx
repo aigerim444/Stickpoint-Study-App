@@ -63,7 +63,7 @@ export default function Privacy() {
     <ScrollView
       style={{ flex: 1, backgroundColor: c.background }}
       contentContainerStyle={[styles.container, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 40 }]}>
-      <Pressable onPress={() => router.back()} style={styles.backRow}>
+      <Pressable onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)/progress' as never))} style={styles.backRow}>
         <Feather name="arrow-left" size={16} color={c.muted} />
         <Text style={[styles.backText, { color: c.muted }]}>back</Text>
       </Pressable>

@@ -4,6 +4,7 @@ import {
   StyleSheet, Text, TextInput, View,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import EtaBar from '@/components/EtaBar';
 import * as Haptics from 'expo-haptics';
 import { useColors } from '@/hooks/useColors';
 import { CEItem, ceGenerate, ceGrade, ceNewExample } from '@/lib/api';
@@ -17,7 +18,7 @@ interface Props {
   onBack: () => void;
 }
 
-type Phase = 'loading' | 'card' | 'grading' | 'feedback' | 'newExample' | 'done';
+type Phase = 'loading' | 'gen_error' | 'card' | 'grading' | 'feedback' | 'newExample' | 'done';
 
 /**
  * Concrete Examples (dual coding): reveal a vivid real-world example for an
@@ -33,15 +34,22 @@ export default function ConcreteExamples({ notes, name, age, onComplete, onBack 
   const [text, setText] = useState('');
   const [result, setResult] = useState<{ correct: boolean; gotRight: string; missed: string; reinforce: string } | null>(null);
   const [flags, setFlags] = useState<Record<number, boolean>>({});
+  const [gradeError, setGradeError] = useState(false);
 
-  useEffect(() => {
+  const generate = useCallback(() => {
+    setPhase('loading');
     ceGenerate(notes, { name, age }).then((its) => {
       if (its && its.length) {
         setItems(its);
         setPhase('card');
-      } else setPhase('done');
+      } else {
+        // Generation failed — an honest error beats "SESSION COMPLETE! 0 of 0".
+        setPhase('gen_error');
+      }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [notes, name, age]);
+  useEffect(() => { generate(); // eslint-disable-line react-hooks/exhaustive-deps
   }, []);
 
   const current = items[idx];
@@ -52,11 +60,15 @@ export default function ConcreteExamples({ notes, name, age, onComplete, onBack 
     setPhase('grading');
     const res = await ceGrade(current, text, { name, age });
     if (!res) {
+      setGradeError(true);
       setPhase('card');
       return;
     }
+    setGradeError(false);
     setResult(res);
-    setFlags((f) => (f[idx] == null ? { ...f, [idx]: res.correct } : f));
+    // Overwrite, not first-write-wins: asking for a different example marks
+    // the concept false, and a correct explanation afterwards must count.
+    setFlags((f) => ({ ...f, [idx]: res.correct }));
     setPhase('feedback');
   }, [text, current, idx, name, age]);
 
@@ -65,9 +77,13 @@ export default function ConcreteExamples({ notes, name, age, onComplete, onBack 
     setFlags((f) => ({ ...f, [idx]: false }));
     setPhase('newExample');
     const example = await ceNewExample(current, { name, age });
-    if (example) {
-      setItems((its) => its.map((it, i) => (i === idx ? { ...it, example } : it)));
+    if (!example) {
+      setGradeError(true);
+      setPhase('card');
+      return;
     }
+    setItems((its) => its.map((it, i) => (i === idx ? { ...it, example } : it)));
+    setGradeError(false);
     setText('');
     setResult(null);
     setRevealed(true);
@@ -107,6 +123,25 @@ export default function ConcreteExamples({ notes, name, age, onComplete, onBack 
               ? 'INVENTING A FRESH EXAMPLE…'
               : 'CHECKING YOUR CONNECTION…'}
         </Text>
+        <EtaBar key={phase} seconds={phase === 'loading' ? 18 : 8} />
+      </View>
+    );
+  }
+
+  if (phase === 'gen_error') {
+    return (
+      <View style={[styles.center, { flex: 1, gap: 14, backgroundColor: colors.background, padding: 24 }]}>
+        <Feather name="cloud-off" size={28} color={colors.muted} />
+        <Text style={[styles.label, { color: colors.dark, textAlign: 'center' }]}>COULDN'T BUILD YOUR EXAMPLES</Text>
+        <Text style={{ color: colors.subtle, fontWeight: '700', fontSize: 13, textAlign: 'center', lineHeight: 19 }}>
+          Your notes are fine — the AI service didn't answer. Check your connection and try again.
+        </Text>
+        <Pressable onPress={generate} style={[styles.btn, { backgroundColor: colors.primary, borderColor: colors.dark, alignSelf: 'stretch' }]}>
+          <Text style={[styles.btnText, { color: '#fff' }]}>TRY AGAIN</Text>
+        </Pressable>
+        <Pressable onPress={onBack} style={{ padding: 8 }}>
+          <Text style={{ color: colors.muted, fontWeight: '800', fontSize: 13 }}>← back to methods</Text>
+        </Pressable>
       </View>
     );
   }
@@ -200,6 +235,11 @@ export default function ConcreteExamples({ notes, name, age, onComplete, onBack 
             placeholderTextColor={colors.muted}
             textAlignVertical="top"
           />
+          {gradeError && (
+            <Text style={{ color: colors.red, fontWeight: '800', fontSize: 13, textAlign: 'center' }}>
+              Couldn't reach Chop — check your connection and try again.
+            </Text>
+          )}
           <Pressable
             onPress={submit}
             disabled={text.trim().length < 5}

@@ -1,6 +1,6 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { usePathname, useRouter } from 'expo-router';
 import { useApp } from '@/context/AppContext';
 import { accountsEnabled } from '@/lib/supabase';
@@ -29,21 +29,28 @@ export default function TopNav() {
   const router = useRouter();
   const pathname = usePathname();
   const { state, account } = useApp();
+  // The bar only fits everything on a truly wide window — shed the logo,
+  // then the chips, before the tabs themselves ever crowd.
+  const { width } = useWindowDimensions();
+  const showLogo = width >= 1000;
+  const showChips = width >= 860;
 
   if (!TAB_PATHS.includes(pathname)) return null;
 
   return (
     <View style={[styles.bar, { borderBottomColor: c.dark }]}>
-      <View style={styles.logoRow}>
-        <PixelText style={styles.logo}>STICKPOINT</PixelText>
-      </View>
+      {showLogo && (
+        <View style={styles.logoRow}>
+          <PixelText style={styles.logo}>STICKPOINT</PixelText>
+        </View>
+      )}
       <View style={styles.tabs}>
         {TABS.map((t) => {
           const active = pathname === t.path;
           return (
             <Pressable
               key={t.path}
-              onPress={() => router.navigate(t.path as never)}
+              onPress={() => router.navigate((t.path === '/' ? '/(tabs)' : t.path) as never)}
               style={[styles.tab, active && { backgroundColor: c.dark }]}>
               <Feather name={t.icon as never} size={14} color={active ? '#fff' : c.dark} />
               <Text style={[styles.tabText, { color: active ? '#fff' : c.dark }]}>{t.label}</Text>
@@ -52,12 +59,18 @@ export default function TopNav() {
         })}
       </View>
       <View style={styles.chips}>
-        <View style={[styles.chip, { borderColor: c.dark }]}>
-          <Text style={styles.chipText}>🔥 {state.streak || 0}</Text>
-        </View>
-        <View style={[styles.chip, { borderColor: c.dark }]}>
-          <Text style={styles.chipText}>⭐ {state.xp || 0}</Text>
-        </View>
+        {showChips && (
+          <View style={[styles.chip, { borderColor: c.dark }]}>
+            <Ionicons name="flame" size={13} color="#FF6B4A" />
+            <Text style={styles.chipText}>{state.streak || 0}</Text>
+          </View>
+        )}
+        {showChips && (
+          <View style={[styles.chip, { borderColor: c.dark }]}>
+            <Feather name="star" size={12} color="#BA8A00" />
+            <Text style={styles.chipText}>{state.xp || 0}</Text>
+          </View>
+        )}
         {accountsEnabled && !account && (
           <Pressable
             onPress={() => router.navigate('/progress?focus=account' as never)}
@@ -92,6 +105,9 @@ const styles = StyleSheet.create({
   },
   tabText: { fontWeight: '900', fontSize: 12, letterSpacing: 0.5 },
   chips: { flexDirection: 'row', gap: 8 },
-  chip: { borderWidth: 2, paddingVertical: 4, paddingHorizontal: 9, backgroundColor: '#fff' },
+  chip: {
+    borderWidth: 2, paddingVertical: 4, paddingHorizontal: 9, backgroundColor: '#fff',
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+  },
   chipText: { fontWeight: '900', fontSize: 12, color: '#201E2E' },
 });

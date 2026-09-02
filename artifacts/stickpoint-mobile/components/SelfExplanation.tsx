@@ -4,6 +4,7 @@ import {
   StyleSheet, Text, TextInput, View,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import EtaBar from '@/components/EtaBar';
 import * as Haptics from 'expo-haptics';
 import { useColors } from '@/hooks/useColors';
 import { gradeSelfExplain, seChunks } from '@/lib/api';
@@ -45,6 +46,7 @@ export default function SelfExplanation({ notes, name, age, onComplete, onBack }
   const [result, setResult] = useState<{ correct: boolean; feedback: string; simpler: string } | null>(null);
   const [hardLines, setHardLines] = useState<string[]>([]);
   const [done, setDone] = useState(false);
+  const [gradeError, setGradeError] = useState(false);
 
   const current = lines[lineIdx] || '';
 
@@ -58,6 +60,14 @@ export default function SelfExplanation({ notes, name, age, onComplete, onBack }
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setPhase('grading');
     const res = await gradeSelfExplain(current, text, name, age);
+    if (!res) {
+      // Grading failed — stay on the writing screen with the text intact
+      // instead of silently rewinding to "READ THIS".
+      setGradeError(true);
+      setPhase('writing');
+      return;
+    }
+    setGradeError(false);
     setResult(res);
     setPhase('feedback');
   }, [text, current, name, age]);
@@ -73,7 +83,7 @@ export default function SelfExplanation({ notes, name, age, onComplete, onBack }
       setResult(null);
     } else {
       setDone(true);
-      const hardCards: Card[] = newHard.map(l => ({ question: 'Explain in your own words:', answer: l, methodTag: 'self_explanation' }));
+      const hardCards: Card[] = newHard.map(l => ({ question: `Explain in your own words: \u201C${l.slice(0, 80)}\u2026\u201D`, answer: l, methodTag: 'self_explanation' }));
       onComplete(hardCards);
     }
   }, [result, hardLines, lineIdx, lines.length, current, onComplete]);
@@ -83,6 +93,7 @@ export default function SelfExplanation({ notes, name, age, onComplete, onBack }
       <View style={[styles.center, { flex: 1, gap: 14, backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color={colors.primary} />
         <Text style={[styles.label, { color: colors.muted }]}>SPLITTING YOUR NOTES…</Text>
+        <EtaBar seconds={12} />
       </View>
     );
   }
@@ -157,6 +168,11 @@ export default function SelfExplanation({ notes, name, age, onComplete, onBack }
           textAlignVertical="top"
           autoFocus
         />
+        {gradeError && (
+          <Text style={{ color: colors.red, fontWeight: '800', fontSize: 13, textAlign: 'center' }}>
+            Couldn't check that — your explanation is safe. Check your connection and try again.
+          </Text>
+        )}
         <Pressable
           onPress={submit}
           disabled={text.trim().length < 5}

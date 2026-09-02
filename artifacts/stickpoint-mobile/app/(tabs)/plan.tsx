@@ -11,6 +11,15 @@ import colors from '@/constants/colors';
 
 const c = colors.light;
 
+/** "2026-09-17" → "Sep 17" — the storage format isn't for humans. */
+function fmtTestDate(key: string | null): string {
+  if (!key) return '';
+  const [y, m, d] = key.split('-').map(Number);
+  if (!y || !m || !d) return key ?? '';
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return `${MONTHS[m - 1]} ${d}`;
+}
+
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December',
@@ -108,12 +117,18 @@ export default function PlanTab() {
         <Pressable
           onPress={() => setCalMode('test')}
           style={[styles.modeBtn, { borderColor: c.dark, backgroundColor: calMode === 'test' ? c.red : c.card }]}>
-          <Text style={[styles.modeBtnText, { color: calMode === 'test' ? '#fff' : c.dark }]}>🎯 SET TEST DAY</Text>
+          <View style={styles.modeBtnRow}>
+            <Feather name="target" size={14} color={calMode === 'test' ? '#fff' : c.dark} />
+            <Text style={[styles.modeBtnText, { color: calMode === 'test' ? '#fff' : c.dark }]}>SET TEST DAY</Text>
+          </View>
         </Pressable>
         <Pressable
           onPress={() => setCalMode('studied')}
           style={[styles.modeBtn, { borderColor: c.dark, backgroundColor: calMode === 'studied' ? c.green : c.card }]}>
-          <Text style={[styles.modeBtnText, { color: calMode === 'studied' ? '#12291f' : c.dark }]}>✅ MARK STUDIED</Text>
+          <View style={styles.modeBtnRow}>
+            <Feather name="check-square" size={14} color={calMode === 'studied' ? '#12291f' : c.dark} />
+            <Text style={[styles.modeBtnText, { color: calMode === 'studied' ? '#12291f' : c.dark }]}>MARK STUDIED</Text>
+          </View>
         </Pressable>
       </View>
 
@@ -137,12 +152,12 @@ export default function PlanTab() {
         ) : (
           <>
             <Text style={[styles.countdownNum, { color: daysToTest <= 3 ? c.red : c.dark }]}>
-              {daysToTest <= 0 ? 'TEST DAY! 🎓' : `${daysToTest} day${daysToTest === 1 ? '' : 's'}`}
+              {daysToTest <= 0 ? 'TEST DAY!' : `${daysToTest} day${daysToTest === 1 ? '' : 's'}`}
             </Text>
             <Text style={[styles.countdownBody, { color: c.subtle }]}>
               {daysToTest <= 0
                 ? "You put in the work. Go show it."
-                : `until your test on ${state.testDate}. Tap the marked day to change it.`}
+                : `until your test on ${fmtTestDate(state.testDate)}. Tap the marked day to change it.`}
             </Text>
           </>
         )}
@@ -182,13 +197,17 @@ export default function PlanTab() {
                     isTest && { backgroundColor: c.red, borderColor: c.dark, borderWidth: 2 },
                     isToday && !isStudied && !isTest && { borderColor: c.primary, borderWidth: 2 },
                   ]}>
-                  <Text
-                    style={[
-                      styles.dayText,
-                      { color: isStudied || isTest ? '#fff' : isToday ? c.primary : c.dark },
-                    ]}>
-                    {isTest ? '🎓' : day}
-                  </Text>
+                  {isTest ? (
+                    <Feather name="target" size={13} color="#fff" />
+                  ) : (
+                    <Text
+                      style={[
+                        styles.dayText,
+                        { color: isStudied ? '#fff' : isToday ? c.primary : c.dark },
+                      ]}>
+                      {day}
+                    </Text>
+                  )}
                 </View>
               </Pressable>
             );
@@ -218,6 +237,7 @@ const styles = StyleSheet.create({
   modeRow: { flexDirection: 'row', gap: 10 },
   modeBtn: { flex: 1, borderWidth: 3, paddingVertical: 12, alignItems: 'center',
     boxShadow: '3px 3px 0px #201E2E' },
+  modeBtnRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
   modeBtnText: { fontWeight: '900', fontSize: 12 },
   headingPixel: { fontSize: 18, lineHeight: 28 },
   container: { padding: 20, gap: 14 },

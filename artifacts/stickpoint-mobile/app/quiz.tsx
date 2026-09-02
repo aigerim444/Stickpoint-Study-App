@@ -15,7 +15,7 @@ type Step = 'subject' | 'questions' | 'results';
 type Answer = number | number[] | null;
 
 const RANK_COLORS = ['#453F8C', '#FF6B4A', '#2DD4A7'];
-const RANK_LABELS = ['🥇', '🥈', '🥉'];
+const RANK_LABELS = ['#1', '#2', '#3'];
 
 /**
  * The diagnostic quiz, matching the original prototype's flow: no
@@ -35,10 +35,11 @@ export default function Quiz() {
 
   const c = colors.light;
 
+  // Tap selects, NEXT advances — auto-advancing stole the chance to
+  // change your mind (same fix the quiz questions already got).
   const pickSubject = (id: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setSubjectId(id);
-    setStep('questions');
   };
 
   // Tap toggles; up to two picks; a third replaces the older one.
@@ -74,7 +75,8 @@ export default function Quiz() {
   const goBack = () => {
     if (step === 'questions' && qi > 0) { setQi(qi - 1); return; }
     if (step === 'questions') { setStep('subject'); return; }
-    router.back();
+    if (router.canGoBack()) router.back();
+    else router.replace('/welcome');
   };
 
   // ── Results ───────────────────────────────────────────────────────────────
@@ -87,7 +89,7 @@ export default function Quiz() {
           <ChopCharacter size={0.8} color={c.dark} animation="celebrate" />
           <View style={[styles.resultBubble, { borderColor: c.dark }]}>
             <Text style={[styles.resultBubbleText, { color: c.dark }]}>
-              Nice, {state.name}! Here's what Chop found 🎉
+              Nice, {state.name}! Here's what Chop found
             </Text>
           </View>
         </View>
@@ -107,7 +109,7 @@ export default function Quiz() {
                 </View>
               </View>
               <Text style={[styles.resultWhy, { color: c.subtle }]}>{m.whyWorks}</Text>
-              <Text style={[styles.resultEvidence, { color: c.muted }]}>📚 {m.evidence}</Text>
+              <Text style={[styles.resultEvidence, { color: c.muted }]}>{m.evidence}</Text>
             </View>
           );
         })}
@@ -142,9 +144,24 @@ export default function Quiz() {
               styles.subjectCard,
               { borderColor: c.dark, backgroundColor: subjectId === s.id ? c.purpleLight : c.card, opacity: pressed ? 0.85 : 1 },
             ]}>
-            <Text style={[styles.subjectText, { color: c.dark }]}>{s.label}</Text>
+            <Text style={[styles.subjectText, { color: c.dark, flex: 1 }]}>{s.label}</Text>
+            {subjectId === s.id && <Text style={{ color: c.primary, fontWeight: '900', fontSize: 16 }}>✓</Text>}
           </Pressable>
         ))}
+        <Pressable
+          onPress={() => {
+            if (!subjectId) return;
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            setStep('questions');
+          }}
+          disabled={!subjectId}
+          style={[styles.navNext, {
+            backgroundColor: subjectId ? c.accent : c.secondary,
+            borderColor: c.dark,
+            marginTop: 8,
+          }]}>
+          <Text style={[styles.navNextText, { color: subjectId ? '#fff' : c.muted }]}>NEXT →</Text>
+        </Pressable>
       </ScrollView>
     );
   }
@@ -167,7 +184,7 @@ export default function Quiz() {
         </View>
         {/* Progress bar */}
         <View style={[styles.progressBar, { backgroundColor: c.secondary }]}>
-          <View style={[styles.progressFill, { width: `${(qi / QUIZ_QUESTIONS.length) * 100}%`, backgroundColor: c.primary }]} />
+          <View style={[styles.progressFill, { width: `${((qi + 1) / QUIZ_QUESTIONS.length) * 100}%`, backgroundColor: c.primary }]} />
         </View>
         <Text style={[styles.heading, { color: c.dark, marginTop: 8 }]}>{q.q}</Text>
         <Text style={[styles.tieHint, { color: c.muted }]}>
@@ -238,7 +255,7 @@ const styles = StyleSheet.create({
   progressFill: { height: '100%' },
   tieHint: { fontWeight: '700', fontSize: 12, lineHeight: 18 },
   subjectCard: {
-    borderWidth: 3, padding: 16,
+    borderWidth: 3, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 10,
     boxShadow: '4px 4px 0px #201E2E',
   },
   subjectText: { fontWeight: '800', fontSize: 15 },

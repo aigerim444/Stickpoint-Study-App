@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  Alert, Pressable, ScrollView, StyleSheet, Text,
+  Alert, Platform, Pressable, ScrollView, StyleSheet, Text,
   TextInput, View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -29,6 +29,8 @@ export default function LibraryTab() {
   };
 
   const commitRename = (id: string) => {
+    // Enter fires onSubmitEditing AND the unmount's onBlur — commit once.
+    if (renaming !== id) return;
     if (renameText.trim()) {
       renameLibraryEntry(id, renameText.trim());
     }
@@ -36,21 +38,19 @@ export default function LibraryTab() {
   };
 
   const confirmDelete = (id: string, name: string) => {
-    Alert.alert(
-      'Delete material',
-      `Remove "${name}" from your library?`,
-      [
+    const doDelete = () => {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      deleteFromLibrary(id);
+    };
+    // RN Alert is a no-op on web — the delete button did nothing there.
+    if (Platform.OS === 'web') {
+      if (window.confirm(`Remove "${name}" from your library?`)) doDelete();
+    } else {
+      Alert.alert('Delete material', `Remove "${name}" from your library?`, [
         { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => {
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-            deleteFromLibrary(id);
-          },
-        },
-      ]
-    );
+        { text: 'Delete', style: 'destructive', onPress: doDelete },
+      ]);
+    }
   };
 
   const switchTo = (id: string) => {

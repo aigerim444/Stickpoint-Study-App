@@ -1,3 +1,4 @@
+import { Feather } from '@expo/vector-icons';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator, Alert, KeyboardAvoidingView, Platform,
@@ -9,6 +10,7 @@ import * as Haptics from 'expo-haptics';
 import * as ImagePicker from 'expo-image-picker';
 import { useApp } from '@/context/AppContext';
 import ChopCharacter from '@/components/ChopCharacter';
+import MathDetectModal, { MATH_TOP3 } from '@/components/MathDetectModal';
 import PixelText from '@/components/PixelText';
 import { extractConcepts, transcribeMaterial, TranscribeMediaType } from '@/lib/api';
 import colors from '@/constants/colors';
@@ -19,7 +21,8 @@ type Phase = 'input' | 'transcribing' | 'processing' | 'error';
 export default function Material() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { state, setMaterial } = useApp();
+  const { state, setMaterial, setMaterialTopMethods } = useApp();
+  const [showMathOffer, setShowMathOffer] = useState(false);
   const [notes, setNotes] = useState('');
   const [mode, setMode] = useState<'paste' | 'pdf' | 'photo'>('paste');
   const [etaLeft, setEtaLeft] = useState(0);
@@ -62,10 +65,16 @@ export default function Material() {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = accept || 'image/png,image/jpeg,image/webp,application/pdf,text/plain,.txt,.md';
+    input.style.display = 'none';
     input.onchange = () => {
       const f = input.files?.[0];
+      input.remove();
       if (f) handleDroppedFile(f);
     };
+    // Detached inputs get garbage-collected mid-pick in Safari — the
+    // dialog opens but the chosen file never arrives. Attach it first.
+    (input as HTMLInputElement & { oncancel: (() => void) | null }).oncancel = () => input.remove();
+    document.body.appendChild(input);
     input.click();
   };
 
@@ -182,6 +191,7 @@ export default function Material() {
     const tick = setInterval(() => setEtaLeft((t) => Math.max(0, t - 1)), 1000);
     setTimeout(() => clearInterval(tick), 120_000);
     const outcome = await extractConcepts(trimmed, state.name, state.age);
+    clearInterval(tick);
     if (!outcome.ok) {
       setErrorMsg(
         outcome.reason === 'rate_limited'
@@ -196,6 +206,18 @@ export default function Material() {
     const result = outcome.result;
     setMaterial(trimmed, result.topic, result.cards, result.isMath);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    if (result.isMath) {
+      // The prototype's math-detect moment: offer the procedural top 3
+      // before landing on the Study tab.
+      setShowMathOffer(true);
+    } else {
+      router.replace('/(tabs)');
+    }
+  };
+
+  const chooseMathTop3 = (useMathTop3: boolean) => {
+    setShowMathOffer(false);
+    if (useMathTop3) setMaterialTopMethods([...MATH_TOP3]);
     router.replace('/(tabs)');
   };
 
@@ -204,16 +226,18 @@ export default function Material() {
       <View style={[styles.center, { flex: 1, backgroundColor: c.background, paddingTop: insets.top }]}>
         <ChopCharacter size={1.4} color={c.dark} animation="bounce" />
         <View style={styles.processingBox}>
-          <ActivityIndicator size="large" color={c.primary} />
+          {!showMathOffer && <ActivityIndicator size="large" color={c.primary} />}
           <Text style={[styles.processingTitle, { color: c.dark }]}>
-            {phase === 'transcribing' ? 'CHOP IS READING YOUR PHOTO…' : 'CHOP IS READING…'}
+            {showMathOffer ? 'YOUR CARDS ARE READY!' : phase === 'transcribing' ? 'CHOP IS READING YOUR PHOTO…' : 'CHOP IS READING…'}
           </Text>
           <Text style={[styles.processingBody, { color: c.subtle }]}>
-            {phase === 'transcribing'
-              ? 'Turning the photo into text you can check and edit.'
-              : 'Building your flashcards, questions, and study plan.'}
+            {showMathOffer
+              ? 'One quick question before you start.'
+              : phase === 'transcribing'
+                ? 'Turning the photo into text you can check and edit.'
+                : 'Building your flashcards, questions, and study plan.'}
           </Text>
-          {phase === 'processing' && (
+          {phase === 'processing' && !showMathOffer && (
             <>
               <View style={[styles.etaBar, { borderColor: c.dark, backgroundColor: c.secondary }]}>
                 <View style={[styles.etaFill, { width: `${Math.min(100, ((50 - etaLeft) / 50) * 100)}%`, backgroundColor: c.primary }]} />
@@ -224,6 +248,7 @@ export default function Material() {
             </>
           )}
         </View>
+        <MathDetectModal visible={showMathOffer} onChoose={chooseMathTop3} />
       </View>
     );
   }
@@ -270,13 +295,13 @@ export default function Material() {
           }}
           style={[styles.sampleBtn, { borderColor: c.dark, backgroundColor: c.purpleLight }]}>
           <Text style={[styles.sampleBtnText, { color: c.dark }]}>
-            🧪 Just looking? Try a sample: Easy Chemistry
+            Just looking? Try a sample: Easy Chemistry
           </Text>
         </Pressable>
 
         {/* Mode tabs — the prototype's PASTE TEXT / PDF / PHOTO */}
         <View style={styles.modeRow}>
-          {([['paste', '✍️ PASTE TEXT'], ['pdf', '📄 PDF'], ['photo', '📷 PHOTO']] as const).map(([m, label]) => (
+          {([['paste', 'edit-3', 'PASTE TEXT'], ['pdf', 'file-text', 'PDF'], ['photo', 'camera', 'PHOTO']] as const).map(([m, icon, label]) => (
             <Pressable
               key={m}
               onPress={() => setMode(m)}
@@ -284,7 +309,10 @@ export default function Material() {
                 styles.modeTab,
                 { borderColor: c.dark, backgroundColor: mode === m ? c.primary : c.card },
               ]}>
-              <Text style={[styles.modeTabText, { color: mode === m ? '#fff' : c.dark }]}>{label}</Text>
+              <View style={styles.modeTabInner}>
+                <Feather name={icon} size={13} color={mode === m ? '#fff' : c.dark} />
+                <Text style={[styles.modeTabText, { color: mode === m ? '#fff' : c.dark }]}>{label}</Text>
+              </View>
             </Pressable>
           ))}
         </View>
@@ -302,9 +330,9 @@ export default function Material() {
         )}
         {mode === 'pdf' && (
           <View style={[styles.dropCard, { borderColor: c.dark, backgroundColor: c.card }]}>
-            <Text style={styles.dropEmojiSm}>📄</Text>
+            <Feather name="file-text" size={34} color={c.muted} />
             <Text style={[styles.dropStatus, { color: c.subtle }]}>
-              {notes.trim() ? `${notes.length} characters ready — check them in Paste Text` : 'No PDF chosen yet'}
+              {notes.trim() ? `${notes.trim().length} characters ready — check them in Paste Text` : 'No PDF chosen yet'}
             </Text>
             <Text style={[styles.dropHint, { color: c.muted }]}>
               Chop reads the pages and turns them into editable text first.
@@ -318,9 +346,9 @@ export default function Material() {
         )}
         {mode === 'photo' && (
           <View style={[styles.dropCard, { borderColor: c.dark, backgroundColor: c.card }]}>
-            <Text style={styles.dropEmojiSm}>📷</Text>
+            <Feather name="camera" size={34} color={c.muted} />
             <Text style={[styles.dropStatus, { color: c.subtle }]}>
-              {notes.trim() ? `${notes.length} characters ready — check them in Paste Text` : 'No photo chosen yet'}
+              {notes.trim() ? `${notes.trim().length} characters ready — check them in Paste Text` : 'No photo chosen yet'}
             </Text>
             <Text style={[styles.dropHint, { color: c.muted }]}>
               Snap your handwritten notes or a textbook page — Chop will read the text off it.
@@ -334,7 +362,7 @@ export default function Material() {
         )}
 
         <Text style={[styles.charCount, { color: notes.length >= 30 ? c.green : c.muted }]}>
-          {notes.length >= 30 ? `${notes.length} chars — ready!` : `${notes.length}/30 chars minimum`}
+          {notes.trim().length >= 30 ? `${notes.trim().length} chars — ready!` : `${notes.trim().length}/30 chars minimum`}
         </Text>
 
         <Pressable
@@ -347,7 +375,9 @@ export default function Material() {
           <Text style={[styles.btnText, { color: isReady ? '#fff' : c.muted }]}>LET CHOP ANALYSE →</Text>
         </Pressable>
 
-        <Pressable onPress={() => router.replace('/(tabs)')} style={styles.skipLink}>
+        <Pressable
+          onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)'))}
+          style={styles.skipLink}>
           <Text style={[styles.skipText, { color: c.muted }]}>
             {state.library && state.library.length > 0 ? 'skip — use existing material' : 'skip for now — look around first'}
           </Text>
@@ -355,7 +385,7 @@ export default function Material() {
       </ScrollView>
       {dragging && (
         <View style={[styles.dropOverlay, { borderColor: c.primary }]} pointerEvents="none">
-          <Text style={styles.dropEmoji}>📄</Text>
+          <Feather name="file-plus" size={44} color={c.primary} />
           <Text style={[styles.dropTitle, { color: c.primary }]}>Drop it!</Text>
           <Text style={[styles.dropSub, { color: c.dark }]}>Photo, PDF, or text file — Chop will read it.</Text>
         </View>
@@ -367,6 +397,7 @@ export default function Material() {
 const styles = StyleSheet.create({
   modeRow: { flexDirection: 'row', gap: 8 },
   modeTab: { flex: 1, borderWidth: 3, paddingVertical: 11, alignItems: 'center' },
+  modeTabInner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
   modeTabText: { fontWeight: '900', fontSize: 12 },
   dropCard: {
     borderWidth: 3, borderStyle: 'dashed', padding: 26, alignItems: 'center', gap: 8,

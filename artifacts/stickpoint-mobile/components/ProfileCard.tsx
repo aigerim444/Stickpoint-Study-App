@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Platform, Pressable, Share, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import { Feather } from '@expo/vector-icons';
 import { useApp } from '@/context/AppContext';
 import colors from '@/constants/colors';
 
@@ -94,7 +95,10 @@ export default function ProfileCard() {
                 setEditing(true);
               }}
               style={[styles.smallBtn, { backgroundColor: c.card, borderColor: c.dark }]}>
-              <Text style={[styles.smallBtnText, { color: c.dark }]}>✏️ EDIT</Text>
+              <View style={styles.btnInner}>
+                <Feather name="edit-2" size={12} color={c.dark} />
+                <Text style={[styles.smallBtnText, { color: c.dark }]}>EDIT</Text>
+              </View>
             </Pressable>
           </View>
         )}
@@ -103,7 +107,10 @@ export default function ProfileCard() {
       {/* Sounds */}
       <View style={[styles.card, styles.row, { borderColor: c.dark }]}>
         <View style={{ flex: 1 }}>
-          <Text style={[styles.value, { color: c.dark }]}>{state.soundOn ? '🔊' : '🔇'} Study sounds</Text>
+          <View style={styles.btnInner}>
+            <Feather name={state.soundOn ? 'volume-2' : 'volume-x'} size={15} color={c.dark} />
+            <Text style={[styles.value, { color: c.dark }]}>Study sounds</Text>
+          </View>
           <Text style={[styles.sub, { color: c.muted }]}>Chimes when you get answers right</Text>
         </View>
         <Switch
@@ -121,7 +128,10 @@ export default function ProfileCard() {
           setTourSeen(false);
         }}
         style={[styles.card, { borderColor: c.dark, alignItems: 'center' }]}>
-        <Text style={[styles.value, { color: c.dark }]}>🎓 REPLAY APP TOUR</Text>
+        <View style={styles.btnInner}>
+          <Feather name="rotate-ccw" size={14} color={c.dark} />
+          <Text style={[styles.value, { color: c.dark }]}>REPLAY APP TOUR</Text>
+        </View>
       </Pressable>
 
       {/* Share */}
@@ -129,7 +139,10 @@ export default function ProfileCard() {
         <Text style={[styles.shareTitle, { color: c.primary }]}>KNOW SOMEONE WHO SHOULD STUDY SMARTER?</Text>
         <Text style={[styles.sub, { color: c.subtle }]}>Send them Stickpoint — it's free to use.</Text>
         <Pressable onPress={share} style={[styles.shareBtn, { backgroundColor: c.primary, borderColor: c.dark }]}>
-          <Text style={styles.shareBtnText}>{shared ? '✅ LINK COPIED!' : '💌 SEND STICKPOINT'}</Text>
+          <View style={styles.btnInner}>
+            <Feather name={shared ? 'check' : 'send'} size={14} color="#fff" />
+            <Text style={styles.shareBtnText}>{shared ? 'LINK COPIED!' : 'SEND STICKPOINT'}</Text>
+          </View>
         </Pressable>
       </View>
     </View>
@@ -142,6 +155,7 @@ const styles = StyleSheet.create({
     boxShadow: '3px 3px 0px #201E2E',
   },
   row: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  btnInner: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   label: { fontSize: 10, fontWeight: '900', letterSpacing: 1.5 },
   value: { fontSize: 15, fontWeight: '900', marginTop: 2 },
   sub: { fontSize: 12, fontWeight: '700', marginTop: 2 },

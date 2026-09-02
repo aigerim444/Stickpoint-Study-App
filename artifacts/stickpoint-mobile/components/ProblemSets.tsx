@@ -1,20 +1,35 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator, Alert, BackHandler, Pressable, ScrollView,
+  ActivityIndicator, Alert, BackHandler, Platform, Pressable, ScrollView,
   StyleSheet, Text, TextInput, View,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import EtaBar from '@/components/EtaBar';
+import DrawPad, { DrawPadHandle } from '@/components/DrawPad';
 import { useNavigation } from 'expo-router';
 import { useColors } from '@/hooks/useColors';
 import {
   generateProblemSets, gradeProblemStep,
-  PsSkill, PsFigure, PsGradeResult,
+  PsSkill, PsFigure, PsGradeResult, markProblemDrawing,
 } from '@/lib/api';
 import { Card } from '@/lib/content';
 
 const PS_CACHE_VERSION = 'ps_v1';
+
+/** RN Alert with buttons is a silent no-op on web — every confirm here
+ * (leave problem, regenerate, ...) needs the window.confirm fallback. */
+function confirmAction(title: string, message: string, confirmLabel: string, onConfirm: () => void) {
+  if (Platform.OS === 'web') {
+    if (window.confirm(message ? `${title}\n\n${message}` : title)) onConfirm();
+  } else {
+    Alert.alert(title, message, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: confirmLabel, style: 'destructive', onPress: onConfirm },
+    ]);
+  }
+}
 
 /** djb2 hash — fast, no dependencies, good enough for a cache key */
 function hashNotes(s: string): string {
@@ -166,6 +181,10 @@ export default function ProblemSets({ notes, isMath, name, age, onComplete, onBa
   const colors = useColors();
   const navigation = useNavigation();
   const [phase, setPhase] = useState<Phase>('gen');
+  const [workMode, setWorkMode] = useState<'type' | 'draw'>('type');
+  const [drawAnswer, setDrawAnswer] = useState('');
+  const [hasDrawn, setHasDrawn] = useState(false);
+  const padRef = useRef<DrawPadHandle>(null);
   const [sess, setSess] = useState<SessionState>({
     skills: [], skillIdx: 0, stepsShown: 1, pIdx: 0,
     work: '', result: null, attempts: {}, solved: {}, errorTypes: {},
@@ -255,7 +274,8 @@ export default function ProblemSets({ notes, isMath, name, age, onComplete, onBa
 
     const hasWork = sess.work.trim().length > 0;
 
-    // Android: hardware back button
+    // Android: hardware back button (web stub just logs errors — skip it)
+    if (Platform.OS === 'web') return;
     const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
       if (hasWork) {
         Alert.alert(
@@ -280,21 +300,10 @@ export default function ProblemSets({ notes, isMath, name, age, onComplete, onBa
     if (hasWork) {
       unsubscribe = navigation.addListener('beforeRemove' as any, (e: any) => {
         e.preventDefault();
-        Alert.alert(
-          'Leave this problem?',
-          'Your working will not be saved.',
-          [
-            { text: 'Stay', style: 'cancel' },
-            {
-              text: 'Leave',
-              style: 'destructive',
-              onPress: () => {
-                update({ work: '', result: null });
-                setPhase('pick');
-              },
-            },
-          ],
-        );
+        confirmAction('Leave this problem?', 'Your working will not be saved.', 'Leave', () => {
+          update({ work: '', result: null });
+          setPhase('pick');
+        });
       });
     }
 
@@ -322,15 +331,48 @@ export default function ProblemSets({ notes, isMath, name, age, onComplete, onBa
     setPhase('solve');
   }, [update]);
 
+  // Web refresh/close guard while the student has unsubmitted work.
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    const dirty = phase === 'solve' && (sess.work.trim().length > 0 || hasDrawn);
+    if (!dirty) return;
+    const h = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ''; };
+    window.addEventListener('beforeunload', h);
+    return () => window.removeEventListener('beforeunload', h);
+  }, [phase, sess.work, hasDrawn]);
+
+  // The pad remounts blank every time the solve screen appears (grading and
+  // marked phases unmount it), so the dirty flag must reset with it — a
+  // stale true left SUBMIT enabled over an empty canvas after a failed
+  // grade or FIX MY ERROR.
+  useEffect(() => {
+    if (phase === 'solve') setHasDrawn(false);
+  }, [phase]);
+  useEffect(() => {
+    setDrawAnswer('');
+    setHasDrawn(false);
+  }, [sess.pIdx, sess.skillIdx]);
+
   // ── SOLVE ─────────────────────────────────────────────────────────────────
   const submit = useCallback(async () => {
-    const lines = sess.work.split('\n').map((l) => l.trim()).filter(Boolean);
-    if (!lines.length) return;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setPhase('grading');
     const skill = sess.skills[sess.skillIdx];
     const prob = skill.practice[sess.pIdx];
-    const res = await gradeProblemStep(skill.skill, prob.problem, prob.answer, lines, name, age);
+    let res: PsGradeResult | null;
+    if (workMode === 'draw') {
+      // Snapshot the strokes BEFORE leaving the phase — the canvas
+      // unmounts as soon as we switch to 'grading'.
+      const img = padRef.current?.toPngBase64();
+      if (!img) return;
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      setPhase('grading');
+      res = await markProblemDrawing(skill.skill, prob.problem, prob.answer, img, drawAnswer, name, age);
+    } else {
+      const lines = sess.work.split('\n').map((l) => l.trim()).filter(Boolean);
+      if (!lines.length) return;
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      setPhase('grading');
+      res = await gradeProblemStep(skill.skill, prob.problem, prob.answer, lines, name, age);
+    }
     if (!res) {
       update({ gradeError: true });
       setPhase('solve');
@@ -350,25 +392,32 @@ export default function ProblemSets({ notes, isMath, name, age, onComplete, onBa
     setPhase('marked');
     // Persist progress so ✓ DONE badges survive across sessions
     saveProgress(notes, { solved, errorTypes, attempts });
-  }, [sess, name, age, notes, update]);
+  }, [sess, workMode, drawAnswer, name, age, notes, update]);
 
   const fixIt = useCallback(() => {
     const r = sess.result;
-    const kept = r?.errLine ? r.lines.slice(0, r.errLine - 1) : [];
+    // Drawn work can't be spliced line-by-line — the server's lines are a
+    // placeholder — so a draw-mode retry starts from a clean canvas.
+    const kept = workMode === 'draw' ? [] : r?.errLine ? r.lines.slice(0, r.errLine - 1) : [];
     update({ work: kept.length ? kept.join('\n') + '\n' : '', result: null, gradeError: false, showHint: false });
     setPhase('solve');
-  }, [sess.result, update]);
+  }, [sess.result, workMode, update]);
 
   const nextProblem = useCallback(() => {
     const skill = sess.skills[sess.skillIdx];
     if (sess.pIdx + 1 >= skill.practice.length) {
       setPhase('summary');
-      // collect hard cards from errorTypes
-      const hard: Card[] = Object.entries(sess.errorTypes).map(([type]) => ({
-        question: `Fix your ${type} errors`,
-        answer: `Review: ${skill.skill}`,
-        methodTag: 'problem_sets',
-      }));
+      // Drill cards = the actual problems the student attempted but never
+      // solved, not pseudo-cards named after error types.
+      const hard: Card[] = [];
+      sess.skills.forEach((sk, si) => {
+        sk.practice.forEach((p, pi) => {
+          const key = `${si}:${pi}`;
+          if ((sess.attempts[key] || 0) > 0 && !sess.solved[key]) {
+            hard.push({ question: p.problem, answer: p.answer, methodTag: 'problem_sets' });
+          }
+        });
+      });
       onComplete(hard);
       return;
     }
@@ -378,13 +427,8 @@ export default function ProblemSets({ notes, isMath, name, age, onComplete, onBa
 
   const backToSkills = useCallback(() => {
     if (phase === 'solve' && sess.work.trim().length > 0) {
-      Alert.alert(
-        'Leave this problem?',
-        'Your working will not be saved.',
-        [
-          { text: 'Stay', style: 'cancel' },
-          { text: 'Leave', style: 'destructive', onPress: () => { update({ work: '', result: null }); setPhase('pick'); } },
-        ],
+      confirmAction('Leave this problem?', 'Your working will not be saved.', 'Leave',
+        () => { update({ work: '', result: null }); setPhase('pick'); },
       );
       return;
     }
@@ -440,13 +484,11 @@ export default function ProblemSets({ notes, isMath, name, age, onComplete, onBa
   }, [notes, name, age]);
 
   const regenerate = useCallback(() => {
-    Alert.alert(
+    confirmAction(
       'Regenerate questions?',
       'This will clear your current progress and fetch fresh questions. Continue?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Regenerate', style: 'destructive', onPress: doRegenerate },
-      ],
+      'Regenerate',
+      doRegenerate,
     );
   }, [doRegenerate]);
 
@@ -463,6 +505,7 @@ export default function ProblemSets({ notes, isMath, name, age, onComplete, onBa
       <View style={[styles.center, { flex: 1, backgroundColor: colors.background, gap: 16 }]}>
         <ActivityIndicator size="large" color={colors.primary} />
         <Text style={[styles.label, { color: colors.muted }]}>BUILDING YOUR PROBLEM SET…</Text>
+        <EtaBar seconds={45} />
         <Text style={[styles.hint, { color: colors.subtle, textAlign: 'center', paddingHorizontal: 32 }]}>
           Chop is finding the problem types in your notes and writing worked examples. This takes about a minute.
         </Text>
@@ -597,13 +640,7 @@ export default function ProblemSets({ notes, isMath, name, age, onComplete, onBa
         <Pressable
           onPress={() => {
             if (sess.stepsShown > 1) {
-              Alert.alert(
-                'Leave the worked example?',
-                '',
-                [
-                  { text: 'Stay', style: 'cancel' },
-                  { text: 'Leave', style: 'destructive', onPress: onBack },
-                ],
+              confirmAction('Leave the worked example?', '', 'Leave', onBack
               );
             } else {
               onBack();
@@ -621,7 +658,10 @@ export default function ProblemSets({ notes, isMath, name, age, onComplete, onBa
     return (
       <View style={[styles.center, { flex: 1, gap: 14, backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={[styles.label, { color: colors.muted }]}>CHOP IS MARKING…</Text>
+        <Text style={[styles.label, { color: colors.muted }]}>
+          {workMode === 'draw' ? 'CHOP IS READING YOUR HANDWRITING…' : 'CHOP IS MARKING…'}
+        </Text>
+        <EtaBar seconds={workMode === 'draw' ? 14 : 8} />
       </View>
     );
   }
@@ -629,7 +669,7 @@ export default function ProblemSets({ notes, isMath, name, age, onComplete, onBa
   if (phase === 'solve') {
     const skill = sess.skills[sess.skillIdx];
     const prob = skill.practice[sess.pIdx];
-    const canSubmit = sess.work.split('\n').some((l) => l.trim().length > 0);
+    const canSubmit = workMode === 'draw' ? hasDrawn : sess.work.split('\n').some((l) => l.trim().length > 0);
     return (
       <ScrollView contentContainerStyle={[styles.container, { paddingBottom: 40 }]} keyboardShouldPersistTaps="handled">
         <View style={styles.phaseRow}>
@@ -650,22 +690,58 @@ export default function ProblemSets({ notes, isMath, name, age, onComplete, onBa
           {prob.figure && <Figure fig={prob.figure} />}
         </View>
 
-        <Text style={[styles.hint, { color: colors.subtle }]}>
-          Write one step per line. Press submit when done.
-        </Text>
+        {/* TYPE / DRAW input modes — the prototype had both */}
+        <View style={styles.inputModeRow}>
+          <Pressable
+            onPress={() => setWorkMode('type')}
+            style={[styles.inputModeBtn, { borderColor: colors.dark, backgroundColor: workMode === 'type' ? colors.dark : colors.card }]}>
+            <Feather name="type" size={13} color={workMode === 'type' ? '#fff' : colors.dark} />
+            <Text style={[styles.inputModeText, { color: workMode === 'type' ? '#fff' : colors.dark }]}>TYPE</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => setWorkMode('draw')}
+            style={[styles.inputModeBtn, { borderColor: colors.dark, backgroundColor: workMode === 'draw' ? colors.dark : colors.card }]}>
+            <Feather name="edit-3" size={13} color={workMode === 'draw' ? '#fff' : colors.dark} />
+            <Text style={[styles.inputModeText, { color: workMode === 'draw' ? '#fff' : colors.dark }]}>DRAW</Text>
+          </Pressable>
+        </View>
 
-        <TextInput
-          style={[styles.workInput, { borderColor: colors.dark, color: colors.dark, backgroundColor: colors.card }]}
-          value={sess.work}
-          onChangeText={(t) => update({ work: t, gradeError: false })}
-          multiline
-          placeholder={'Step 1\nStep 2\nStep 3…'}
-          placeholderTextColor={colors.muted}
-          textAlignVertical="top"
-          autoFocus
-          autoCorrect={false}
-          autoCapitalize="none"
-        />
+        {workMode === 'type' ? (
+          <>
+            <Text style={[styles.hint, { color: colors.subtle }]}>
+              Write one step per line. Chop checks every line, not just the answer.
+            </Text>
+            <TextInput
+              style={[styles.workInput, { borderColor: colors.dark, color: colors.dark, backgroundColor: colors.card }]}
+              value={sess.work}
+              onChangeText={(t) => update({ work: t, gradeError: false })}
+              multiline
+              placeholder={'Step 1\nStep 2\nStep 3…'}
+              placeholderTextColor={colors.muted}
+              textAlignVertical="top"
+              autoFocus
+              autoCorrect={false}
+              autoCapitalize="none"
+            />
+          </>
+        ) : (
+          <>
+            <Text style={[styles.hint, { color: colors.subtle }]}>
+              Draw your work below. Chop reads your handwriting and checks each step.
+            </Text>
+            <DrawPad ref={padRef} onDirtyChange={setHasDrawn} />
+            <Text style={[styles.miniLabel, { color: colors.muted }]}>YOUR FINAL ANSWER (OPTIONAL)</Text>
+            <TextInput
+              style={[styles.finalAnswerInput, { borderColor: colors.dark, color: colors.dark, backgroundColor: colors.card }]}
+              value={drawAnswer}
+              onChangeText={setDrawAnswer}
+              placeholder="e.g.  x = -2  or  x = -3"
+              placeholderTextColor={colors.muted}
+              autoCorrect={false}
+              autoCapitalize="none"
+            />
+          </>
+        )}
 
         {!sess.showHint && prob.hint ? (
           <Pressable
@@ -676,7 +752,7 @@ export default function ProblemSets({ notes, isMath, name, age, onComplete, onBa
           </Pressable>
         ) : sess.showHint && prob.hint ? (
           <View style={[styles.hintCard, { borderColor: colors.yellow, backgroundColor: '#FFF3DE' }]}>
-            <Text style={[styles.miniLabel, { color: colors.dark }]}>💡 HINT</Text>
+            <Text style={[styles.miniLabel, { color: colors.dark }]}>HINT</Text>
             <Text style={[styles.hintText, { color: colors.dark }]}>{prob.hint}</Text>
           </View>
         ) : null}
@@ -697,13 +773,7 @@ export default function ProblemSets({ notes, isMath, name, age, onComplete, onBa
         <Pressable
           onPress={() => {
             if (sess.work.trim().length > 0) {
-              Alert.alert(
-                'Leave this problem?',
-                'Your working will not be saved.',
-                [
-                  { text: 'Stay', style: 'cancel' },
-                  { text: 'Leave', style: 'destructive', onPress: onBack },
-                ],
+              confirmAction('Leave this problem?', 'Your working will not be saved.', 'Leave', onBack
               );
             } else {
               onBack();
@@ -744,6 +814,7 @@ export default function ProblemSets({ notes, isMath, name, age, onComplete, onBa
           </View>
         ) : null}
 
+        {!(r.lines.length === 1 && r.lines[0].startsWith('(drawn work')) && (
         <View style={[styles.workReview, { borderColor: colors.secondary }]}>
           <Text style={[styles.miniLabel, { color: colors.muted }]}>YOUR WORKING</Text>
           {r.lines.map((line, i) => {
@@ -764,6 +835,7 @@ export default function ProblemSets({ notes, isMath, name, age, onComplete, onBa
             );
           })}
         </View>
+        )}
 
         {!correct && (
           <Pressable onPress={fixIt} style={[styles.btn, { backgroundColor: colors.yellow, borderColor: colors.dark }]}>
@@ -816,7 +888,7 @@ export default function ProblemSets({ notes, isMath, name, age, onComplete, onBa
 
       {topErrors.length === 0 && (
         <View style={[styles.card, { borderColor: colors.primary }]}>
-          <Text style={[styles.body, { color: colors.dark }]}>No errors this session — nice work! 🎉</Text>
+          <Text style={[styles.body, { color: colors.dark }]}>No errors this session — nice work!</Text>
         </View>
       )}
 
@@ -866,6 +938,13 @@ const styles = StyleSheet.create({
     borderWidth: 3, padding: 14, fontSize: 15, fontWeight: '600', minHeight: 160,
     lineHeight: 24, fontFamily: 'monospace',
   },
+  inputModeRow: { flexDirection: 'row', gap: 8 },
+  inputModeBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    borderWidth: 2.5, paddingVertical: 9, paddingHorizontal: 16,
+  },
+  inputModeText: { fontWeight: '900', fontSize: 12 },
+  finalAnswerInput: { borderWidth: 3, padding: 12, fontSize: 15, fontWeight: '700' },
   hintBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 2, paddingHorizontal: 14, paddingVertical: 10, alignSelf: 'flex-start' },
   hintBtnText: { fontWeight: '900', fontSize: 12, letterSpacing: 0.5 },
   hintCard: { borderWidth: 3, padding: 14, gap: 6 },

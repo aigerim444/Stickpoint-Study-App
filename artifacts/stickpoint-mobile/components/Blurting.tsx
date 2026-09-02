@@ -24,6 +24,7 @@ export default function Blurting({ topic, notes, name, age, onComplete, onBack }
   const [missed, setMissed] = useState<string[]>([]);
   const [scorePct, setScorePct] = useState(0);
   const [attempt, setAttempt] = useState(1);
+  const [gradeError, setGradeError] = useState(false);
   // The web flow blurts one extracted topic at a time, not the whole
   // material at once. Falls back to the single material topic if the
   // topic extraction is unavailable.
@@ -55,11 +56,17 @@ export default function Blurting({ topic, notes, name, age, onComplete, onBack }
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setPhase('grading');
     const result = await gradeBlurt(blurt, notes, currentTopic, name, age);
-    if (result) {
-      setCovered(result.covered || []);
-      setMissed(result.missed || []);
-      setScorePct(result.scorePct || 0);
+    if (!result) {
+      // Grading failed — keep the student's writing and say so, instead of
+      // rendering a fabricated 0% (or the previous attempt's numbers).
+      setGradeError(true);
+      setPhase('write');
+      return;
     }
+    setGradeError(false);
+    setCovered(result.covered || []);
+    setMissed(result.missed || []);
+    setScorePct(result.scorePct || 0);
     setPhase('results');
   }, [blurt, notes, currentTopic, name, age]);
 
@@ -184,6 +191,11 @@ export default function Blurting({ topic, notes, name, age, onComplete, onBack }
         autoFocus
       />
       <Text style={[styles.charCount, { color: colors.muted }]}>{blurt.length} characters</Text>
+      {gradeError && (
+        <Text style={{ color: colors.red, fontWeight: '800', fontSize: 13, textAlign: 'center' }}>
+          Couldn't check that — your writing is safe. Check your connection and submit again.
+        </Text>
+      )}
       <Pressable
         onPress={submit}
         disabled={blurt.trim().length < 10}
