@@ -166,15 +166,15 @@ export default function AccountCard({ startInEmailMode = false }: { startInEmail
       <View style={[styles.card, { borderColor: c.dark }]}>
         <Text style={[styles.title, { color: c.dark }]}>Check your email</Text>
         <Text style={[styles.body, { color: c.subtle }]}>
-          We sent a 6-digit code to {email.trim()}. Type it here:
+          We emailed a sign-in code to {email.trim()}. Type it here:
         </Text>
         <TextInput
           style={[styles.input, { borderColor: c.dark, color: c.dark, backgroundColor: c.card }]}
           value={code}
           onChangeText={setCode}
           keyboardType="number-pad"
-          maxLength={6}
-          placeholder="000000"
+          maxLength={10}
+          placeholder="12345678"
           placeholderTextColor={c.muted}
           autoFocus
         />
