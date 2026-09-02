@@ -65,10 +65,16 @@ export default function Material() {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = accept || 'image/png,image/jpeg,image/webp,application/pdf,text/plain,.txt,.md';
+    input.style.display = 'none';
     input.onchange = () => {
       const f = input.files?.[0];
+      input.remove();
       if (f) handleDroppedFile(f);
     };
+    // Detached inputs get garbage-collected mid-pick in Safari — the
+    // dialog opens but the chosen file never arrives. Attach it first.
+    (input as HTMLInputElement & { oncancel: (() => void) | null }).oncancel = () => input.remove();
+    document.body.appendChild(input);
     input.click();
   };
 
