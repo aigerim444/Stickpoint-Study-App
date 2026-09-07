@@ -651,7 +651,7 @@
             <div class="avatar-stack" aria-hidden="true">
               <span></span><span></span><span></span><span></span>
             </div>
-            <p class="proof-text">Join the students already on the list</p>
+            <p class="proof-text" id="proof-text">Join the students already on the list</p>
           </div>
 
           <div class="legal">
@@ -874,6 +874,21 @@
     </div>
 
     <script>
+      // ── Waitlist count ───────────────────────────────────────────────
+      // There is no live signup count here: this is a static page with no
+      // backend of its own, and Formspree's submission count isn't
+      // publicly readable. Bump WAITLIST_SIGNUP_COUNT by hand whenever you
+      // check the Formspree dashboard. The line only switches to "N+
+      // students" once the real count passes 30, and N always rounds down
+      // to the nearest 10, so it advances 30+, 40+, 50+... on its own from
+      // this one number without needing separate copy for each threshold.
+      const WAITLIST_SIGNUP_COUNT = 0;
+      const proofTextEl = document.getElementById("proof-text");
+      if (proofTextEl && WAITLIST_SIGNUP_COUNT >= 30) {
+        const rounded = Math.floor(WAITLIST_SIGNUP_COUNT / 10) * 10;
+        proofTextEl.textContent = "Join " + rounded + "+ students already on the list";
+      }
+
       // ── Tabs ──────────────────────────────────────────────────────────
       const tabButtons = Array.from(document.querySelectorAll(".tab-btn"));
       const panels = Array.from(document.querySelectorAll(".panel"));
